@@ -1,0 +1,407 @@
+'use client';
+
+import { AdminSidebar } from "@/components/AdminSidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { LogoutButton } from "@/components/LogoutButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Search, Users, Mail, BookOpen, Award, Settings, Eye, Edit, Trash2, Plus, Minus, CheckCircle, XCircle } from "lucide-react";
+import { mockStudents, mockCourses } from "@/mocks/data";
+
+export default function AdminStudentsPage() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [students, setStudents] = useState(mockStudents);
+  const [courses] = useState(mockCourses);
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+      if (user.role !== 'admin') {
+        router.push('/');
+        return;
+      }
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+          <p className="mt-2">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== 'admin') {
+    return null;
+  }
+
+  const filteredStudents = students.filter(student =>
+    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const selectedStudentData = selectedStudent ? students.find(s => s.id === selectedStudent) : null;
+
+  const handleAssignCourse = (courseId: string) => {
+    if (!selectedStudent) return;
+    
+    setStudents(prev => prev.map(student => 
+      student.id === selectedStudent 
+        ? { ...student, ownedCourseIds: [...student.ownedCourseIds, courseId] }
+        : student
+    ));
+  };
+
+  const handleRemoveCourse = (courseId: string) => {
+    if (!selectedStudent) return;
+    
+    setStudents(prev => prev.map(student => 
+      student.id === selectedStudent 
+        ? { ...student, ownedCourseIds: student.ownedCourseIds.filter(id => id !== courseId) }
+        : student
+    ));
+  };
+
+  const handleToggleAvailableCourse = (courseId: string) => {
+    if (!selectedStudent) return;
+    
+    setStudents(prev => prev.map(student => 
+      student.id === selectedStudent 
+        ? { 
+            ...student, 
+            availableCourseIds: student.availableCourseIds.includes(courseId)
+              ? student.availableCourseIds.filter(id => id !== courseId)
+              : [...student.availableCourseIds, courseId]
+          }
+        : student
+    ));
+  };
+
+  const openConfigDialog = (studentId: string) => {
+    setSelectedStudent(studentId);
+    setIsConfigDialogOpen(true);
+  };
+
+  return (
+    <div className="relative">
+      <AdminSidebar />
+      <main className="space-y-8 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white transition-all duration-200">
+              <Link href="/admin" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Voltar
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-blue-200 flex items-center gap-3">
+                <Users className="w-8 h-8" />
+                Gestão de Alunos
+              </h1>
+              <p className="text-blue-300 mt-1">
+                Gerencie alunos e suas atribuições de cursos
+              </p>
+            </div>
+          </div>
+          <LogoutButton />
+        </div>
+
+        {/* Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">{students.length}</div>
+                  <div className="text-blue-200 text-sm">Total de Alunos</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">
+                    {students.reduce((acc, student) => acc + student.ownedCourseIds.length, 0)}
+                  </div>
+                  <div className="text-blue-200 text-sm">Cursos Atribuídos</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
+                  <Award className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">24</div>
+                  <div className="text-blue-200 text-sm">Certificados Emitidos</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <Settings className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">12</div>
+                  <div className="text-blue-200 text-sm">Novos Esta Semana</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Busca e Filtros */}
+        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+          <CardHeader>
+            <CardTitle className="text-blue-200">Buscar Alunos</CardTitle>
+            <CardDescription className="text-blue-300">
+              Encontre alunos por nome ou email
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-300" />
+              <Input
+                placeholder="Buscar por nome ou email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/20 transition-all duration-200"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabela de Alunos */}
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-blue-200">Lista de Alunos</h2>
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left p-4 text-blue-200 font-medium">Aluno</th>
+                      <th className="text-left p-4 text-blue-200 font-medium">Email</th>
+                      <th className="text-left p-4 text-blue-200 font-medium">Cursos Possuídos</th>
+                      <th className="text-left p-4 text-blue-200 font-medium">Cursos Disponíveis</th>
+                      <th className="text-left p-4 text-blue-200 font-medium">Status</th>
+                      <th className="text-left p-4 text-blue-200 font-medium">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map((student) => (
+                      <tr key={student.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                              <Users className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">{student.name}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <p className="text-blue-300 text-sm">{student.email}</p>
+                        </td>
+                        <td className="p-4">
+                          <Badge className="bg-blue-600/20 text-blue-200">
+                            {student.ownedCourseIds.length} cursos
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Badge className="bg-orange-600/20 text-orange-200">
+                            {student.availableCourseIds.length} cursos
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline" className="bg-green-500/20 text-green-200 border-green-500/50">
+                            Ativo
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                              onClick={() => openConfigDialog(student.id)}
+                            >
+                              <Settings className="w-4 h-4 mr-1" />
+                              Configurar
+                            </Button>
+                            <Button size="sm" variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Dialog de Configuração */}
+        <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+          <DialogContent className="max-w-4xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-blue-200 text-xl">
+                Configurar Cursos - {selectedStudentData?.name}
+              </DialogTitle>
+              <DialogDescription className="text-blue-300">
+                Gerencie quais cursos este aluno possui e quais aparecem como disponíveis
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedStudentData && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                {/* Cursos Possuídos */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-blue-200 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    Cursos Possuídos ({selectedStudentData.ownedCourseIds.length})
+                  </h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {selectedStudentData.ownedCourseIds.map((courseId) => {
+                      const course = courses.find(c => c.id === courseId);
+                      if (!course) return null;
+                      return (
+                        <div key={courseId} className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                          <div className="flex items-center gap-3">
+                            <CheckCircle className="w-4 h-4 text-green-400" />
+                            <div>
+                              <p className="text-white font-medium">{course.title}</p>
+                              <p className="text-blue-300 text-sm">{course.shortDesc}</p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200"
+                            onClick={() => handleRemoveCourse(courseId)}
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Cursos Disponíveis */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-blue-200 flex items-center gap-2">
+                    <XCircle className="w-5 h-5 text-orange-400" />
+                    Cursos Disponíveis ({selectedStudentData.availableCourseIds.length})
+                  </h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {selectedStudentData.availableCourseIds.map((courseId) => {
+                      const course = courses.find(c => c.id === courseId);
+                      if (!course) return null;
+                      return (
+                        <div key={courseId} className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/30">
+                          <div className="flex items-center gap-3">
+                            <XCircle className="w-4 h-4 text-orange-400" />
+                            <div>
+                              <p className="text-white font-medium">{course.title}</p>
+                              <p className="text-blue-300 text-sm">{course.shortDesc}</p>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleAssignCourse(courseId)}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Todos os Cursos para Configurar Disponíveis */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-blue-200 mb-4">Configurar Cursos Disponíveis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto">
+                {courses.map((course) => (
+                  <div key={course.id} className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
+                    <Checkbox
+                      id={`available-${course.id}`}
+                      checked={selectedStudentData?.availableCourseIds.includes(course.id) || false}
+                      onCheckedChange={() => handleToggleAvailableCourse(course.id)}
+                      className="bg-white/15 border-white/40"
+                    />
+                    <label htmlFor={`available-${course.id}`} className="flex-1 cursor-pointer">
+                      <p className="text-white font-medium">{course.title}</p>
+                      <p className="text-blue-300 text-sm">{course.shortDesc}</p>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button 
+                variant="outline" 
+                className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
+                onClick={() => setIsConfigDialogOpen(false)}
+              >
+                Fechar
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                onClick={() => setIsConfigDialogOpen(false)}
+              >
+                Salvar Configurações
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </main>
+    </div>
+  );
+}
