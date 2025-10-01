@@ -4,7 +4,6 @@ import { AdminSidebar } from "@/components/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -12,12 +11,40 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Settings, Save, RefreshCw, Shield, Globe, Database, Key, Bell } from "lucide-react";
+import { ArrowLeft, Settings, Save, RefreshCw, Shield, Globe, Bell } from "lucide-react";
+
+type SettingsState = {
+  // Configurações Gerais
+  siteName: string;
+  siteDescription: string;
+  siteUrl: string;
+  adminEmail: string;
+  // Configurações de Segurança
+  requireEmailVerification: boolean;
+  allowUserRegistration: boolean;
+  requireStrongPasswords: boolean;
+  sessionTimeout: number;
+  maxLoginAttempts: number;
+  // Configurações de Curso
+  allowCourseReviews: boolean;
+  requireCourseApproval: boolean;
+  maxCourseDuration: number;
+  allowCourseDownloads: boolean;
+  // Configurações de Certificado
+  certificateExpiry: number;
+  requireCertificateVerification: boolean;
+  allowCertificateDownloads: boolean;
+  // Configurações de Comunidade
+  allowUserPosts: boolean;
+  moderateUserPosts: boolean;
+  allowUserComments: boolean;
+  allowUserRatings: boolean;
+};
 
 export default function AdminSettingsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SettingsState>({
     // Configurações Gerais
     siteName: "Plataforma de Cursos",
     siteDescription: "A melhor plataforma de cursos online do Brasil",
@@ -49,25 +76,7 @@ export default function AdminSettingsPage() {
     moderateUserPosts: true,
     allowUserComments: true,
     allowUserRatings: true,
-    
-    // Configurações de Sistema
-    maintenanceMode: false,
-    allowGuestAccess: true,
-    enableAnalytics: true,
-    dataRetentionDays: 30,
-    enableCookies: true,
-    
-    // Configurações de Pagamento
-    paymentEnabled: true,
-    currency: "BRL",
-    taxRate: 0.0,
-    refundPeriod: 30,
-    
-    // Configurações de Notificações
-    emailNotifications: true,
-    pushNotifications: true,
-    newUserNotifications: true,
-    courseCompletionNotifications: true
+  
   });
 
   useEffect(() => {
@@ -98,7 +107,7 @@ export default function AdminSettingsPage() {
     return null;
   }
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
@@ -292,54 +301,6 @@ export default function AdminSettingsPage() {
               Configurações de notificações do sistema
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Notificações por Email</label>
-                    <p className="text-blue-300 text-sm">Enviar notificações por email</p>
-                  </div>
-                  <Switch 
-                    checked={settings.emailNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Notificações Push</label>
-                    <p className="text-blue-300 text-sm">Enviar notificações push</p>
-                  </div>
-                  <Switch 
-                    checked={settings.pushNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('pushNotifications', checked)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Novos Usuários</label>
-                    <p className="text-blue-300 text-sm">Notificar sobre novos usuários</p>
-                  </div>
-                  <Switch 
-                    checked={settings.newUserNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('newUserNotifications', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Conclusão de Cursos</label>
-                    <p className="text-blue-300 text-sm">Notificar sobre conclusão de cursos</p>
-                  </div>
-                  <Switch 
-                    checked={settings.courseCompletionNotifications}
-                    onCheckedChange={(checked) => handleSettingChange('courseCompletionNotifications', checked)}
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
         </Card>
       </main>
     </div>

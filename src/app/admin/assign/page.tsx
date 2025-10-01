@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { LogoutButton } from "@/components/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, BookOpen, Award, Settings, CheckCircle, XCircle, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Search, Users, BookOpen, CheckCircle, XCircle, Plus, Minus } from "lucide-react";
 import { mockStudents, mockCourses } from "@/mocks/data";
 
 export default function AdminAssignPage() {

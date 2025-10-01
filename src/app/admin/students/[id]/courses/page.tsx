@@ -9,16 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { mockStudents, mockCourses } from "@/mocks/data";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, BookOpen, Plus, Minus, Save, Eye } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, Save, Eye } from "lucide-react";
 
-export default function StudentCoursesPage({ params }: { params: { id: string } }) {
+export default function StudentCoursesPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const [student, setStudent] = useState<{ id: string; name: string; email: string; ownedCourseIds: string[]; availableCourseIds: string[] } | null>(null);
-  const [allCourses, setAllCourses] = useState(mockCourses);
+  const allCourses = mockCourses;
   const [ownedCourses, setOwnedCourses] = useState<string[]>([]);
   const [availableCourses, setAvailableCourses] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,13 +38,13 @@ export default function StudentCoursesPage({ params }: { params: { id: string } 
     }
     
     // Buscar aluno
-    const foundStudent = mockStudents.find(s => s.id === params.id);
+    const foundStudent = mockStudents.find(s => s.id === id);
     if (foundStudent) {
       setStudent(foundStudent);
       setOwnedCourses(foundStudent.ownedCourseIds);
       setAvailableCourses(foundStudent.availableCourseIds);
     }
-  }, [user, isLoading, router, params.id]);
+  }, [user, isLoading, router, id]);
 
   if (isLoading) {
     return (
@@ -274,7 +275,7 @@ export default function StudentCoursesPage({ params }: { params: { id: string } 
                 Cursos Disponíveis
               </CardTitle>
               <CardDescription className="text-blue-300">
-                Cursos que aparecem em "Cursos que você ainda não tem"
+                Cursos que aparecem em &quot;Cursos que você ainda não tem&quot;
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

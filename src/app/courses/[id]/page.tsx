@@ -7,15 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { mockCourses, mockLessons, type Course, type Lesson } from "@/mocks/data";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Play, FileText, BookOpen, Clock, CheckCircle, Download, Eye } from "lucide-react";
 import { LessonViewer } from "@/components/LessonViewer";
 
-export default function CoursePage({ params }: { params: { id: string } }) {
+export default function CoursePage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -33,12 +34,12 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     }
     
     // Buscar curso e aulas
-    const foundCourse = mockCourses.find(c => c.id === params.id);
-    const courseLessons = mockLessons.filter(l => l.courseId === params.id);
+    const foundCourse = mockCourses.find(c => c.id === id);
+    const courseLessons = mockLessons.filter(l => l.courseId === id);
     
-    setCourse(foundCourse);
+    setCourse(foundCourse || null);
     setLessons(courseLessons.sort((a, b) => a.order - b.order));
-  }, [user, isLoading, router, params.id]);
+  }, [user, isLoading, router, id]);
 
   if (isLoading) {
     return (

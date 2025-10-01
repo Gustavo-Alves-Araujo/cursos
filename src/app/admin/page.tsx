@@ -8,7 +8,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { BookOpen, Users, BarChart3, Award, ShoppingCart, FileText, Settings, TrendingUp, UserCheck, BookOpenCheck, Clock, DollarSign } from "lucide-react";
+import { BookOpen, Users, BarChart3, Award, FileText, UserCheck, BookOpenCheck, DollarSign } from "lucide-react";
 
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth();

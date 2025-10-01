@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LogoutButton } from "@/components/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Award, Plus, Edit, Trash2, Eye, Download, Users, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Search, Award, Plus, Edit, Trash2, Download, Users, CheckCircle, XCircle, Clock } from "lucide-react";
 
 // Mock data para certificados
 const mockCertificates = [

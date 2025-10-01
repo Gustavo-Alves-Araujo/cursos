@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LogoutButton } from "@/components/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, BookOpen, Plus, Edit, Trash2, Eye, Settings, Users, Clock, Award, Star } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, Plus, Edit, Trash2, Settings, Users, Award, Star } from "lucide-react";
 import { mockCourses } from "@/mocks/data";
 
 export default function AdminCoursesPage() {
@@ -226,16 +226,7 @@ export default function AdminCoursesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-blue-200 text-sm">Duração:</span>
-                      <span className="text-white font-medium">{course.duration}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-blue-200 text-sm">Nível:</span>
-                      <Badge className="bg-blue-600/20 text-blue-200">
-                        {course.level}
-                      </Badge>
-                    </div>
+                    
                     <div className="flex items-center justify-between">
                       <span className="text-blue-200 text-sm">Alunos:</span>
                       <span className="text-white font-medium">234</span>
@@ -302,13 +293,6 @@ export default function AdminCoursesPage() {
                       className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
                     />
                   </div>
-                  <div>
-                    <label className="text-blue-200 text-sm font-medium">Duração</label>
-                    <Input 
-                      defaultValue={selectedCourseData.duration}
-                      className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                    />
-                  </div>
                 </div>
                 <div>
                   <label className="text-blue-200 text-sm font-medium">Descrição</label>
@@ -318,17 +302,6 @@ export default function AdminCoursesPage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-blue-200 text-sm font-medium">Nível</label>
-                    <select 
-                      defaultValue={selectedCourseData.level}
-                      className="w-full bg-white/15 border border-white/40 text-white rounded-md px-3 py-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                    >
-                      <option value="Iniciante">Iniciante</option>
-                      <option value="Intermediário">Intermediário</option>
-                      <option value="Avançado">Avançado</option>
-                    </select>
-                  </div>
                   <div>
                     <label className="text-blue-200 text-sm font-medium">Status</label>
                     <select 

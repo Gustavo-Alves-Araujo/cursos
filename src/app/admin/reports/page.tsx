@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Download, Calendar, TrendingUp, Users, BookOpen, Award, ShoppingCart, BarChart3, PieChart, Activity } from "lucide-react";
+import { ArrowLeft, FileText, Download, Calendar, TrendingUp, Users, BookOpen, Award, Activity } from "lucide-react";
 
 // Mock data para relatórios
 const mockReports = [
