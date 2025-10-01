@@ -5,7 +5,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockCourses, mockLessons } from "@/mocks/data";
+import { mockCourses, mockLessons, type Course, type Lesson } from "@/mocks/data";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,9 +16,9 @@ import { LessonViewer } from "@/components/LessonViewer";
 export default function CoursePage({ params }: { params: { id: string } }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [course, setCourse] = useState<any>(null);
-  const [lessons, setLessons] = useState<any[]>([]);
-  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   
   useEffect(() => {
     if (!isLoading) {
@@ -75,7 +75,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   const totalLessons = lessons.length;
   const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
-  const handleLessonSelect = (lesson: any) => {
+  const handleLessonSelect = (lesson: Lesson) => {
     setSelectedLesson(lesson);
   };
 
@@ -90,7 +90,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     setSelectedLesson(null);
   };
 
-  const getLessonIcon = (type: string) => {
+  const getLessonIcon = (type: Lesson["type"]) => {
     switch (type) {
       case 'video':
         return <Play className="w-5 h-5 text-red-400" />;

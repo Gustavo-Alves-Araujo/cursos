@@ -105,7 +105,7 @@ export function DocumentLesson({ title, description, documentUrl, onComplete }: 
               <div className="text-center">
                 <FileText className="w-16 h-16 text-white mx-auto mb-4" />
                 <p className="text-white text-lg mb-2">Documento: {getFileType(documentUrl)}</p>
-                <p className="text-gray-400 text-sm">Clique em "Visualizar" para abrir o documento</p>
+                <p className="text-gray-400 text-sm">Clique em &quot;Visualizar&quot; para abrir o documento</p>
               </div>
             </div>
           </div>
@@ -162,8 +162,8 @@ export function DocumentLesson({ title, description, documentUrl, onComplete }: 
           <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
             <h4 className="text-blue-200 font-semibold mb-2">Como usar este documento:</h4>
             <ul className="text-blue-300 text-sm space-y-1">
-              <li>• Clique em "Visualizar" para abrir o documento em uma nova aba</li>
-              <li>• Use "Baixar" para salvar o arquivo em seu dispositivo</li>
+              <li>• Clique em &quot;Visualizar&quot; para abrir o documento em uma nova aba</li>
+              <li>• Use &quot;Baixar&quot; para salvar o arquivo em seu dispositivo</li>
               <li>• Marque como concluída após revisar o conteúdo</li>
             </ul>
           </div>

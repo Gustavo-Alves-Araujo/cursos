@@ -17,7 +17,7 @@ import { ArrowLeft, Search, Users, BookOpen, Plus, Minus, Save, Eye } from "luci
 export default function StudentCoursesPage({ params }: { params: { id: string } }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<{ id: string; name: string; email: string; ownedCourseIds: string[]; availableCourseIds: string[] } | null>(null);
   const [allCourses, setAllCourses] = useState(mockCourses);
   const [ownedCourses, setOwnedCourses] = useState<string[]>([]);
   const [availableCourses, setAvailableCourses] = useState<string[]>([]);

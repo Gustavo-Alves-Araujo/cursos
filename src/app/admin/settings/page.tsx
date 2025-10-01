@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Settings, Save, RefreshCw, Shield, Globe } from "lucide-react";
+import { ArrowLeft, Settings, Save, RefreshCw, Shield, Globe, Database, Key, Bell } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { user, isLoading } = useAuth();
@@ -48,7 +48,26 @@ export default function AdminSettingsPage() {
     allowUserPosts: true,
     moderateUserPosts: true,
     allowUserComments: true,
-    allowUserRatings: true
+    allowUserRatings: true,
+    
+    // Configurações de Sistema
+    maintenanceMode: false,
+    allowGuestAccess: true,
+    enableAnalytics: true,
+    dataRetentionDays: 30,
+    enableCookies: true,
+    
+    // Configurações de Pagamento
+    paymentEnabled: true,
+    currency: "BRL",
+    taxRate: 0.0,
+    refundPeriod: 30,
+    
+    // Configurações de Notificações
+    emailNotifications: true,
+    pushNotifications: true,
+    newUserNotifications: true,
+    courseCompletionNotifications: true
   });
 
   useEffect(() => {
@@ -260,6 +279,8 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
+        
+
         {/* Configurações de Notificações */}
         <Card className="bg-white/10 backdrop-blur-sm border-white/20">
           <CardHeader>
@@ -314,138 +335,6 @@ export default function AdminSettingsPage() {
                   <Switch 
                     checked={settings.courseCompletionNotifications}
                     onCheckedChange={(checked) => handleSettingChange('courseCompletionNotifications', checked)}
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Configurações de Sistema */}
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-          <CardHeader>
-            <CardTitle className="text-blue-200 flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              Sistema
-            </CardTitle>
-            <CardDescription className="text-blue-300">
-              Configurações do sistema e manutenção
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Modo de Manutenção</label>
-                    <p className="text-blue-300 text-sm">Ativar modo de manutenção</p>
-                  </div>
-                  <Switch 
-                    checked={settings.maintenanceMode}
-                    onCheckedChange={(checked) => handleSettingChange('maintenanceMode', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Acesso de Convidados</label>
-                    <p className="text-blue-300 text-sm">Permitir acesso sem login</p>
-                  </div>
-                  <Switch 
-                    checked={settings.allowGuestAccess}
-                    onCheckedChange={(checked) => handleSettingChange('allowGuestAccess', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Analytics</label>
-                    <p className="text-blue-300 text-sm">Coletar dados de analytics</p>
-                  </div>
-                  <Switch 
-                    checked={settings.enableAnalytics}
-                    onCheckedChange={(checked) => handleSettingChange('enableAnalytics', checked)}
-                  />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Retenção de Dados (dias)</label>
-                  <Input 
-                    type="number"
-                    value={settings.dataRetentionDays}
-                    onChange={(e) => handleSettingChange('dataRetentionDays', parseInt(e.target.value))}
-                    className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/20 transition-all duration-200"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Cookies</label>
-                    <p className="text-blue-300 text-sm">Permitir uso de cookies</p>
-                  </div>
-                  <Switch 
-                    checked={settings.enableCookies}
-                    onCheckedChange={(checked) => handleSettingChange('enableCookies', checked)}
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Configurações de Pagamento */}
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-          <CardHeader>
-            <CardTitle className="text-blue-200 flex items-center gap-2">
-              <Key className="w-5 h-5" />
-              Pagamentos
-            </CardTitle>
-            <CardDescription className="text-blue-300">
-              Configurações de pagamento e financeiro
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-blue-200 font-medium">Pagamentos Habilitados</label>
-                    <p className="text-blue-300 text-sm">Permitir pagamentos na plataforma</p>
-                  </div>
-                  <Switch 
-                    checked={settings.paymentEnabled}
-                    onCheckedChange={(checked) => handleSettingChange('paymentEnabled', checked)}
-                  />
-                </div>
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Moeda</label>
-                  <select 
-                    value={settings.currency}
-                    onChange={(e) => handleSettingChange('currency', e.target.value)}
-                    className="w-full bg-white/15 border border-white/40 text-black rounded-md px-3 py-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                  >
-                    <option value="BRL">BRL (Real Brasileiro)</option>
-                    <option value="USD">USD (Dólar Americano)</option>
-                    <option value="EUR">EUR (Euro)</option>
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Taxa de Imposto (%)</label>
-                  <Input 
-                    type="number"
-                    step="0.01"
-                    value={settings.taxRate}
-                    onChange={(e) => handleSettingChange('taxRate', parseFloat(e.target.value))}
-                    className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/20 transition-all duration-200"
-                  />
-                </div>
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Período de Reembolso (dias)</label>
-                  <Input 
-                    type="number"
-                    value={settings.refundPeriod}
-                    onChange={(e) => handleSettingChange('refundPeriod', parseInt(e.target.value))}
-                    className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/20 transition-all duration-200"
                   />
                 </div>
               </div>

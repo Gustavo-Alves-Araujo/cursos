@@ -223,7 +223,7 @@ export default function AdminDashboard() {
                     <BookOpen className="w-4 h-4 text-blue-400" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white text-sm">Novo curso "React Avançado" criado</p>
+                    <p className="text-white text-sm">Novo curso &quot;React Avançado&quot; criado</p>
                     <p className="text-blue-300 text-xs">Há 2 horas</p>
                   </div>
                 </div>
