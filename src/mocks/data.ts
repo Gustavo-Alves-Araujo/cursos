@@ -114,6 +114,86 @@ export const mockCourses: Course[] = [
       "https://images.unsplash.com/photo-1552581234-26160f608093?q=80&w=1200&auto=format&fit=crop",
     owned: false,
   },
+  {
+    id: "c-9",
+    title: "Introdução a Python",
+    shortDesc: "Primeiros passos na linguagem.",
+    longDesc:
+      "Aprenda os fundamentos de Python com exemplos práticos e exercícios guiados.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-10",
+    title: "Git e GitHub na Prática",
+    shortDesc: "Versionamento e colaboração.",
+    longDesc:
+      "Fluxos de trabalho com Git, pull requests, branching e boas práticas no GitHub.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-11",
+    title: "JavaScript Moderno",
+    shortDesc: "ES6+ para o dia a dia.",
+    longDesc:
+      "Domine features modernas do JavaScript e escreva código mais limpo e performático.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-12",
+    title: "React do Zero ao Profissional",
+    shortDesc: "Componentes, hooks e patterns.",
+    longDesc:
+      "Construa aplicações React modernas com hooks, contexto e padrões de arquitetura.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-13",
+    title: "APIs com Node.js",
+    shortDesc: "Crie e documente APIs.",
+    longDesc:
+      "Criação de APIs REST com Node.js e Express, testes e documentação com OpenAPI.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-14",
+    title: "Banco de Dados SQL",
+    shortDesc: "Modelagem e consultas.",
+    longDesc:
+      "Aprenda modelagem relacional, normalização e consultas eficientes com SQL.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1517433456452-f9633a875f6f?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-15",
+    title: "TypeScript Essencial",
+    shortDesc: "Tipos para JavaScript.",
+    longDesc:
+      "Adicione segurança e escalabilidade aos seus projetos com TypeScript.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1526378722484-bd91ca387e72?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
+  {
+    id: "c-16",
+    title: "Next.js na Prática",
+    shortDesc: "SSR, SSG e rotas.",
+    longDesc:
+      "Construa apps com Next.js usando renderização híbrida, rotas e otimizações.",
+    thumbnail:
+      "https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=1200&auto=format&fit=crop",
+    owned: false,
+  },
 ];
 
 export const mockStudents: Student[] = [

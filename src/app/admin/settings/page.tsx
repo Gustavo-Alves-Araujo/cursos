@@ -12,12 +12,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Settings, Save, RefreshCw, Shield, Mail, Bell, Globe, Database, Key, User, Lock, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Settings, Save, RefreshCw, Shield, Globe } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [showPasswords, setShowPasswords] = useState(false);
   const [settings, setSettings] = useState({
     // Configurações Gerais
     siteName: "Plataforma de Cursos",
@@ -32,25 +31,7 @@ export default function AdminSettingsPage() {
     sessionTimeout: 30,
     maxLoginAttempts: 5,
     
-    // Configurações de Notificações
-    emailNotifications: true,
-    pushNotifications: true,
-    newUserNotifications: true,
-    courseCompletionNotifications: true,
-    certificateNotifications: true,
     
-    // Configurações de Sistema
-    maintenanceMode: false,
-    allowGuestAccess: true,
-    enableAnalytics: true,
-    enableCookies: true,
-    dataRetentionDays: 365,
-    
-    // Configurações de Pagamento
-    paymentEnabled: true,
-    currency: "BRL",
-    taxRate: 0.1,
-    refundPeriod: 7,
     
     // Configurações de Curso
     allowCourseReviews: true,

@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, User, Mail, Lock, Save, Eye, EyeOff, Bell, Shield, Globe, Palette, Download, Upload, Trash2, Settings, Award, Clock, BookOpen, Star, TrendingUp } from "lucide-react";
+import { ArrowLeft, User, Mail, Save, Eye, EyeOff, Shield, Trash2, Award, Clock, BookOpen, Star } from "lucide-react";
 
 export default function MinhaContaPage() {
   const { user, isLoading } = useAuth();
@@ -32,18 +32,7 @@ export default function MinhaContaPage() {
     confirm: false
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    sms: false,
-    marketing: false
-  });
-  const [privacy, setPrivacy] = useState({
-    profile: 'public',
-    courses: 'public',
-    progress: 'private'
-  });
-  const [theme, setTheme] = useState('dark');
+  
   
   useEffect(() => {
     if (!isLoading) {
@@ -356,142 +345,10 @@ export default function MinhaContaPage() {
             </CardContent>
           </Card>
 
-          {/* Notificações */}
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="text-xl text-blue-200 flex items-center gap-2">
-                <Bell className="w-5 h-5" />
-                Notificações
-              </CardTitle>
-              <CardDescription className="text-blue-300">
-                Configure suas preferências
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-blue-300" />
-                  <span className="text-blue-200">Email</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifications.email}
-                  onChange={(e) => setNotifications(prev => ({...prev, email: e.target.checked}))}
-                  className="w-4 h-4 text-blue-600 bg-white/15 border-white/40 rounded focus:ring-2 focus:ring-blue-500/50 hover:bg-white/20 transition-all duration-200"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-blue-300" />
-                  <span className="text-blue-200">Push</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifications.push}
-                  onChange={(e) => setNotifications(prev => ({...prev, push: e.target.checked}))}
-                  className="w-4 h-4 text-blue-600 bg-white/15 border-white/40 rounded focus:ring-2 focus:ring-blue-500/50 hover:bg-white/20 transition-all duration-200"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-blue-300" />
-                  <span className="text-blue-200">Marketing</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifications.marketing}
-                  onChange={(e) => setNotifications(prev => ({...prev, marketing: e.target.checked}))}
-                  className="w-4 h-4 text-blue-600 bg-white/15 border-white/40 rounded focus:ring-2 focus:ring-blue-500/50 hover:bg-white/20 transition-all duration-200"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <h4 className="text-blue-200 font-medium mb-3">Privacidade</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-200 text-sm">Perfil Público</span>
-                    <select 
-                      value={privacy.profile}
-                      onChange={(e) => setPrivacy(prev => ({...prev, profile: e.target.value}))}
-                      className="bg-white/10 border border-white/30 text-black rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/15 transition-all duration-200"
-                    >
-                      <option value="public">Público</option>
-                      <option value="private">Privado</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-200 text-sm">Progresso dos Cursos</span>
-                    <select 
-                      value={privacy.progress}
-                      onChange={(e) => setPrivacy(prev => ({...prev, progress: e.target.value}))}
-                      className="bg-white/10 border border-white/30 text-black rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/15 transition-all duration-200"
-                    >
-                      <option value="public">Público</option>
-                      <option value="private">Privado</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          
         </div>
 
-        {/* Ações e Configurações */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="text-xl text-blue-200 flex items-center gap-2">
-                <Download className="w-5 h-5" />
-                Dados
-              </CardTitle>
-              <CardDescription className="text-blue-300">
-                Gerencie seus dados
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                  <Button variant="outline" className="w-full bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white transition-all duration-200">
-                <Download className="w-4 h-4 mr-2" />
-                Exportar Dados
-              </Button>
-                  <Button variant="outline" className="w-full bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white transition-all duration-200">
-                <Upload className="w-4 h-4 mr-2" />
-                Importar Dados
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="text-xl text-blue-200 flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Configurações
-              </CardTitle>
-              <CardDescription className="text-blue-300">
-                Personalize sua experiência
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-200">Tema</span>
-                <select 
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                  className="bg-white/10 border border-white/30 text-white rounded-lg px-3 py-2 text-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/15 transition-all duration-200"
-                >
-                  <option value="dark">Escuro</option>
-                  <option value="light">Claro</option>
-                  <option value="auto">Automático</option>
-                </select>
-              </div>
-                  <Button variant="outline" className="w-full bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white transition-all duration-200">
-                <Palette className="w-4 h-4 mr-2" />
-                Personalizar Interface
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        
 
         {/* Botões de Ação */}
         <div className="flex flex-col sm:flex-row gap-4 justify-end">

@@ -7,14 +7,12 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import type { ComponentType } from "react";
-import { RocketIcon, PersonIcon, BoxIcon, IdCardIcon, RowsIcon } from "@radix-ui/react-icons";
+import { PersonIcon, IdCardIcon, RowsIcon } from "@radix-ui/react-icons";
 
 type IconType = ComponentType<{ className?: string }>;
 
 const items: { href: string; label: string; icon: IconType }[] = [
   { href: "/", label: "Trilhas", icon: RowsIcon },
-  { href: "/comunidade", label: "Comunidade", icon: RocketIcon },
-  { href: "/loja", label: "Loja", icon: BoxIcon },
   { href: "/certificados", label: "Certificados", icon: IdCardIcon },
   { href: "/minha-conta", label: "Minha Conta", icon: PersonIcon },
 ];

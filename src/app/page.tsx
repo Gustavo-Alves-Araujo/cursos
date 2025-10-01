@@ -46,12 +46,16 @@ export default function Home() {
   }
 
   const myCourses = mockCourses.filter((c) => c.owned);
-  const myCoursesCarousel = myCourses.slice(0, 8); // Máximo 8 cursos no carrossel
+  const myCoursesPreview = myCourses.slice(0, 6); // Mostrar até 6
   
   // Buscar dados do aluno para obter cursos disponíveis configurados pelo admin
   const studentData = mockStudents.find(s => s.email === user.email);
   const availableCourseIds = studentData?.availableCourseIds || [];
   const availableCourses = mockCourses.filter((c) => availableCourseIds.includes(c.id));
+  const moreCourses = availableCourses.slice(0, 8); // Mostrar 8 exemplos
+  const notOwnedAndNotAvailable = mockCourses.filter(
+    (c) => !c.owned && !availableCourseIds.includes(c.id)
+  );
 
   return (
     <div className="relative">
@@ -67,14 +71,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Seção Meus Cursos */}
+        {/* Seção Meus Cursos (até 6) */}
         <section className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-blue-200 flex items-center gap-2">
               <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
               Meus Cursos
             </h2>
-            {myCourses.length > 8 && (
+            {myCourses.length > 6 && (
                 <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200">
                 <Link href="/my-courses" className="flex items-center gap-2">
                   Ver todos os cursos
@@ -84,30 +88,33 @@ export default function Home() {
             )}
           </div>
           <Carousel ariaLabel="Meus cursos">
-            {myCoursesCarousel.map((c) => (
+            {myCoursesPreview.map((c) => (
               <CourseCard key={c.id} course={c} />
             ))}
           </Carousel>
         </section>
 
-        {/* Seção Cursos Disponíveis */}
+        {/* Seção Mais Cursos (8) */}
         <section className="space-y-4">
           <h2 className="text-xl sm:text-2xl font-semibold text-blue-200 flex items-center gap-2">
             <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
-            Cursos Disponíveis
+            Mais cursos
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {availableCourses.map((c) => (
-              <div key={c.id} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg mb-4 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-300" />
-                </div>
-                <h3 className="font-semibold text-white mb-2 text-sm sm:text-base">{c.title}</h3>
-                <p className="text-blue-200 text-xs sm:text-sm mb-4 line-clamp-2">{c.shortDesc}</p>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-sm">
-                  Inscrever-se
-                </Button>
-              </div>
+            {moreCourses.map((c) => (
+              <CourseCard key={c.id} course={c} />
+            ))}
+          </div>
+        </section>
+
+        {/* Seção Cursos que você ainda não tem */}
+        <section className="space-y-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-blue-200">
+            Cursos que você ainda não tem
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {notOwnedAndNotAvailable.map((c) => (
+              <CourseCard key={c.id} course={c} />
             ))}
           </div>
         </section>
