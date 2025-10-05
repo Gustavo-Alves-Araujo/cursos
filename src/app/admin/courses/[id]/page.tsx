@@ -75,7 +75,7 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleCreateLesson = async (lessonData: { title: string; description: string; type: 'video' | 'document' | 'text'; duration: string; content: Record<string, unknown>; order: number; isPublished: boolean }) => {
+  const handleCreateLesson = async (lessonData: { title: string; type: 'video' | 'document' | 'text'; content: Record<string, unknown>; order: number; isPublished: boolean }) => {
     console.log('handleCreateLesson chamado com:', lessonData);
     console.log('selectedModuleId:', selectedModuleId);
     
@@ -288,14 +288,6 @@ export default function CourseDetailPage() {
           </CardContent>
         </Card>
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Descrição</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 leading-relaxed">{course.description}</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Modules */}
@@ -349,7 +341,6 @@ export default function CourseDetailPage() {
                       <h3 className="text-lg font-semibold">
                         Módulo {module.order}: {module.title}
                       </h3>
-                      <p className="text-sm text-gray-600">{module.description}</p>
                       <div className="flex items-center gap-4 mt-2">
                         <Badge variant={module.isPublished ? "default" : "secondary"}>
                           {module.isPublished ? "Publicado" : "Rascunho"}

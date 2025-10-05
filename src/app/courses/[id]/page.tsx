@@ -313,7 +313,6 @@ export default function CoursePage() {
                       </Badge>
                     )}
                   </h1>
-                  <p className="text-blue-300 mt-1">{selectedLesson.description}</p>
                 </div>
               </div>
               <LogoutButton />
@@ -529,7 +528,6 @@ export default function CoursePage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-white">{module.title}</h3>
-                        <p className="text-blue-200 text-sm">{module.description}</p>
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-blue-300">

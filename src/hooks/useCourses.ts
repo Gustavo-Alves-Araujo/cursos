@@ -43,7 +43,6 @@ export function useCourses() {
         return {
           id: course.id,
           title: course.title,
-          description: course.description,
           shortDescription: course.short_description,
           thumbnail: course.thumbnail,
           price: course.price,
@@ -476,7 +475,6 @@ export function useMyCourses() {
         return {
           id: course.id,
           title: course.title,
-          description: course.description,
           shortDescription: course.short_description,
           thumbnail: course.thumbnail,
           price: course.price,

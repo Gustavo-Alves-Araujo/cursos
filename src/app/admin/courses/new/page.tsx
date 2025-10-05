@@ -15,7 +15,7 @@ export default function NewCoursePage() {
 
   console.log('NewCoursePage - componente renderizado');
 
-  const handleSubmit = async (data: { title: string; shortDescription: string; description: string; thumbnail: string; price: number; estimatedDuration: string; isPublished: boolean }) => {
+  const handleSubmit = async (data: { title: string; shortDescription: string; thumbnail: string; price: number; estimatedDuration: string; isPublished: boolean }) => {
     console.log('Dados do formulário:', data);
     setIsLoading(true);
     try {
