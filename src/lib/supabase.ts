@@ -122,7 +122,7 @@ export interface Database {
           description: string
           type: 'video' | 'document' | 'text'
           duration: string | null
-          content: any
+          content: Record<string, unknown>
           order_index: number
           is_published: boolean
           created_at: string
@@ -135,7 +135,7 @@ export interface Database {
           description: string
           type: 'video' | 'document' | 'text'
           duration?: string | null
-          content?: any
+          content?: Record<string, unknown>
           order_index: number
           is_published?: boolean
           created_at?: string
@@ -148,7 +148,7 @@ export interface Database {
           description?: string
           type?: 'video' | 'document' | 'text'
           duration?: string | null
-          content?: any
+          content?: Record<string, unknown>
           order_index?: number
           is_published?: boolean
           created_at?: string
@@ -180,7 +180,7 @@ export interface Database {
           id: string
           user_id: string
           course_id: string
-          completed_lessons: any
+          completed_lessons: Record<string, unknown>
           current_module_id: string | null
           completion_percentage: number
           last_accessed_at: string
@@ -189,7 +189,7 @@ export interface Database {
           id?: string
           user_id: string
           course_id: string
-          completed_lessons?: any
+          completed_lessons?: Record<string, unknown>
           current_module_id?: string | null
           completion_percentage?: number
           last_accessed_at?: string
@@ -198,7 +198,7 @@ export interface Database {
           id?: string
           user_id?: string
           course_id?: string
-          completed_lessons?: any
+          completed_lessons?: Record<string, unknown>
           current_module_id?: string | null
           completion_percentage?: number
           last_accessed_at?: string
@@ -209,7 +209,7 @@ export interface Database {
           id: string
           course_id: string
           background_image_url: string
-          text_config: any
+          text_config: Record<string, unknown>
           created_at: string
           updated_at: string
         }
@@ -217,7 +217,7 @@ export interface Database {
           id?: string
           course_id: string
           background_image_url: string
-          text_config?: any
+          text_config?: Record<string, unknown>
           created_at?: string
           updated_at?: string
         }
@@ -225,7 +225,7 @@ export interface Database {
           id?: string
           course_id?: string
           background_image_url?: string
-          text_config?: any
+          text_config?: Record<string, unknown>
           created_at?: string
           updated_at?: string
         }

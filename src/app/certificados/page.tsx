@@ -3,13 +3,13 @@
 import { Sidebar } from "@/components/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { CertificateViewer } from "@/components/CertificateViewer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Award, Download, Eye, Calendar, CheckCircle, Trophy, Star, Plus, FileText, BookOpen } from "lucide-react";
+import { ArrowLeft, Award, Calendar, CheckCircle, Trophy, Plus, BookOpen } from "lucide-react";
 import { useMyCourses } from "@/hooks/useCourses";
 import { CertificateService } from "@/lib/certificateService";
 import { Certificate } from "@/types/certificate";
@@ -42,14 +42,7 @@ export default function CertificadosPage() {
     }
   }, [user, isLoading, router]);
 
-  // Carregar certificados do usuário
-  useEffect(() => {
-    if (user && user.role !== 'admin') {
-      loadUserCertificates();
-    }
-  }, [user]);
-
-  const loadUserCertificates = async () => {
+  const loadUserCertificates = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -61,7 +54,14 @@ export default function CertificadosPage() {
     } finally {
       setIsLoadingCertificates(false);
     }
-  };
+  }, [user]);
+
+  // Carregar certificados do usuário
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      loadUserCertificates();
+    }
+  }, [user, loadUserCertificates]);
 
   if (isLoading) {
     return (

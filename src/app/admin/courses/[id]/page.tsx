@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCourses } from "@/hooks/useCourses";
 import { Course, Module, Lesson } from "@/types/course";
-import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Play, FileText, BookOpen, X } from "lucide-react";
+import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Play, FileText, BookOpen } from "lucide-react";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminCourseForm } from "@/components/admin/AdminCourseForm";
 import { ModuleForm } from "@/components/admin/ModuleForm";
@@ -51,7 +51,7 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleEditCourse = async (courseData: any) => {
+  const handleEditCourse = async (courseData: Partial<Course>) => {
     if (!course) return;
     
     try {
@@ -63,7 +63,7 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleCreateModule = async (moduleData: any) => {
+  const handleCreateModule = async (moduleData: { title: string; description: string; order: number; unlockAfterDays: number; isPublished: boolean }) => {
     if (!course) return;
     
     try {
@@ -75,7 +75,7 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleCreateLesson = async (lessonData: any) => {
+  const handleCreateLesson = async (lessonData: { title: string; description: string; type: 'video' | 'document' | 'text'; duration: string; content: Record<string, unknown>; order: number; isPublished: boolean }) => {
     console.log('handleCreateLesson chamado com:', lessonData);
     console.log('selectedModuleId:', selectedModuleId);
     
@@ -96,7 +96,7 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleEditLesson = async (lessonData: any) => {
+  const handleEditLesson = async (lessonData: Partial<Lesson>) => {
     if (!editingLesson) return;
     
     try {
@@ -130,7 +130,7 @@ export default function CourseDetailPage() {
     setIsEditLessonDialogOpen(true);
   };
 
-  const handleEditModule = async (moduleData: any) => {
+  const handleEditModule = async (moduleData: Partial<Module>) => {
     if (!editingModule) return;
     
     try {
@@ -342,7 +342,7 @@ export default function CourseDetailPage() {
             <div className="space-y-6">
               {course.modules
                 .sort((a, b) => a.order - b.order)
-                .map((module, moduleIndex) => (
+                .map((module) => (
                 <div key={module.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -394,13 +394,13 @@ export default function CourseDetailPage() {
                     <div className="text-center py-8 text-gray-400 bg-gray-800 rounded-lg border-2 border-dashed border-gray-600">
                       <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                       <p className="text-sm">Nenhuma aula neste módulo</p>
-                      <p className="text-xs text-gray-400">Clique em "Aula" para adicionar a primeira aula</p>
+                      <p className="text-xs text-gray-400">Clique em &quot;Aula&quot; para adicionar a primeira aula</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {module.lessons
                         .sort((a, b) => a.order - b.order)
-                        .map((lesson, lessonIndex) => (
+                        .map((lesson) => (
                         <div key={lesson.id} className="border border-gray-600 rounded-lg p-4 bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3 flex-1">

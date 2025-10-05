@@ -52,7 +52,7 @@ export function useCourses() {
           isPublished: course.is_published,
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
-        modules: course.modules?.map((module: any) => ({
+        modules: course.modules?.map((module: Record<string, unknown>) => ({
           id: module.id,
           courseId: module.course_id,
           title: module.title,
@@ -60,7 +60,7 @@ export function useCourses() {
           order: module.order_index,
           unlockAfterDays: module.unlock_after_days,
           isPublished: module.is_published,
-          lessons: module.lessons?.map((lesson: any) => {
+          lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
             // Garantir que content seja um objeto
             let content = lesson.content;
             if (typeof content === 'string') {
@@ -84,7 +84,7 @@ export function useCourses() {
               created_at: lesson.created_at,
               updated_at: lesson.updated_at
             };
-          }) || [],
+          }) : [],
           created_at: module.created_at,
           updated_at: module.updated_at
         })) || [],
@@ -174,7 +174,7 @@ export function useCourses() {
       }
       
       // Filtrar apenas campos que não são undefined
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       if (updates.title !== undefined) updateData.title = updates.title;
       if (updates.description !== undefined) updateData.description = updates.description;
       if (updates.shortDescription !== undefined) updateData.short_description = updates.shortDescription;
@@ -493,7 +493,7 @@ export function useMyCourses() {
           isPublished: course.is_published,
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
-          modules: course.modules?.map((module: any) => ({
+          modules: course.modules?.map((module: Record<string, unknown>) => ({
             id: module.id,
             courseId: module.course_id,
             title: module.title,
@@ -501,7 +501,7 @@ export function useMyCourses() {
             order: module.order_index,
             unlockAfterDays: module.unlock_after_days,
             isPublished: module.is_published,
-            lessons: module.lessons?.map((lesson: any) => {
+            lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
               // Garantir que content seja um objeto
               let content = lesson.content;
               if (typeof content === 'string') {
@@ -526,7 +526,7 @@ export function useMyCourses() {
                 created_at: lesson.created_at,
                 updated_at: lesson.updated_at
               };
-            }) || [],
+            }) : [],
             created_at: module.created_at,
             updated_at: module.updated_at
           })) || [],
@@ -614,7 +614,7 @@ export function useMyCourses() {
         isPublished: course.is_published,
         totalLessons: course.total_lessons,
         estimatedDuration: course.estimated_duration,
-        modules: course.modules?.map((module: any) => ({
+        modules: course.modules?.map((module: Record<string, unknown>) => ({
           id: module.id,
           courseId: module.course_id,
           title: module.title,
@@ -622,7 +622,7 @@ export function useMyCourses() {
           order: module.order_index,
           unlockAfterDays: module.unlock_after_days,
           isPublished: module.is_published,
-          lessons: module.lessons?.map((lesson: any) => {
+          lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
             // Garantir que content seja um objeto
             let content = lesson.content;
             if (typeof content === 'string') {
@@ -647,7 +647,7 @@ export function useMyCourses() {
               created_at: lesson.created_at,
               updated_at: lesson.updated_at
             };
-          }) || [],
+          }) : [],
           created_at: module.created_at,
           updated_at: module.updated_at
         })) || [],

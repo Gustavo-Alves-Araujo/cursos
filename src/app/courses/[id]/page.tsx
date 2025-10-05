@@ -362,7 +362,7 @@ export default function CoursePage() {
                 <BookOpen className="w-8 h-8" />
                 {course.title}
               </h1>
-              <p className="text-blue-300 mt-1">{course.shortDesc}</p>
+              <p className="text-blue-300 mt-1">{course.shortDescription}</p>
             </div>
           </div>
           <LogoutButton />

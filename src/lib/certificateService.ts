@@ -17,7 +17,7 @@ export class CertificateService {
   static async createTemplate(
     courseId: string,
     backgroundImageUrl: string,
-    textConfig?: any
+    textConfig?: Record<string, unknown>
   ): Promise<CertificateTemplate> {
     const defaultTextConfig = {
       studentName: {
@@ -82,7 +82,7 @@ export class CertificateService {
     templateId: string,
     updates: Partial<Pick<CertificateTemplate, 'backgroundImageUrl' | 'textConfig'>>
   ): Promise<CertificateTemplate> {
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     
     if (updates.backgroundImageUrl) {
       updateData.background_image_url = updates.backgroundImageUrl;

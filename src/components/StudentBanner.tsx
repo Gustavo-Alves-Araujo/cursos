@@ -11,7 +11,6 @@ export function StudentBanner() {
   if (!user) return null;
 
   // Calcular estatísticas dinâmicas
-  const totalCourses = myCourses.length;
   const completedCourses = myCourses.filter(course => 
     course.modules.every(module => 
       module.lessons.every(lesson => lesson.completed)

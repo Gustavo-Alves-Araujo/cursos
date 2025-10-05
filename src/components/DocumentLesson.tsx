@@ -14,7 +14,6 @@ interface DocumentLessonProps {
 }
 
 export function DocumentLesson({ title, description, documentUrl, onComplete, isCompleted = false }: DocumentLessonProps) {
-  const [isViewing, setIsViewing] = useState(false);
 
   const handleDownload = () => {
     try {
@@ -41,7 +40,6 @@ export function DocumentLesson({ title, description, documentUrl, onComplete, is
   };
 
   const handleView = () => {
-    setIsViewing(true);
     // Em um cenário real, você abriria o documento em uma nova aba ou modal
     window.open(documentUrl, '_blank');
   };

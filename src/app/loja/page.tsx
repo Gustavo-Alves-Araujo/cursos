@@ -4,13 +4,14 @@ import { Sidebar } from "@/components/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Filter, Star, ShoppingCart, Heart, Eye, Clock, Users, Award, TrendingUp, BookOpen, Zap, Crown, Gift } from "lucide-react";
+import Image from "next/image";
+import { ArrowLeft, Search, Star, ShoppingCart, Heart, Clock, Users, Award, TrendingUp, BookOpen, Zap, Crown, Gift } from "lucide-react";
 
 // Mock data para produtos da loja
 const mockProducts = [
@@ -313,9 +314,11 @@ export default function LojaPage() {
                 <Card key={product.id} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-300 group">
                   <CardHeader className="p-0">
                     <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                      <img 
+                      <Image 
                         src={product.image} 
                         alt={product.title}
+                        width={400}
+                        height={192}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -406,9 +409,11 @@ export default function LojaPage() {
               <Card key={product.id} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-300 group">
                 <CardHeader className="p-0">
                   <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
-                    <img 
+                    <Image 
                       src={product.image} 
                       alt={product.title}
+                      width={300}
+                      height={160}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

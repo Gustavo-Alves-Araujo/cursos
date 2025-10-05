@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -111,9 +112,11 @@ export function CertificateViewer({ certificate, courseTitle }: CertificateViewe
           
           <div className="space-y-4">
             <div className="text-center">
-              <img
+              <Image
                 src={certificate.certificateUrl}
                 alt="Certificado"
+                width={800}
+                height={600}
                 className="max-w-full h-auto border rounded-lg shadow-lg"
               />
             </div>

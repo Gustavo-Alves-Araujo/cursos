@@ -12,8 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Award, Plus, Edit, Trash2, Download, Users, CheckCircle, XCircle, Clock, Settings, FileText } from "lucide-react";
-import { CertificateService } from "@/lib/certificateService";
+import { ArrowLeft, Search, Award, Plus, Edit, Trash2, Users, CheckCircle, XCircle, Clock, FileText } from "lucide-react";
 import { CertificateTemplate } from "@/types/certificate";
 
 // Mock data para certificados

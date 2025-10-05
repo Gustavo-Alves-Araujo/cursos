@@ -23,7 +23,7 @@ interface ModuleFormProps {
   courseId: string;
 }
 
-export function ModuleForm({ onSubmit, initialData, isLoading = false, courseId }: ModuleFormProps) {
+export function ModuleForm({ onSubmit, initialData, isLoading = false }: ModuleFormProps) {
   const [state, setState] = useState<FormState>({
     title: initialData?.title ?? "",
     description: initialData?.description ?? "",

@@ -7,14 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/LogoutButton";
 import { useCourses } from "@/hooks/useCourses";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, BookOpen, Plus, Edit, Trash2, Settings, Users, Award, Star, Eye } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, Plus, Trash2, Settings, Users, Award, Star, Eye } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function AdminCoursesPage() {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const { courses, isLoading, deleteCourse, updateCourse } = useCourses();
 

@@ -14,6 +14,7 @@ export type Lesson = {
   };
   order: number;
   isPublished: boolean;
+  completed?: boolean; // indica se a aula foi concluída pelo usuário
   created_at: string;
   updated_at: string;
 };

@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { AdminCourseForm } from "@/components/admin/AdminCourseForm";
 import { useCourses } from "@/hooks/useCourses";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Course } from "@/types/course";
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -14,11 +15,17 @@ export default function NewCoursePage() {
 
   console.log('NewCoursePage - componente renderizado');
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: { title: string; shortDescription: string; description: string; thumbnail: string; price: number; estimatedDuration: string; isPublished: boolean }) => {
     console.log('Dados do formulário:', data);
     setIsLoading(true);
     try {
-      const result = await createCourse(data);
+      // Adicionar campos obrigatórios que não são coletados pelo formulário
+      const courseData = {
+        ...data,
+        instructorId: 'default-instructor', // TODO: usar ID do usuário logado
+        instructorName: 'Instrutor Padrão' // TODO: usar nome do usuário logado
+      };
+      const result = await createCourse(courseData);
       console.log('Curso criado com sucesso:', result);
       router.push('/admin/courses');
     } catch (error) {

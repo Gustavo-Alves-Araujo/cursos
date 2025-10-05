@@ -14,7 +14,7 @@ interface LessonViewerProps {
   onNext?: () => void;
 }
 
-export function LessonViewer({ lesson, lessons, onComplete, onBack, onPrevious, onNext }: LessonViewerProps) {
+export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
   const handleComplete = () => {
     console.log('LessonViewer: handleComplete chamado');
     console.log('LessonViewer: onComplete function:', onComplete);

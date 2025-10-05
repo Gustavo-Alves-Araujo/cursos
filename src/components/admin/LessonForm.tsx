@@ -32,7 +32,7 @@ interface LessonFormProps {
   isEditing?: boolean;
 }
 
-export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId, isEditing = false }: LessonFormProps) {
+export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing = false }: LessonFormProps) {
   const [state, setState] = useState<FormState>({
     title: initialData?.title ?? "",
     description: initialData?.description ?? "",

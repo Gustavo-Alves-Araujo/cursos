@@ -122,7 +122,7 @@ export function CertificateTemplateForm({
     }
   };
 
-  const updateTextConfig = (field: 'studentName' | 'completionDate', property: string, value: any) => {
+  const updateTextConfig = (field: 'studentName' | 'completionDate', property: string, value: string | number) => {
     setTextConfig(prev => ({
       ...prev,
       [field]: {

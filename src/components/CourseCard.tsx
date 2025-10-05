@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { BookOpen, Play, Star, Clock } from "lucide-react";
-import type { Course } from "@/mocks/data";
+import type { Course } from "@/types/course";
 
 type Props = {
   course: Course;
@@ -23,9 +24,11 @@ export function CourseCard({ course }: Props) {
         <CardHeader className="p-0">
           <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center overflow-hidden">
             {course.thumbnail ? (
-              <img 
+              <Image 
                 src={course.thumbnail} 
                 alt={course.title}
+                width={400}
+                height={192}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   // Fallback para ícone se a imagem falhar
@@ -37,7 +40,7 @@ export function CourseCard({ course }: Props) {
             <div className={`${course.thumbnail ? 'hidden' : ''} flex items-center justify-center w-full h-full`}>
               <BookOpen className="w-16 h-16 text-blue-300" />
             </div>
-            {course.owned && (
+            {course.isPublished && (
               <Badge className="absolute left-3 top-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
                 <Star className="w-3 h-3 mr-1" />
                 Meu
@@ -59,19 +62,19 @@ export function CourseCard({ course }: Props) {
               <BookOpen className="w-4 h-4 text-blue-300 flex-shrink-0" />
               <h3 className="text-base sm:text-lg font-semibold text-white line-clamp-1">{course.title}</h3>
             </div>
-            <p className="text-blue-200 text-xs sm:text-sm line-clamp-2 leading-relaxed">{course.shortDesc}</p>
+            <p className="text-blue-200 text-xs sm:text-sm line-clamp-2 leading-relaxed">{course.shortDescription}</p>
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
             <Badge 
               variant="outline" 
               className={`text-xs ${
-                course.owned 
+                course.isPublished 
                   ? 'bg-green-500/20 border-green-500/50 text-green-200' 
                   : 'bg-blue-500/20 border-blue-500/50 text-blue-200'
               }`}
             >
-              {course.owned ? 'Possuído' : 'Disponível'}
+              {course.isPublished ? 'Publicado' : 'Rascunho'}
             </Badge>
           </div>
           
@@ -79,18 +82,18 @@ export function CourseCard({ course }: Props) {
             <Button 
               asChild 
               className={`flex-1 text-sm ${
-                course.owned 
+                course.isPublished 
                   ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
                   : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
               }`}
             >
               <Link href={`/courses/${course.id}`} className="flex items-center gap-2">
                 <Play className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">{course.owned ? 'Continuar' : 'Ver Curso'}</span>
-                <span className="sm:hidden">{course.owned ? 'Continuar' : 'Ver'}</span>
+                <span className="hidden sm:inline">{course.isPublished ? 'Ver Curso' : 'Ver Rascunho'}</span>
+                <span className="sm:hidden">{course.isPublished ? 'Ver' : 'Rascunho'}</span>
               </Link>
             </Button>
-            {!course.owned && (
+            {!course.isPublished && (
               <Button 
                 variant="outline" 
                 size="sm"
