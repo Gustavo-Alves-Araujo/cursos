@@ -7,13 +7,12 @@ import { BookOpen, CheckCircle, Bookmark, Share2 } from 'lucide-react';
 
 interface TextLessonProps {
   title: string;
-  description: string;
   content: string;
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function TextLesson({ title, description, content, onComplete, isCompleted = false }: TextLessonProps) {
+export function TextLesson({ title, content, onComplete, isCompleted = false }: TextLessonProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
 
@@ -29,7 +28,7 @@ export function TextLesson({ title, description, content, onComplete, isComplete
     if (navigator.share) {
       navigator.share({
         title: title,
-        text: description,
+        text: title,
         url: window.location.href
       });
     } else {
@@ -57,9 +56,6 @@ export function TextLesson({ title, description, content, onComplete, isComplete
                 <BookOpen className="w-6 h-6 text-green-400" />
                 {title}
               </CardTitle>
-              <CardDescription className="text-blue-200">
-                {description}
-              </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Button

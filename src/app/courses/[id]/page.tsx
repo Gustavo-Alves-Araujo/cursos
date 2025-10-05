@@ -582,18 +582,9 @@ export default function CoursePage() {
                                       </Badge>
                                     )}
                                   </CardTitle>
-                                  <CardDescription className="text-blue-200">
-                                    {lesson.description}
-                                  </CardDescription>
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
-                                {lesson.duration && (
-                                  <div className="flex items-center gap-1 text-blue-300 text-sm">
-                                    <Clock className="w-4 h-4" />
-                                    <span>{lesson.duration}</span>
-                                  </div>
-                                )}
                                 <Badge 
                                   variant="outline" 
                                   className={`${

@@ -4,9 +4,7 @@ export type Lesson = {
   id: string;
   moduleId: string;
   title: string;
-  description: string;
   type: LessonType;
-  duration?: string; // para vídeos
   content: {
     videoUrl?: string; // URL do YouTube para aulas de vídeo
     documentUrl?: string; // URL do arquivo para documentos
@@ -35,7 +33,6 @@ export type Module = {
 export type Course = {
   id: string;
   title: string;
-  description: string;
   shortDescription: string;
   thumbnail?: string;
   price: number;

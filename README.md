@@ -52,3 +52,36 @@ Acesse `http://localhost:3000`.
 ## Observações
 - Projeto é somente frontend. Nenhuma chamada externa é feita.
 - Imagens usam URLs públicas de exemplo.
+
+## Environment Variables Setup
+
+### Required Environment Variables
+
+The application requires the following environment variables to be set:
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+### Local Development
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Fill in your Supabase credentials in `.env.local`
+
+### Vercel Deployment
+
+1. Go to your Vercel project dashboard
+2. Navigate to Settings → Environment Variables
+3. Add the following variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+### Getting Supabase Credentials
+
+1. Go to your Supabase project dashboard
+2. Navigate to Settings → API
+3. Copy the Project URL and anon/public key
+

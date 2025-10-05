@@ -27,9 +27,7 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
         return (
           <VideoLesson
             title={lesson.title}
-            description={lesson.description}
             videoUrl={lesson.content.videoUrl || ''}
-            duration={lesson.duration || '0:00'}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />
@@ -39,7 +37,6 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
         return (
           <DocumentLesson
             title={lesson.title}
-            description={lesson.description}
             documentUrl={lesson.content.documentUrl || ''}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
@@ -50,7 +47,6 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
         return (
           <TextLesson
             title={lesson.title}
-            description={lesson.description}
             content={lesson.content.textContent || ''}
             onComplete={handleComplete}
             isCompleted={lesson.completed}

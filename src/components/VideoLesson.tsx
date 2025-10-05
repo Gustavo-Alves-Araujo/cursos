@@ -6,14 +6,12 @@ import { Play, CheckCircle } from 'lucide-react';
 
 interface VideoLessonProps {
   title: string;
-  description: string;
   videoUrl: string;
-  duration: string;
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function VideoLesson({ title, description, videoUrl, duration, onComplete, isCompleted = false }: VideoLessonProps) {
+export function VideoLesson({ title, videoUrl, onComplete, isCompleted = false }: VideoLessonProps) {
   // Função para converter URL do YouTube para URL de embed
   const getYouTubeEmbedUrl = (url: string) => {
     let videoId = '';
@@ -47,9 +45,6 @@ export function VideoLesson({ title, description, videoUrl, duration, onComplete
             <Play className="w-6 h-6 text-red-400" />
             {title}
           </CardTitle>
-          <CardDescription className="text-blue-200">
-            {description}
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Player Container */}
@@ -76,7 +71,6 @@ export function VideoLesson({ title, description, videoUrl, duration, onComplete
 
           {/* Informações do Vídeo */}
           <div className="flex items-center justify-between text-sm text-blue-300">
-            <span>Duração: {duration}</span>
             <span>YouTube</span>
           </div>
 

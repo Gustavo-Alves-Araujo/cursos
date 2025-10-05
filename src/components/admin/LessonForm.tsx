@@ -12,9 +12,7 @@ import { supabase } from "@/lib/supabase";
 
 type FormState = {
   title: string;
-  description: string;
   type: LessonType;
-  duration: string;
   content: {
     videoUrl?: string;
     documentUrl?: string;
@@ -35,9 +33,7 @@ interface LessonFormProps {
 export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing = false }: LessonFormProps) {
   const [state, setState] = useState<FormState>({
     title: initialData?.title ?? "",
-    description: initialData?.description ?? "",
     type: initialData?.type ?? "video",
-    duration: initialData?.duration ?? "",
     content: {
       videoUrl: initialData?.content?.videoUrl ?? "",
       documentUrl: initialData?.content?.documentUrl ?? "",
@@ -55,11 +51,10 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
     
     console.log('LessonForm - state atual:', state);
     
-    if (!state.title || !state.description) {
-      console.log('LessonForm - erro: campos obrigatórios não preenchidos');
+    if (!state.title) {
+      console.log('LessonForm - erro: título obrigatório');
       console.log('LessonForm - title:', state.title);
-      console.log('LessonForm - description:', state.description);
-      setError("Preencha todos os campos obrigatórios");
+      setError("Título da aula é obrigatório");
       return;
     }
 
@@ -209,17 +204,6 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição da Aula *</Label>
-        <Textarea 
-          id="description" 
-          rows={3} 
-          value={state.description} 
-          onChange={(e) => setState({ ...state, description: e.target.value })} 
-          placeholder="Descreva brevemente o que será ensinado nesta aula..."
-          required
-        />
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
@@ -251,20 +235,6 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
         </div>
       </div>
 
-      {state.type === "video" && (
-        <div className="space-y-2">
-          <Label htmlFor="duration">Duração do Vídeo</Label>
-          <Input 
-            id="duration" 
-            value={state.duration} 
-            onChange={(e) => setState({ ...state, duration: e.target.value })} 
-            placeholder="Ex: 15:30"
-          />
-          <p className="text-sm text-gray-500">
-            Duração no formato MM:SS ou HH:MM:SS
-          </p>
-        </div>
-      )}
 
       {renderContentFields()}
 
@@ -291,9 +261,7 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
           className="rounded-xl" 
           onClick={() => setState({
             title: "",
-            description: "",
             type: "video",
-            duration: "",
             content: {},
             order: 1,
             isPublished: false

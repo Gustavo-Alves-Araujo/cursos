@@ -409,7 +409,6 @@ export default function CourseDetailPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-semibold text-white mb-1">{lesson.title}</h4>
-                                <p className="text-sm text-gray-300 mb-2">{lesson.description}</p>
                                 
                                 {/* Preview do conteúdo baseado no tipo */}
                                 {lesson.type === 'video' && lesson.content.videoUrl && (
@@ -428,11 +427,6 @@ export default function CourseDetailPage() {
                                   </div>
                                 )}
                                 
-                                {lesson.duration && (
-                                  <div className="mt-2 text-xs text-gray-400">
-                                    <span className="font-medium">Duração:</span> {lesson.duration}
-                                  </div>
-                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2 ml-4">

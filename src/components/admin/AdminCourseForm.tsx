@@ -11,7 +11,6 @@ import { Course } from "@/types/course";
 type FormState = {
   title: string;
   shortDescription: string;
-  description: string;
   thumbnail: string;
   price: number;
   estimatedDuration: string;
@@ -28,7 +27,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
   const [state, setState] = useState<FormState>({
     title: initialData?.title ?? "",
     shortDescription: initialData?.shortDescription ?? "",
-    description: initialData?.description ?? "",
     thumbnail: initialData?.thumbnail ?? "",
     price: initialData?.price ?? 0,
     estimatedDuration: initialData?.estimatedDuration ?? "0h 0min",
@@ -42,7 +40,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
     
     console.log('AdminCourseForm - dados do formulário:', state);
     
-    if (!state.title || !state.shortDescription || !state.description) {
+    if (!state.title || !state.shortDescription) {
       setError("Preencha todos os campos obrigatórios");
       return;
     }
@@ -69,7 +67,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         <h4 className="font-semibold text-green-800">Status do Formulário:</h4>
         <p className="text-sm text-green-600">
           Título: {state.title || 'Vazio'} | 
-          Descrição: {state.shortDescription || 'Vazio'} | 
+          Descrição Curta: {state.shortDescription || 'Vazio'} | 
           Preço: R$ {state.price} | 
           Publicado: {state.isPublished ? 'Sim' : 'Não'}
         </p>
@@ -120,20 +118,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Descrição Completa *</Label>
-        <Textarea 
-          id="description" 
-          rows={5} 
-          value={state.description} 
-          onChange={(e) => {
-            console.log('Descrição completa alterada para:', e.target.value);
-            setState({ ...state, description: e.target.value });
-          }} 
-          placeholder="Descreva detalhadamente o que os alunos aprenderão neste curso..."
-          required
-        />
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
@@ -185,7 +169,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
             setState({
               title: "",
               shortDescription: "",
-              description: "",
               thumbnail: "",
               price: 0,
               estimatedDuration: "0h 0min",

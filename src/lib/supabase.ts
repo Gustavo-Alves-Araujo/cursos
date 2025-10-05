@@ -1,9 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Check if we're in a build environment and provide helpful error messages
+if (!supabaseUrl || !supabaseAnonKey) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ Supabase environment variables are missing in production!')
+    console.error('Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your Vercel environment variables.')
+  } else {
+    console.warn('⚠️ Supabase environment variables are not set. Please check your .env file.')
+  }
+}
+
+// Create client with fallback values to prevent build failures
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+)
 
 // Tipos para o banco de dados
 export interface Database {

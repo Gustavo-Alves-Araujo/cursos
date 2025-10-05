@@ -75,9 +75,7 @@ export function useCourses() {
               id: lesson.id,
               moduleId: lesson.module_id,
               title: lesson.title,
-              description: lesson.description,
               type: lesson.type,
-              duration: lesson.duration,
               content: content || {},
               order: lesson.order_index,
               isPublished: lesson.is_published,
@@ -118,7 +116,6 @@ export function useCourses() {
 
       const insertData = {
         title: courseData.title,
-        description: courseData.description,
         short_description: courseData.shortDescription,
         thumbnail: courseData.thumbnail || null,
         price: courseData.price || 0,
@@ -176,7 +173,6 @@ export function useCourses() {
       // Filtrar apenas campos que não são undefined
       const updateData: Record<string, unknown> = {};
       if (updates.title !== undefined) updateData.title = updates.title;
-      if (updates.description !== undefined) updateData.description = updates.description;
       if (updates.shortDescription !== undefined) updateData.short_description = updates.shortDescription;
       if (updates.thumbnail !== undefined) updateData.thumbnail = updates.thumbnail;
       if (updates.price !== undefined) updateData.price = updates.price;
@@ -255,9 +251,7 @@ export function useCourses() {
       const insertData = {
         module_id: moduleId,
         title: lessonData.title,
-        description: lessonData.description,
         type: lessonData.type,
-        duration: lessonData.duration,
         content: lessonData.content,
         order_index: lessonData.order,
         is_published: lessonData.isPublished
@@ -333,9 +327,7 @@ export function useCourses() {
       
       const updateData = {
         title: updates.title,
-        description: updates.description,
         type: updates.type,
-        duration: updates.duration,
         content: updates.content,
         order_index: updates.order,
         is_published: updates.isPublished
@@ -516,9 +508,7 @@ export function useMyCourses() {
                 id: lesson.id,
                 moduleId: lesson.module_id,
                 title: lesson.title,
-                description: lesson.description,
                 type: lesson.type,
-                duration: lesson.duration,
                 content: content || {},
                 order: lesson.order_index,
                 isPublished: lesson.is_published,
@@ -605,7 +595,6 @@ export function useMyCourses() {
       const transformedCourse: Course = {
         id: course.id,
         title: course.title,
-        description: course.description,
         shortDescription: course.short_description,
         thumbnail: course.thumbnail,
         price: course.price,
@@ -637,9 +626,7 @@ export function useMyCourses() {
               id: lesson.id,
               moduleId: lesson.module_id,
               title: lesson.title,
-              description: lesson.description,
               type: lesson.type,
-              duration: lesson.duration,
               content: content || {},
               order: lesson.order_index,
               isPublished: lesson.is_published,

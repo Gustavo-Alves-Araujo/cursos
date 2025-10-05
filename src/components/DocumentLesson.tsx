@@ -7,13 +7,12 @@ import { FileText, Download, Eye, CheckCircle, ExternalLink } from 'lucide-react
 
 interface DocumentLessonProps {
   title: string;
-  description: string;
   documentUrl: string;
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function DocumentLesson({ title, description, documentUrl, onComplete, isCompleted = false }: DocumentLessonProps) {
+export function DocumentLesson({ title, documentUrl, onComplete, isCompleted = false }: DocumentLessonProps) {
 
   const handleDownload = () => {
     try {
@@ -100,9 +99,6 @@ export function DocumentLesson({ title, description, documentUrl, onComplete, is
             <FileText className="w-6 h-6 text-blue-400" />
             {title}
           </CardTitle>
-          <CardDescription className="text-blue-200">
-            {description}
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Informações do Documento */}
