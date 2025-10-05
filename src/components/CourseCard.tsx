@@ -21,20 +21,36 @@ export function CourseCard({ course }: Props) {
     >
       <Card className="overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-300 group-hover:border-white/20 group-hover:shadow-2xl group-hover:shadow-blue-500/10">
         <CardHeader className="p-0">
-          <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center">
-            <BookOpen className="w-16 h-16 text-blue-300" />
+          <div className="relative h-48 w-full bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center overflow-hidden">
+            {course.thumbnail ? (
+              <img 
+                src={course.thumbnail} 
+                alt={course.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback para ícone se a imagem falhar
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`${course.thumbnail ? 'hidden' : ''} flex items-center justify-center w-full h-full`}>
+              <BookOpen className="w-16 h-16 text-blue-300" />
+            </div>
             {course.owned && (
               <Badge className="absolute left-3 top-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
                 <Star className="w-3 h-3 mr-1" />
                 Meu
               </Badge>
             )}
-            <div className="absolute bottom-3 right-3">
-              <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-                <Clock className="w-3 h-3 text-white" />
-                <span className="text-white text-xs font-medium">45min</span>
+            {course.estimatedDuration && (
+              <div className="absolute bottom-3 right-3">
+                <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+                  <Clock className="w-3 h-3 text-white" />
+                  <span className="text-white text-xs font-medium">{course.estimatedDuration}</span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-3 p-4 sm:p-6">
@@ -47,14 +63,6 @@ export function CourseCard({ course }: Props) {
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <span className="text-blue-300 text-xs">4.8</span>
-            </div>
             <Badge 
               variant="outline" 
               className={`text-xs ${

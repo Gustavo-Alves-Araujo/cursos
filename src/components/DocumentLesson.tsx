@@ -10,18 +10,34 @@ interface DocumentLessonProps {
   description: string;
   documentUrl: string;
   onComplete: () => void;
+  isCompleted?: boolean;
 }
 
-export function DocumentLesson({ title, description, documentUrl, onComplete }: DocumentLessonProps) {
-  const [isCompleted, setIsCompleted] = useState(false);
+export function DocumentLesson({ title, description, documentUrl, onComplete, isCompleted = false }: DocumentLessonProps) {
   const [isViewing, setIsViewing] = useState(false);
 
   const handleDownload = () => {
-    // Simular download do documento
-    const link = document.createElement('a');
-    link.href = documentUrl;
-    link.download = title;
-    link.click();
+    try {
+      // Criar um link temporário para download
+      const link = document.createElement('a');
+      link.href = documentUrl;
+      link.download = `${title}.${getFileExtension(documentUrl)}`;
+      link.target = '_blank';
+      
+      // Adicionar ao DOM temporariamente para funcionar em alguns navegadores
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Fallback: abrir em nova aba se o download não funcionar
+      setTimeout(() => {
+        window.open(documentUrl, '_blank');
+      }, 100);
+    } catch (error) {
+      console.error('Erro ao baixar documento:', error);
+      // Fallback: abrir em nova aba
+      window.open(documentUrl, '_blank');
+    }
   };
 
   const handleView = () => {
@@ -31,12 +47,17 @@ export function DocumentLesson({ title, description, documentUrl, onComplete }: 
   };
 
   const handleComplete = () => {
-    setIsCompleted(true);
+    console.log('DocumentLesson: handleComplete chamado');
+    console.log('DocumentLesson: onComplete function:', onComplete);
     onComplete();
   };
 
+  const getFileExtension = (url: string) => {
+    return url.split('.').pop()?.toLowerCase() || 'pdf';
+  };
+
   const getFileType = (url: string) => {
-    const extension = url.split('.').pop()?.toLowerCase();
+    const extension = getFileExtension(url);
     switch (extension) {
       case 'pdf':
         return 'PDF';
@@ -55,7 +76,7 @@ export function DocumentLesson({ title, description, documentUrl, onComplete }: 
   };
 
   const getFileIcon = (url: string) => {
-    const extension = url.split('.').pop()?.toLowerCase();
+    const extension = getFileExtension(url);
     switch (extension) {
       case 'pdf':
         return '📄';

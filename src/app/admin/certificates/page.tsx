@@ -7,11 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LogoutButton } from "@/components/LogoutButton";
+import { CertificateTemplateForm } from "@/components/admin/CertificateTemplateForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Award, Plus, Edit, Trash2, Download, Users, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ArrowLeft, Search, Award, Plus, Edit, Trash2, Download, Users, CheckCircle, XCircle, Clock, Settings, FileText } from "lucide-react";
+import { CertificateService } from "@/lib/certificateService";
+import { CertificateTemplate } from "@/types/certificate";
 
 // Mock data para certificados
 const mockCertificates = [
@@ -91,6 +94,10 @@ export default function AdminCertificatesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [activeTab, setActiveTab] = useState<'certificates' | 'templates'>('certificates');
+  const [templates, setTemplates] = useState<CertificateTemplate[]>([]);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<CertificateTemplate | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
@@ -104,6 +111,34 @@ export default function AdminCertificatesPage() {
       }
     }
   }, [user, isLoading, router]);
+
+  // Carregar templates quando a aba de templates for ativada
+  useEffect(() => {
+    if (activeTab === 'templates' && user?.role === 'admin') {
+      loadTemplates();
+    }
+  }, [activeTab, user]);
+
+  const loadTemplates = async () => {
+    try {
+      // Aqui você implementaria a busca de templates do banco
+      // Por enquanto, usando dados mock
+      setTemplates([]);
+    } catch (error) {
+      console.error('Erro ao carregar templates:', error);
+    }
+  };
+
+  const handleTemplateSuccess = (template: CertificateTemplate) => {
+    setTemplates(prev => [...prev, template]);
+    setIsTemplateDialogOpen(false);
+    setSelectedTemplate(null);
+  };
+
+  const openTemplateDialog = (template?: CertificateTemplate) => {
+    setSelectedTemplate(template || null);
+    setIsTemplateDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -210,15 +245,52 @@ export default function AdminCertificatesPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Button 
-              onClick={openCreateDialog}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Certificado
-            </Button>
+            {activeTab === 'certificates' && (
+              <Button 
+                onClick={openCreateDialog}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Certificado
+              </Button>
+            )}
+            {activeTab === 'templates' && (
+              <Button 
+                onClick={() => openTemplateDialog()}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Template
+              </Button>
+            )}
             <LogoutButton />
           </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex space-x-1 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
+          <button
+            onClick={() => setActiveTab('certificates')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+              activeTab === 'certificates'
+                ? 'bg-white/20 text-white'
+                : 'text-blue-200 hover:bg-white/10'
+            }`}
+          >
+            <Award className="w-4 h-4" />
+            Certificados
+          </button>
+          <button
+            onClick={() => setActiveTab('templates')}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+              activeTab === 'templates'
+                ? 'bg-white/20 text-white'
+                : 'text-blue-200 hover:bg-white/10'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            Templates
+          </button>
         </div>
 
         {/* Estatísticas */}
@@ -317,11 +389,14 @@ export default function AdminCertificatesPage() {
           </CardContent>
         </Card>
 
-        {/* Lista de Certificados */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-blue-200">Todos os Certificados</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCertificates.map((cert) => (
+        {/* Conteúdo baseado na aba ativa */}
+        {activeTab === 'certificates' ? (
+          <>
+            {/* Lista de Certificados */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-blue-200">Todos os Certificados</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCertificates.map((cert) => (
               <Card key={cert.id} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -409,8 +484,82 @@ export default function AdminCertificatesPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Lista de Templates */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-blue-200">Templates de Certificados</h2>
+              {templates.length === 0 ? (
+                <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+                  <CardContent className="p-8 text-center">
+                    <FileText className="w-16 h-16 text-blue-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-blue-200 mb-2">Nenhum template encontrado</h3>
+                    <p className="text-blue-300 mb-4">
+                      Crie seu primeiro template de certificado para começar a emitir certificados personalizados.
+                    </p>
+                    <Button 
+                      onClick={() => openTemplateDialog()}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar Primeiro Template
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {templates.map((template) => (
+                    <Card key={template.id} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                              <FileText className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-white text-lg">Template de Certificado</CardTitle>
+                              <CardDescription className="text-blue-300 text-sm">Curso ID: {template.courseId}</CardDescription>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-blue-200 text-sm">Criado em:</span>
+                            <span className="text-white font-medium">
+                              {new Date(template.createdAt).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                          <div className="flex gap-2 pt-2">
+                            <Button 
+                              size="sm" 
+                              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                              onClick={() => openTemplateDialog(template)}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Editar
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Dialog de Edição */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -618,6 +767,29 @@ export default function AdminCertificatesPage() {
                 Criar Certificado
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de Template */}
+        <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+          <DialogContent className="max-w-4xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-blue-200 text-xl">
+                {selectedTemplate ? 'Editar Template' : 'Criar Template de Certificado'}
+              </DialogTitle>
+              <DialogDescription className="text-blue-300">
+                {selectedTemplate 
+                  ? 'Modifique as configurações do template de certificado'
+                  : 'Configure um novo template de certificado para um curso'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            <CertificateTemplateForm
+              courseId="mock-course-id" // Em produção, você passaria o ID do curso selecionado
+              existingTemplate={selectedTemplate || undefined}
+              onSuccess={handleTemplateSuccess}
+            />
           </DialogContent>
         </Dialog>
       </main>

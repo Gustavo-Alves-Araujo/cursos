@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
+import { Play, CheckCircle } from 'lucide-react';
 
 interface VideoLessonProps {
   title: string;
@@ -11,30 +11,32 @@ interface VideoLessonProps {
   videoUrl: string;
   duration: string;
   onComplete: () => void;
+  isCompleted?: boolean;
 }
 
-export function VideoLesson({ title, description, videoUrl, duration, onComplete }: VideoLessonProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
-
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleMute = () => {
-    setIsMuted(!isMuted);
+export function VideoLesson({ title, description, videoUrl, duration, onComplete, isCompleted = false }: VideoLessonProps) {
+  // Função para converter URL do YouTube para URL de embed
+  const getYouTubeEmbedUrl = (url: string) => {
+    let videoId = '';
+    
+    // Extrair ID do vídeo de diferentes formatos de URL do YouTube
+    if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1]?.split('&')[0] || '';
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1]?.split('?')[0] || '';
+    } else if (url.includes('youtube.com/embed/')) {
+      videoId = url.split('embed/')[1]?.split('?')[0] || '';
+    }
+    
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&showinfo=0&controls=1&autoplay=0`;
+    }
+    
+    return url; // Retorna URL original se não conseguir extrair o ID
   };
 
   const handleComplete = () => {
-    setIsCompleted(true);
     onComplete();
-  };
-
-  const handleRestart = () => {
-    setProgress(0);
-    setIsCompleted(false);
   };
 
   return (
@@ -55,11 +57,12 @@ export function VideoLesson({ title, description, videoUrl, duration, onComplete
           <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
             {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
               <iframe
-                src={videoUrl}
+                src={getYouTubeEmbedUrl(videoUrl)}
                 title={title}
                 className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
+                frameBorder="0"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
@@ -72,61 +75,10 @@ export function VideoLesson({ title, description, videoUrl, duration, onComplete
             )}
           </div>
 
-          {/* Controles do Player */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePlayPause}
-                className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleMute}
-                className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRestart}
-                className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-blue-200 text-sm">Duração: {duration}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-              >
-                <Maximize className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Barra de Progresso */}
-          <div className="space-y-2">
-            <div className="w-full bg-white/20 rounded-full h-2">
-              <div 
-                className="h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            <div className="flex justify-between text-sm text-blue-300">
-              <span>{Math.round(progress)}% assistido</span>
-              <span>{duration}</span>
-            </div>
+          {/* Informações do Vídeo */}
+          <div className="flex items-center justify-between text-sm text-blue-300">
+            <span>Duração: {duration}</span>
+            <span>YouTube</span>
           </div>
 
           {/* Botão de Conclusão */}
@@ -135,7 +87,7 @@ export function VideoLesson({ title, description, videoUrl, duration, onComplete
               onClick={handleComplete}
               className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
-              <Play className="w-4 h-4 mr-2" />
+              <CheckCircle className="w-4 h-4 mr-2" />
               Marcar como Concluída
             </Button>
           )}
@@ -143,7 +95,7 @@ export function VideoLesson({ title, description, videoUrl, duration, onComplete
           {isCompleted && (
             <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4 text-center">
               <div className="flex items-center justify-center gap-2 text-green-200">
-                <Play className="w-5 h-5" />
+                <CheckCircle className="w-5 h-5" />
                 <span className="font-medium">Aula Concluída!</span>
               </div>
             </div>

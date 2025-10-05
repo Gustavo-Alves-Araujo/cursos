@@ -6,16 +6,18 @@ import { Carousel } from "@/components/Carousel";
 import { CourseCard } from "@/components/CourseCard";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
-import { mockCourses, mockStudents } from "@/mocks/data";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Plus } from "lucide-react";
+import { useMyCourses, useCourses } from "@/hooks/useCourses";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { myCourses, isLoading: coursesLoading } = useMyCourses();
+  const { courses: allCourses, isLoading: allCoursesLoading } = useCourses();
   
   useEffect(() => {
     if (!isLoading) {
@@ -30,7 +32,7 @@ export default function Home() {
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  if (isLoading || coursesLoading || allCoursesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -45,17 +47,10 @@ export default function Home() {
     return null;
   }
 
-  const myCourses = mockCourses.filter((c) => c.owned);
   const myCoursesPreview = myCourses.slice(0, 6); // Mostrar até 6
-  
-  // Buscar dados do aluno para obter cursos disponíveis configurados pelo admin
-  const studentData = mockStudents.find(s => s.email === user.email);
-  const availableCourseIds = studentData?.availableCourseIds || [];
-  const availableCourses = mockCourses.filter((c) => availableCourseIds.includes(c.id));
-  const moreCourses = availableCourses.slice(0, 8); // Mostrar 8 exemplos
-  const notOwnedAndNotAvailable = mockCourses.filter(
-    (c) => !c.owned && !availableCourseIds.includes(c.id)
-  );
+  const myCourseIds = myCourses.map(c => c.id);
+  const availableCourses = allCourses.filter(c => !myCourseIds.includes(c.id) && c.isPublished);
+  const availableCoursesPreview = availableCourses.slice(0, 6);
 
   return (
     <div className="relative">
@@ -94,30 +89,46 @@ export default function Home() {
           </Carousel>
         </section>
 
-        {/* Seção Mais Cursos (8) */}
-        <section className="space-y-4">
-          <h2 className="text-xl sm:text-2xl font-semibold text-blue-200 flex items-center gap-2">
-            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
-            Mais cursos
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {moreCourses.map((c) => (
-              <CourseCard key={c.id} course={c} />
-            ))}
-          </div>
-        </section>
+        {/* Seção Cursos Disponíveis */}
+        {availableCourses.length > 0 ? (
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-blue-200 flex items-center gap-2">
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+                Cursos que você ainda não tem
+              </h2>
+              <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200">
+                <Link href="/loja" className="flex items-center gap-2">
+                  Ir para a Loja
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+            <Carousel ariaLabel="Cursos disponíveis">
+              {availableCoursesPreview.map((c) => (
+                <CourseCard key={c.id} course={c} />
+              ))}
+            </Carousel>
+          </section>
+        ) : (
+          <section className="space-y-4">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 text-center">
+              <BookOpen className="w-12 h-12 text-green-400 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-green-200 mb-2">Parabéns! 🎉</h2>
+              <p className="text-green-300">Você já tem acesso a todos os cursos disponíveis!</p>
+              <p className="text-green-400 text-sm mt-2">Continue estudando e aproveitando seu aprendizado.</p>
+            </div>
+          </section>
+        )}
 
-        {/* Seção Cursos que você ainda não tem */}
-        <section className="space-y-4">
-          <h2 className="text-xl sm:text-2xl font-semibold text-blue-200">
-            Cursos que você ainda não tem
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {notOwnedAndNotAvailable.map((c) => (
-              <CourseCard key={c.id} course={c} />
-            ))}
-          </div>
-        </section>
+        {/* Mensagem quando não há cursos */}
+        {myCourses.length === 0 && availableCourses.length === 0 && (
+          <section className="text-center py-12">
+            <BookOpen className="w-16 h-16 text-blue-300 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-blue-200 mb-2">Nenhum curso disponível</h2>
+            <p className="text-blue-300">Entre em contato com o administrador para ter acesso aos cursos.</p>
+          </section>
+        )}
       </main>
     </div>
   );

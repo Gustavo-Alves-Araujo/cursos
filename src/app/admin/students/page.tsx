@@ -13,16 +13,61 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Users, Mail, BookOpen, Award, Settings, Eye, Edit, Trash2, Plus, Minus, CheckCircle, XCircle } from "lucide-react";
-import { mockStudents, mockCourses } from "@/mocks/data";
+import { useCourses } from "@/hooks/useCourses";
+import { supabase } from "@/lib/supabase";
+import { User } from "@/types/auth";
+import { Course } from "@/types/course";
+
+type StudentWithEnrollments = User & {
+  enrollments: string[]; // course IDs
+};
 
 export default function AdminStudentsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { courses } = useCourses();
   const [searchTerm, setSearchTerm] = useState("");
-  const [students, setStudents] = useState(mockStudents);
-  const [courses] = useState(mockCourses);
+  const [students, setStudents] = useState<StudentWithEnrollments[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+
+  // Buscar alunos e suas matrículas
+  const fetchStudents = async () => {
+    try {
+      setStudentsLoading(true);
+      
+      // Buscar todos os usuários com role 'student'
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'student')
+        .order('created_at', { ascending: false });
+
+      if (usersError) throw usersError;
+
+      // Buscar matrículas de todos os alunos
+      const { data: enrollmentsData, error: enrollmentsError } = await supabase
+        .from('course_enrollments')
+        .select('user_id, course_id');
+
+      if (enrollmentsError) throw enrollmentsError;
+
+      // Combinar dados
+      const studentsWithEnrollments: StudentWithEnrollments[] = usersData.map(user => ({
+        ...user,
+        enrollments: enrollmentsData
+          .filter(e => e.user_id === user.id)
+          .map(e => e.course_id)
+      }));
+
+      setStudents(studentsWithEnrollments);
+    } catch (error) {
+      console.error('Erro ao buscar alunos:', error);
+    } finally {
+      setStudentsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading) {
@@ -37,7 +82,13 @@ export default function AdminStudentsPage() {
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchStudents();
+    }
+  }, [user]);
+
+  if (isLoading || studentsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -59,39 +110,53 @@ export default function AdminStudentsPage() {
 
   const selectedStudentData = selectedStudent ? students.find(s => s.id === selectedStudent) : null;
 
-  const handleAssignCourse = (courseId: string) => {
+  const handleAssignCourse = async (courseId: string) => {
     if (!selectedStudent) return;
     
-    setStudents(prev => prev.map(student => 
-      student.id === selectedStudent 
-        ? { ...student, ownedCourseIds: [...student.ownedCourseIds, courseId] }
-        : student
-    ));
+    try {
+      const { error } = await supabase
+        .from('course_enrollments')
+        .insert({
+          user_id: selectedStudent,
+          course_id: courseId
+        });
+
+      if (error) throw error;
+
+      // Atualizar estado local
+      setStudents(prev => prev.map(student => 
+        student.id === selectedStudent 
+          ? { ...student, enrollments: [...student.enrollments, courseId] }
+          : student
+      ));
+    } catch (error) {
+      console.error('Erro ao atribuir curso:', error);
+      alert('Erro ao atribuir curso');
+    }
   };
 
-  const handleRemoveCourse = (courseId: string) => {
+  const handleRemoveCourse = async (courseId: string) => {
     if (!selectedStudent) return;
     
-    setStudents(prev => prev.map(student => 
-      student.id === selectedStudent 
-        ? { ...student, ownedCourseIds: student.ownedCourseIds.filter(id => id !== courseId) }
-        : student
-    ));
-  };
+    try {
+      const { error } = await supabase
+        .from('course_enrollments')
+        .delete()
+        .eq('user_id', selectedStudent)
+        .eq('course_id', courseId);
 
-  const handleToggleAvailableCourse = (courseId: string) => {
-    if (!selectedStudent) return;
-    
-    setStudents(prev => prev.map(student => 
-      student.id === selectedStudent 
-        ? { 
-            ...student, 
-            availableCourseIds: student.availableCourseIds.includes(courseId)
-              ? student.availableCourseIds.filter(id => id !== courseId)
-              : [...student.availableCourseIds, courseId]
-          }
-        : student
-    ));
+      if (error) throw error;
+
+      // Atualizar estado local
+      setStudents(prev => prev.map(student => 
+        student.id === selectedStudent 
+          ? { ...student, enrollments: student.enrollments.filter(id => id !== courseId) }
+          : student
+      ));
+    } catch (error) {
+      console.error('Erro ao remover curso:', error);
+      alert('Erro ao remover curso');
+    }
   };
 
   const openConfigDialog = (studentId: string) => {
@@ -149,7 +214,7 @@ export default function AdminStudentsPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-white">
-                    {students.reduce((acc, student) => acc + student.ownedCourseIds.length, 0)}
+                    {students.reduce((acc, student) => acc + student.enrollments.length, 0)}
                   </div>
                   <div className="text-blue-200 text-sm">Cursos Atribuídos</div>
                 </div>
@@ -242,12 +307,12 @@ export default function AdminStudentsPage() {
                         </td>
                         <td className="p-4">
                           <Badge className="bg-blue-600/20 text-blue-200">
-                            {student.ownedCourseIds.length} cursos
+                            {student.enrollments.length} cursos
                           </Badge>
                         </td>
                         <td className="p-4">
                           <Badge className="bg-orange-600/20 text-orange-200">
-                            {student.availableCourseIds.length} cursos
+                            {courses.length - student.enrollments.length} disponíveis
                           </Badge>
                         </td>
                         <td className="p-4">
@@ -300,10 +365,10 @@ export default function AdminStudentsPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-blue-200 flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-400" />
-                    Cursos Possuídos ({selectedStudentData.ownedCourseIds.length})
+                    Cursos Matriculados ({selectedStudentData.enrollments.length})
                   </h3>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {selectedStudentData.ownedCourseIds.map((courseId) => {
+                    {selectedStudentData.enrollments.map((courseId) => {
                       const course = courses.find(c => c.id === courseId);
                       if (!course) return null;
                       return (
@@ -312,7 +377,7 @@ export default function AdminStudentsPage() {
                             <CheckCircle className="w-4 h-4 text-green-400" />
                             <div>
                               <p className="text-white font-medium">{course.title}</p>
-                              <p className="text-blue-300 text-sm">{course.shortDesc}</p>
+                              <p className="text-blue-300 text-sm">{course.shortDescription}</p>
                             </div>
                           </div>
                           <Button
@@ -333,70 +398,45 @@ export default function AdminStudentsPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-blue-200 flex items-center gap-2">
                     <XCircle className="w-5 h-5 text-orange-400" />
-                    Cursos Disponíveis ({selectedStudentData.availableCourseIds.length})
+                    Cursos Disponíveis ({courses.filter(c => !selectedStudentData.enrollments.includes(c.id)).length})
                   </h3>
                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {selectedStudentData.availableCourseIds.map((courseId) => {
-                      const course = courses.find(c => c.id === courseId);
-                      if (!course) return null;
-                      return (
-                        <div key={courseId} className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/30">
+                    {courses
+                      .filter(course => !selectedStudentData.enrollments.includes(course.id))
+                      .map((course) => (
+                        <div key={course.id} className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/30">
                           <div className="flex items-center gap-3">
                             <XCircle className="w-4 h-4 text-orange-400" />
                             <div>
                               <p className="text-white font-medium">{course.title}</p>
-                              <p className="text-blue-300 text-sm">{course.shortDesc}</p>
+                              <p className="text-blue-300 text-sm">{course.shortDescription}</p>
                             </div>
                           </div>
                           <Button
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleAssignCourse(courseId)}
+                            onClick={() => handleAssignCourse(course.id)}
                           >
                             <Plus className="w-4 h-4" />
                           </Button>
                         </div>
-                      );
-                    })}
+                      ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Todos os Cursos para Configurar Disponíveis */}
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-blue-200 mb-4">Configurar Cursos Disponíveis</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-48 overflow-y-auto">
-                {courses.map((course) => (
-                  <div key={course.id} className="flex items-center space-x-3 p-3 bg-white/5 rounded-lg">
-                    <Checkbox
-                      id={`available-${course.id}`}
-                      checked={selectedStudentData?.availableCourseIds.includes(course.id) || false}
-                      onCheckedChange={() => handleToggleAvailableCourse(course.id)}
-                      className="bg-white/15 border-white/40"
-                    />
-                    <label htmlFor={`available-${course.id}`} className="flex-1 cursor-pointer">
-                      <p className="text-white font-medium">{course.title}</p>
-                      <p className="text-blue-300 text-sm">{course.shortDesc}</p>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             <div className="flex justify-end gap-3 mt-6">
               <Button 
                 variant="outline" 
                 className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
-                onClick={() => setIsConfigDialogOpen(false)}
+                onClick={() => {
+                  setIsConfigDialogOpen(false);
+                  fetchStudents(); // Recarregar dados
+                }}
               >
                 Fechar
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                onClick={() => setIsConfigDialogOpen(false)}
-              >
-                Salvar Configurações
               </Button>
             </div>
           </DialogContent>

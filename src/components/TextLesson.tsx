@@ -10,15 +10,14 @@ interface TextLessonProps {
   description: string;
   content: string;
   onComplete: () => void;
+  isCompleted?: boolean;
 }
 
-export function TextLesson({ title, description, content, onComplete }: TextLessonProps) {
-  const [isCompleted, setIsCompleted] = useState(false);
+export function TextLesson({ title, description, content, onComplete, isCompleted = false }: TextLessonProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
 
   const handleComplete = () => {
-    setIsCompleted(true);
     onComplete();
   };
 

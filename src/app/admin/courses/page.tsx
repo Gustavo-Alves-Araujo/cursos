@@ -5,84 +5,65 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LogoutButton } from "@/components/LogoutButton";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCourses } from "@/hooks/useCourses";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, BookOpen, Plus, Edit, Trash2, Settings, Users, Award, Star } from "lucide-react";
-import { mockCourses } from "@/mocks/data";
+import { ArrowLeft, Search, BookOpen, Plus, Edit, Trash2, Settings, Users, Award, Star, Eye } from "lucide-react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function AdminCoursesPage() {
-  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [courses, setCourses] = useState(mockCourses);
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-      if (user.role !== 'admin') {
-        router.push('/');
-        return;
-      }
-    }
-  }, [user, isLoading, router]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-          <p className="mt-2">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || user.role !== 'admin') {
-    return null;
-  }
+  const { courses, isLoading, deleteCourse, updateCourse } = useCourses();
 
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.shortDesc.toLowerCase().includes(searchTerm.toLowerCase())
+    course.shortDescription.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedCourseData = selectedCourse ? courses.find(c => c.id === selectedCourse) : null;
-
-  const handleDeleteCourse = (courseId: string) => {
-    setCourses(prev => prev.filter(course => course.id !== courseId));
+  const handleDeleteCourse = async (courseId: string) => {
+    if (confirm('Tem certeza que deseja deletar este curso?')) {
+      try {
+        await deleteCourse(courseId);
+      } catch (error) {
+        console.error('Erro ao deletar curso:', error);
+        alert('Erro ao deletar curso');
+      }
+    }
   };
 
-  const handleToggleCourseStatus = (courseId: string) => {
-    setCourses(prev => prev.map(course => 
-      course.id === courseId 
-        ? { ...course, owned: !course.owned }
-        : course
-    ));
+  const handleToggleCourseStatus = async (courseId: string) => {
+    const course = courses.find(c => c.id === courseId);
+    if (course) {
+      try {
+        await updateCourse(courseId, { isPublished: !course.isPublished });
+      } catch (error) {
+        console.error('Erro ao atualizar curso:', error);
+        alert('Erro ao atualizar curso');
+      }
+    }
   };
 
-  const openEditDialog = (courseId: string) => {
-    setSelectedCourse(courseId);
-    setIsEditDialogOpen(true);
-  };
-
-  const openCreateDialog = () => {
-    setIsCreateDialogOpen(true);
-  };
+  if (isLoading) {
+    return (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+            <p className="mt-2">Carregando cursos...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
-    <div className="relative">
-      <AdminSidebar />
-      <main className="space-y-8 p-6">
+    <ProtectedRoute allowedRoles={['admin']}>
+      <div className="relative">
+        <AdminSidebar />
+        <main className="space-y-8 p-6">
         {/* Header */}
         <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-4">
@@ -104,11 +85,13 @@ export default function AdminCoursesPage() {
           </div>
           <div className="flex items-center gap-4">
             <Button 
-              onClick={openCreateDialog}
+              asChild
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Curso
+              <Link href="/admin/courses/new">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Curso
+              </Link>
             </Button>
             <LogoutButton />
           </div>
@@ -138,9 +121,9 @@ export default function AdminCoursesPage() {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-white">
-                    {courses.filter(c => c.owned).length}
+                    {courses.filter(c => c.isPublished).length}
                   </div>
-                  <div className="text-blue-200 text-sm">Cursos Ativos</div>
+                  <div className="text-blue-200 text-sm">Cursos Publicados</div>
                 </div>
               </div>
             </CardContent>
@@ -210,17 +193,17 @@ export default function AdminCoursesPage() {
                       </div>
                       <div>
                         <CardTitle className="text-white text-lg">{course.title}</CardTitle>
-                        <CardDescription className="text-blue-300 text-sm">{course.shortDesc}</CardDescription>
+                        <CardDescription className="text-blue-300 text-sm">{course.shortDescription}</CardDescription>
                       </div>
                     </div>
                     <Badge 
                       variant="outline" 
-                      className={course.owned 
+                      className={course.isPublished 
                         ? "bg-green-500/20 text-green-200 border-green-500/50" 
                         : "bg-gray-500/20 text-gray-200 border-gray-500/50"
                       }
                     >
-                      {course.owned ? "Ativo" : "Inativo"}
+                      {course.isPublished ? "Publicado" : "Rascunho"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -228,24 +211,27 @@ export default function AdminCoursesPage() {
                   <div className="space-y-4">
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-blue-200 text-sm">Alunos:</span>
-                      <span className="text-white font-medium">234</span>
+                      <span className="text-blue-200 text-sm">Módulos:</span>
+                      <span className="text-white font-medium">{course.modules.length}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-blue-200 text-sm">Avaliação:</span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-white font-medium">4.8</span>
-                      </div>
+                      <span className="text-blue-200 text-sm">Aulas:</span>
+                      <span className="text-white font-medium">{course.totalLessons}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-blue-200 text-sm">Duração:</span>
+                      <span className="text-white font-medium">{course.estimatedDuration}</span>
                     </div>
                     <div className="flex gap-2 pt-2">
                       <Button 
                         size="sm" 
+                        asChild
                         className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                        onClick={() => openEditDialog(course.id)}
                       >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Editar
+                        <Link href={`/admin/courses/${course.id}`}>
+                          <Eye className="w-4 h-4 mr-1" />
+                          Ver
+                        </Link>
                       </Button>
                       <Button 
                         size="sm" 
@@ -270,147 +256,8 @@ export default function AdminCoursesPage() {
             ))}
           </div>
         </div>
-
-        {/* Dialog de Edição */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-2xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-blue-200 text-xl">
-                Editar Curso - {selectedCourseData?.title}
-              </DialogTitle>
-              <DialogDescription className="text-blue-300">
-                Modifique as informações do curso
-              </DialogDescription>
-            </DialogHeader>
-            
-            {selectedCourseData && (
-              <div className="space-y-4 mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-blue-200 text-sm font-medium">Título</label>
-                    <Input 
-                      defaultValue={selectedCourseData.title}
-                      className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Descrição</label>
-                  <textarea 
-                    defaultValue={selectedCourseData.shortDesc}
-                    className="w-full bg-white/15 border border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 rounded-md px-3 py-2 min-h-[100px] resize-none"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-blue-200 text-sm font-medium">Status</label>
-                    <select 
-                      defaultValue={selectedCourseData.owned ? "Ativo" : "Inativo"}
-                      className="w-full bg-white/15 border border-white/40 text-white rounded-md px-3 py-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                    >
-                      <option value="Ativo">Ativo</option>
-                      <option value="Inativo">Inativo</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 mt-6">
-              <Button 
-                variant="outline" 
-                className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                onClick={() => setIsEditDialogOpen(false)}
-              >
-                Salvar Alterações
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog de Criação */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-2xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-blue-200 text-xl">
-                Criar Novo Curso
-              </DialogTitle>
-              <DialogDescription className="text-blue-300">
-                Adicione um novo curso à plataforma
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Título</label>
-                  <Input 
-                    placeholder="Nome do curso"
-                    className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                  />
-                </div>
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Duração</label>
-                  <Input 
-                    placeholder="Ex: 40 horas"
-                    className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-blue-200 text-sm font-medium">Descrição</label>
-                <textarea 
-                  placeholder="Descrição breve do curso"
-                  className="w-full bg-white/15 border border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 rounded-md px-3 py-2 min-h-[100px] resize-none"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Nível</label>
-                  <select 
-                    className="w-full bg-white/15 border border-white/40 text-white rounded-md px-3 py-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                  >
-                    <option value="Iniciante">Iniciante</option>
-                    <option value="Intermediário">Intermediário</option>
-                    <option value="Avançado">Avançado</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-blue-200 text-sm font-medium">Status</label>
-                  <select 
-                    className="w-full bg-white/15 border border-white/40 text-white rounded-md px-3 py-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
-                  >
-                    <option value="Ativo">Ativo</option>
-                    <option value="Inativo">Inativo</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <Button 
-                variant="outline" 
-                className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                Criar Curso
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </main>
     </div>
+    </ProtectedRoute>
   );
 }

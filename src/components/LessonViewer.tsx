@@ -3,16 +3,21 @@
 import { VideoLesson } from './VideoLesson';
 import { DocumentLesson } from './DocumentLesson';
 import { TextLesson } from './TextLesson';
-import { Lesson } from '@/mocks/data';
+import { Lesson } from '@/types/course';
 
 interface LessonViewerProps {
   lesson: Lesson;
+  lessons?: Lesson[];
   onComplete: () => void;
   onBack: () => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
 }
 
-export function LessonViewer({ lesson, onComplete, onBack }: LessonViewerProps) {
+export function LessonViewer({ lesson, lessons, onComplete, onBack, onPrevious, onNext }: LessonViewerProps) {
   const handleComplete = () => {
+    console.log('LessonViewer: handleComplete chamado');
+    console.log('LessonViewer: onComplete function:', onComplete);
     onComplete();
   };
 
@@ -26,6 +31,7 @@ export function LessonViewer({ lesson, onComplete, onBack }: LessonViewerProps) 
             videoUrl={lesson.content.videoUrl || ''}
             duration={lesson.duration || '0:00'}
             onComplete={handleComplete}
+            isCompleted={lesson.completed}
           />
         );
       
@@ -36,6 +42,7 @@ export function LessonViewer({ lesson, onComplete, onBack }: LessonViewerProps) 
             description={lesson.description}
             documentUrl={lesson.content.documentUrl || ''}
             onComplete={handleComplete}
+            isCompleted={lesson.completed}
           />
         );
       
@@ -46,6 +53,7 @@ export function LessonViewer({ lesson, onComplete, onBack }: LessonViewerProps) 
             description={lesson.description}
             content={lesson.content.textContent || ''}
             onComplete={handleComplete}
+            isCompleted={lesson.completed}
           />
         );
       

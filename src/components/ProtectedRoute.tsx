@@ -6,12 +6,14 @@ import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'aluno')[];
+  allowedRoles?: ('admin' | 'student')[];
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+
+  console.log('ProtectedRoute - estado:', { user, isLoading, allowedRoles });
 
   useEffect(() => {
     if (!isLoading) {

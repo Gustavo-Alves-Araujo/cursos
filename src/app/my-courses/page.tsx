@@ -4,16 +4,26 @@ import { Sidebar } from "@/components/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { CourseCard } from "@/components/CourseCard";
 import { Button } from "@/components/ui/button";
-import { mockCourses } from "@/mocks/data";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Calendar, Award, Clock } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Award, Clock, Play, CheckCircle, Trophy, Star, TrendingUp } from "lucide-react";
+import { useMyCourses } from "@/hooks/useCourses";
 
 export default function MyCoursesPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const { myCourses, isLoading: coursesLoading } = useMyCourses();
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    completedCourses: 0,
+    totalLessons: 0,
+    completedLessons: 0,
+    totalTime: 0
+  });
   
   useEffect(() => {
     if (!isLoading) {
@@ -28,7 +38,39 @@ export default function MyCoursesPage() {
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  // Calcular estatísticas dos cursos
+  useEffect(() => {
+    if (myCourses.length > 0) {
+      const totalLessons = myCourses.reduce((acc, course) => {
+        return acc + course.modules.reduce((moduleAcc, module) => {
+          return moduleAcc + module.lessons.length;
+        }, 0);
+      }, 0);
+
+      const completedLessons = myCourses.reduce((acc, course) => {
+        return acc + course.modules.reduce((moduleAcc, module) => {
+          return moduleAcc + module.lessons.filter(lesson => lesson.completed).length;
+        }, 0);
+      }, 0);
+
+      const completedCourses = myCourses.filter(course => {
+        const totalCourseLessons = course.modules.reduce((acc, module) => acc + module.lessons.length, 0);
+        const completedCourseLessons = course.modules.reduce((acc, module) => 
+          acc + module.lessons.filter(lesson => lesson.completed).length, 0);
+        return totalCourseLessons > 0 && completedCourseLessons === totalCourseLessons;
+      }).length;
+
+      setStats({
+        totalCourses: myCourses.length,
+        completedCourses,
+        totalLessons,
+        completedLessons,
+        totalTime: myCourses.length * 2.5 // Estimativa de horas por curso
+      });
+    }
+  }, [myCourses]);
+
+  if (isLoading || coursesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -42,8 +84,6 @@ export default function MyCoursesPage() {
   if (!user || user.role === 'admin') {
     return null;
   }
-
-  const myCourses = mockCourses.filter((c) => c.owned);
 
   return (
     <div className="relative">
@@ -72,38 +112,50 @@ export default function MyCoursesPage() {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">{myCourses.length}</div>
+                <div className="text-2xl font-bold text-white">{stats.totalCourses}</div>
                 <div className="text-blue-200 text-sm">Total de Cursos</div>
               </div>
             </div>
           </div>
           
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                <Award className="w-6 h-6 text-white" />
+                <Trophy className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">8</div>
+                <div className="text-2xl font-bold text-white">{stats.completedCourses}</div>
                 <div className="text-blue-200 text-sm">Concluídos</div>
               </div>
             </div>
           </div>
           
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-white">{stats.completedLessons}/{stats.totalLessons}</div>
+                <div className="text-blue-200 text-sm">Aulas Concluídas</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
                 <Clock className="w-6 h-6 text-white" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-white">24h</div>
+                <div className="text-2xl font-bold text-white">{stats.totalTime}h</div>
                 <div className="text-blue-200 text-sm">Tempo Total</div>
               </div>
             </div>
@@ -112,31 +164,143 @@ export default function MyCoursesPage() {
 
         {/* Lista de Cursos */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold text-blue-200">Todos os Meus Cursos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myCourses.map((course) => (
-              <div key={course.id} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
-                <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg mb-4 flex items-center justify-center">
-                  <BookOpen className="w-12 h-12 text-blue-300" />
-                </div>
-                <h3 className="font-semibold text-white mb-2">{course.title}</h3>
-                <p className="text-blue-200 text-sm mb-4">{course.shortDesc}</p>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-blue-300 text-sm">
-                    <Calendar className="w-4 h-4" />
-                    <span>Iniciado em Jan 2024</span>
-                  </div>
-                  <div className="text-green-400 text-sm font-medium">75%</div>
-                </div>
-                <div className="w-full bg-white/20 rounded-full h-2 mb-4">
-                  <div className="w-3/4 h-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                  Continuar Curso
-                </Button>
-              </div>
-            ))}
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold text-blue-200">Meus Cursos</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Em Progresso
+              </Button>
+              <Button variant="outline" size="sm" className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200">
+                <Trophy className="w-4 h-4 mr-2" />
+                Concluídos
+              </Button>
+            </div>
           </div>
+          
+          {myCourses.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="w-12 h-12 text-blue-300" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Nenhum curso encontrado</h3>
+              <p className="text-blue-200 mb-6">Você ainda não está matriculado em nenhum curso.</p>
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                <Link href="/courses">
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Explorar Cursos
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+              {myCourses.map((course) => {
+                const totalLessons = course.modules.reduce((acc, module) => acc + module.lessons.length, 0);
+                const completedLessons = course.modules.reduce((acc, module) => 
+                  acc + module.lessons.filter(lesson => lesson.completed).length, 0);
+                const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+                const isCompleted = progressPercentage === 100;
+                
+                return (
+                  <Card key={course.id} className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 group">
+                    <CardHeader className="pb-3">
+                      <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg mb-4 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-indigo-500/30 transition-all duration-300">
+                        <BookOpen className="w-12 h-12 text-blue-300" />
+                      </div>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg text-white mb-1 line-clamp-2">{course.title}</CardTitle>
+                          <CardDescription className="text-blue-200 text-sm line-clamp-2">
+                            {course.shortDescription}
+                          </CardDescription>
+                        </div>
+                        {isCompleted && (
+                          <div className="ml-2">
+                            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                              <Trophy className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      {/* Progresso */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-blue-200">Progresso</span>
+                          <span className="text-white font-medium">{Math.round(progressPercentage)}%</span>
+                        </div>
+                        <div className="w-full bg-white/20 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              isCompleted 
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                                : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                            }`}
+                            style={{ width: `${progressPercentage}%` }}
+                          ></div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-blue-300">
+                          <span>{completedLessons}/{totalLessons} aulas</span>
+                          <span>{course.estimatedDuration}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Status e Badges */}
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className={`${
+                            isCompleted 
+                              ? 'bg-green-500/20 border-green-500/50 text-green-200' 
+                              : 'bg-blue-500/20 border-blue-500/50 text-blue-200'
+                          }`}
+                        >
+                          {isCompleted ? 'Concluído' : 'Em Progresso'}
+                        </Badge>
+                        {course.modules.length > 0 && (
+                          <Badge variant="outline" className="bg-white/10 border-white/20 text-blue-200">
+                            {course.modules.length} módulos
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {/* Botões de Ação */}
+                      <div className="flex gap-2">
+                        <Button 
+                          asChild 
+                          className={`flex-1 ${
+                            isCompleted 
+                              ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
+                              : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                          }`}
+                        >
+                          <Link href={`/courses/${course.id}`}>
+                            <Play className="w-4 h-4 mr-2" />
+                            {isCompleted ? 'Revisar Curso' : 'Continuar Curso'}
+                          </Link>
+                        </Button>
+                        
+                        {isCompleted && (
+                          <Button 
+                            asChild 
+                            variant="outline" 
+                            size="sm"
+                            className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+                          >
+                            <Link href="/certificados">
+                              <Award className="w-4 h-4" />
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </section>
       </main>
     </div>
