@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, MessageCircle, Heart, Share2, TrendingUp, Trophy, Star, Users, Zap, Target, Award, Calendar, Clock, BookOpen, Plus, Filter, ThumbsUp, Reply, Flag, Code, Palette } from "lucide-react";
+import { ArrowLeft, Search, MessageCircle, Heart, Share2, Trophy, Star, Users, Zap, Target, Award, Clock, BookOpen, Plus, Code, Palette } from "lucide-react";
 
 // Mock data para posts da comunidade
 const mockPosts = [

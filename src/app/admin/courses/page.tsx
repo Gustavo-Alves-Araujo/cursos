@@ -9,12 +9,12 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { useCourses } from "@/hooks/useCourses";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, BookOpen, Plus, Trash2, Settings, Users, Award, Star, Eye } from "lucide-react";
+import { ArrowLeft, Search, BookOpen, Plus, Trash2, Users, Award, Star, Eye } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export default function AdminCoursesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { courses, isLoading, deleteCourse, updateCourse } = useCourses();
+  const { courses, isLoading, deleteCourse } = useCourses();
 
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,26 +32,18 @@ export default function AdminCoursesPage() {
     }
   };
 
-  const handleToggleCourseStatus = async (courseId: string) => {
-    const course = courses.find(c => c.id === courseId);
-    if (course) {
-      try {
-        await updateCourse(courseId, { isPublished: !course.isPublished });
-      } catch (error) {
-        console.error('Erro ao atualizar curso:', error);
-        alert('Erro ao atualizar curso');
-      }
-    }
-  };
 
   if (isLoading) {
     return (
       <ProtectedRoute allowedRoles={['admin']}>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-            <p className="mt-2">Carregando cursos...</p>
-          </div>
+        <div className="relative">
+          <AdminSidebar />
+          <main className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+              <p className="mt-2">Carregando cursos...</p>
+            </div>
+          </main>
         </div>
       </ProtectedRoute>
     );
@@ -230,14 +222,6 @@ export default function AdminCoursesPage() {
                           <Eye className="w-4 h-4 mr-1" />
                           Ver
                         </Link>
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
-                        onClick={() => handleToggleCourseStatus(course.id)}
-                      >
-                        <Settings className="w-4 h-4" />
                       </Button>
                       <Button 
                         size="sm" 

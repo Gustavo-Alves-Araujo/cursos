@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: 'Erro desconhecido' };
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Erro de conexão' };
     } finally {
       setIsLoading(false);
@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: 'Erro desconhecido' };
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Erro de conexão' };
     } finally {
       setIsLoading(false);

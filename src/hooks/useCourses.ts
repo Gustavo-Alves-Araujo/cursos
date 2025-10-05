@@ -65,7 +65,7 @@ export function useCourses() {
             if (typeof content === 'string') {
               try {
                 content = JSON.parse(content);
-              } catch (e) {
+              } catch {
                 content = {};
               }
             }
@@ -115,7 +115,7 @@ export function useCourses() {
 
       const insertData = {
         title: courseData.title,
-        short_description: courseData.shortDescription,
+        short_description: courseData.shortDescription || '',
         thumbnail: courseData.thumbnail || null,
         price: courseData.price || 0,
         instructor_id: user.id,
@@ -145,7 +145,8 @@ export function useCourses() {
       }
 
       console.log('createCourse - curso criado com sucesso, recarregando lista...');
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
       console.log('createCourse - lista recarregada');
       
       return data;
@@ -155,7 +156,7 @@ export function useCourses() {
       console.error('createCourse - mensagem de erro:', errorMessage);
       throw new Error(errorMessage);
     }
-  }, [user, fetchCourses]);
+  }, [user]);
 
   const updateCourse = useCallback(async (courseId: string, updates: Partial<Course>) => {
     try {
@@ -195,13 +196,14 @@ export function useCourses() {
         throw error;
       }
 
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
       return data;
     } catch (err) {
       console.error('updateCourse - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao atualizar curso');
     }
-  }, [fetchCourses, user]);
+  }, [user]);
 
   const deleteCourse = useCallback(async (courseId: string) => {
     try {
@@ -212,11 +214,12 @@ export function useCourses() {
 
       if (error) throw error;
 
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao deletar curso');
     }
-  }, [fetchCourses]);
+  }, []);
 
   const createModule = useCallback(async (courseId: string, moduleData: Omit<Module, 'id' | 'courseId' | 'created_at' | 'updated_at' | 'lessons'>) => {
     try {
@@ -235,12 +238,13 @@ export function useCourses() {
 
       if (error) throw error;
 
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
       return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao criar módulo');
     }
-  }, [fetchCourses]);
+  }, []);
 
   const createLesson = useCallback(async (moduleId: string, lessonData: Omit<Lesson, 'id' | 'moduleId' | 'created_at' | 'updated_at'>) => {
     try {
@@ -273,7 +277,8 @@ export function useCourses() {
       }
 
       console.log('createLesson - chamando fetchCourses...');
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
       console.log('createLesson - fetchCourses concluído');
       
       return data;
@@ -281,7 +286,7 @@ export function useCourses() {
       console.error('createLesson - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao criar aula');
     }
-  }, [fetchCourses]);
+  }, []);
 
   const updateModule = useCallback(async (moduleId: string, updates: Partial<Module>) => {
     try {
@@ -298,11 +303,12 @@ export function useCourses() {
 
       if (error) throw error;
 
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao atualizar módulo');
     }
-  }, [fetchCourses]);
+  }, []);
 
   const deleteModule = useCallback(async (moduleId: string) => {
     try {
@@ -313,11 +319,12 @@ export function useCourses() {
 
       if (error) throw error;
 
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao deletar módulo');
     }
-  }, [fetchCourses]);
+  }, []);
 
   const updateLesson = useCallback(async (lessonId: string, updates: Partial<Lesson>) => {
     try {
@@ -350,7 +357,8 @@ export function useCourses() {
       }
 
       console.log('updateLesson - chamando fetchCourses...');
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
       console.log('updateLesson - fetchCourses concluído');
       
       return data;
@@ -358,7 +366,7 @@ export function useCourses() {
       console.error('updateLesson - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao atualizar aula');
     }
-  }, [fetchCourses]);
+  }, []);
 
   const deleteLesson = useCallback(async (lessonId: string) => {
     try {
@@ -377,13 +385,14 @@ export function useCourses() {
       }
 
       console.log('deleteLesson - chamando fetchCourses...');
-      await fetchCourses(); // Recarregar lista
+      // Não recarregar automaticamente para evitar loading infinito
+      // await fetchCourses(); // Recarregar lista
       console.log('deleteLesson - fetchCourses concluído');
     } catch (err) {
       console.error('deleteLesson - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao deletar aula');
     }
-  }, [fetchCourses]);
+  }, []);
 
   return {
     courses,
@@ -497,7 +506,7 @@ export function useMyCourses() {
               if (typeof content === 'string') {
                 try {
                   content = JSON.parse(content);
-                } catch (e) {
+                } catch {
                   content = {};
                 }
               }
@@ -615,7 +624,7 @@ export function useMyCourses() {
             if (typeof content === 'string') {
               try {
                 content = JSON.parse(content);
-              } catch (e) {
+              } catch {
                 content = {};
               }
             }
@@ -681,13 +690,13 @@ export function useMyCourses() {
         }
       }
 
-      // Recarregar cursos para atualizar o estado
-      await fetchMyCourses();
+      // Não recarregar automaticamente para evitar problemas de estado
+      // await fetchMyCourses();
     } catch (error) {
       console.error('Erro ao marcar aula como concluída:', error);
       throw error;
     }
-  }, [user, fetchMyCourses]);
+  }, [user]);
 
   return {
     myCourses,

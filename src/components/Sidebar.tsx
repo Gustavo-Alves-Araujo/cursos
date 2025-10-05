@@ -12,7 +12,7 @@ import { PersonIcon, IdCardIcon, RowsIcon, PlusIcon } from "@radix-ui/react-icon
 type IconType = ComponentType<{ className?: string }>;
 
 const items: { href: string; label: string; icon: IconType }[] = [
-  { href: "/", label: "Trilhas", icon: RowsIcon },
+  { href: "/", label: "Cursos e materiais", icon: RowsIcon },
   { href: "/loja", label: "Loja", icon: PlusIcon },
   { href: "/certificados", label: "Certificados", icon: IdCardIcon },
   { href: "/minha-conta", label: "Minha Conta", icon: PersonIcon },

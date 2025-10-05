@@ -41,7 +41,7 @@ export function CourseCard({ course }: Props) {
               <BookOpen className="w-16 h-16 text-blue-300" />
             </div>
             {course.isPublished && (
-              <Badge className="absolute left-3 top-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg">
+              <Badge className="absolute left-3 top-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg">
                 <Star className="w-3 h-3 mr-1" />
                 Meu
               </Badge>
@@ -70,7 +70,7 @@ export function CourseCard({ course }: Props) {
               variant="outline" 
               className={`text-xs ${
                 course.isPublished 
-                  ? 'bg-green-500/20 border-green-500/50 text-green-200' 
+                  ? 'bg-blue-500/20 border-blue-500/50 text-blue-200' 
                   : 'bg-blue-500/20 border-blue-500/50 text-blue-200'
               }`}
             >
@@ -83,7 +83,7 @@ export function CourseCard({ course }: Props) {
               asChild 
               className={`flex-1 text-sm ${
                 course.isPublished 
-                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' 
                   : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
               }`}
             >

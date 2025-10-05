@@ -2,7 +2,6 @@
 
 import { Sidebar } from "@/components/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
-import { CourseCard } from "@/components/CourseCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Calendar, Award, Clock, Play, CheckCircle, Trophy, Star, TrendingUp } from "lucide-react";
+import { ArrowLeft, BookOpen, Award, Clock, Play, CheckCircle, Trophy, TrendingUp } from "lucide-react";
 import { useMyCourses } from "@/hooks/useCourses";
 
 export default function MyCoursesPage() {
@@ -72,11 +71,14 @@ export default function MyCoursesPage() {
 
   if (isLoading || coursesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-          <p className="mt-2">Carregando...</p>
-        </div>
+      <div className="relative">
+        <Sidebar />
+        <main className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+            <p className="mt-2">Carregando...</p>
+          </div>
+        </main>
       </div>
     );
   }
@@ -127,7 +129,7 @@ export default function MyCoursesPage() {
           
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
                 <Trophy className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -216,7 +218,7 @@ export default function MyCoursesPage() {
                         </div>
                         {isCompleted && (
                           <div className="ml-2">
-                            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
                               <Trophy className="w-4 h-4 text-white" />
                             </div>
                           </div>
@@ -235,7 +237,7 @@ export default function MyCoursesPage() {
                           <div 
                             className={`h-2 rounded-full transition-all duration-300 ${
                               isCompleted 
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                                ? 'bg-gradient-to-r from-blue-500 to-cyan-500' 
                                 : 'bg-gradient-to-r from-blue-500 to-indigo-500'
                             }`}
                             style={{ width: `${progressPercentage}%` }}
@@ -253,7 +255,7 @@ export default function MyCoursesPage() {
                           variant="outline" 
                           className={`${
                             isCompleted 
-                              ? 'bg-green-500/20 border-green-500/50 text-green-200' 
+                              ? 'bg-blue-500/20 border-blue-500/50 text-blue-200' 
                               : 'bg-blue-500/20 border-blue-500/50 text-blue-200'
                           }`}
                         >
@@ -272,7 +274,7 @@ export default function MyCoursesPage() {
                           asChild 
                           className={`flex-1 ${
                             isCompleted 
-                              ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
+                              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' 
                               : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                           }`}
                         >

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -59,7 +60,7 @@ export function CertificateTemplateForm({
   const uploadBackgroundImage = async (file: File): Promise<string> => {
     const fileName = `certificate-templates/${courseId}_${Date.now()}.${file.name.split('.').pop()}`;
     
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('certificate-templates')
       .upload(fileName, file, {
         contentType: file.type,
@@ -154,9 +155,11 @@ export function CertificateTemplateForm({
             />
             {previewUrl && (
               <div className="mt-4">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Preview do template"
+                  width={800}
+                  height={600}
                   className="max-w-full h-auto max-h-96 border rounded"
                 />
               </div>

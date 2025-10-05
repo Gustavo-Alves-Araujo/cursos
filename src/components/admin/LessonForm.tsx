@@ -123,7 +123,7 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
                     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                     const filePath = `documents/${fileName}`;
                     
-                    const { data, error } = await supabase.storage
+                    const { error } = await supabase.storage
                       .from('course-documents')
                       .upload(filePath, file);
                     

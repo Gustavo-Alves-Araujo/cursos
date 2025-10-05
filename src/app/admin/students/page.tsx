@@ -5,18 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LogoutButton } from "@/components/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, Mail, BookOpen, Award, Settings, Eye, Edit, Trash2, Plus, Minus, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Search, Users, BookOpen, Award, Settings, Eye, Trash2, Plus, Minus, CheckCircle, XCircle } from "lucide-react";
 import { useCourses } from "@/hooks/useCourses";
 import { supabase } from "@/lib/supabase";
 import { User } from "@/types/auth";
-import { Course } from "@/types/course";
 
 type StudentWithEnrollments = User & {
   enrollments: string[]; // course IDs
@@ -90,11 +88,14 @@ export default function AdminStudentsPage() {
 
   if (isLoading || studentsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-          <p className="mt-2">Carregando...</p>
-        </div>
+      <div className="relative">
+        <AdminSidebar />
+        <main className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+            <p className="mt-2">Carregando...</p>
+          </div>
+        </main>
       </div>
     );
   }

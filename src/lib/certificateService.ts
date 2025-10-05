@@ -208,7 +208,7 @@ export class CertificateService {
           try {
             // Upload para o Supabase Storage
             const fileName = `certificates/${studentName.replace(/\s+/g, '_')}_${Date.now()}.png`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { error: uploadError } = await supabase.storage
               .from('certificates')
               .upload(fileName, blob, {
                 contentType: 'image/png',

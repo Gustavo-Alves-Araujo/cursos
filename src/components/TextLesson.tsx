@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, CheckCircle, Bookmark, Share2 } from 'lucide-react';
 
 interface TextLessonProps {
@@ -53,7 +53,7 @@ export function TextLesson({ title, content, onComplete, isCompleted = false }: 
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl text-white flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-green-400" />
+                <BookOpen className="w-6 h-6 text-blue-400" />
                 {title}
               </CardTitle>
             </div>
@@ -90,7 +90,7 @@ export function TextLesson({ title, content, onComplete, isCompleted = false }: 
             </div>
             <div className="w-full bg-white/20 rounded-full h-2">
               <div 
-                className="h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-300"
+                className="h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300"
                 style={{ width: `${readingProgress}%` }}
               ></div>
             </div>
@@ -113,7 +113,7 @@ export function TextLesson({ title, content, onComplete, isCompleted = false }: 
             {!isCompleted && (
               <Button 
                 onClick={handleComplete}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Marcar como Concluída
@@ -121,8 +121,8 @@ export function TextLesson({ title, content, onComplete, isCompleted = false }: 
             )}
 
             {isCompleted && (
-              <div className="flex-1 bg-green-500/20 border border-green-500/50 rounded-lg p-4 text-center">
-                <div className="flex items-center justify-center gap-2 text-green-200">
+              <div className="flex-1 bg-blue-500/20 border border-blue-500/50 rounded-lg p-4 text-center">
+                <div className="flex items-center justify-center gap-2 text-blue-200">
                   <CheckCircle className="w-5 h-5" />
                   <span className="font-medium">Aula Concluída!</span>
                 </div>

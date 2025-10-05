@@ -4,13 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Course } from "@/types/course";
 
 type FormState = {
   title: string;
-  shortDescription: string;
   thumbnail: string;
   price: number;
   estimatedDuration: string;
@@ -26,7 +24,6 @@ interface AdminCourseFormProps {
 export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: AdminCourseFormProps) {
   const [state, setState] = useState<FormState>({
     title: initialData?.title ?? "",
-    shortDescription: initialData?.shortDescription ?? "",
     thumbnail: initialData?.thumbnail ?? "",
     price: initialData?.price ?? 0,
     estimatedDuration: initialData?.estimatedDuration ?? "0h 0min",
@@ -40,7 +37,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
     
     console.log('AdminCourseForm - dados do formulário:', state);
     
-    if (!state.title || !state.shortDescription) {
+    if (!state.title) {
       setError("Preencha todos os campos obrigatórios");
       return;
     }
@@ -63,15 +60,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         </div>
       )}
 
-      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-        <h4 className="font-semibold text-green-800">Status do Formulário:</h4>
-        <p className="text-sm text-green-600">
-          Título: {state.title || 'Vazio'} | 
-          Descrição Curta: {state.shortDescription || 'Vazio'} | 
-          Preço: R$ {state.price} | 
-          Publicado: {state.isPublished ? 'Sim' : 'Não'}
-        </p>
-      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
@@ -104,19 +92,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="shortDescription">Descrição Curta *</Label>
-        <Input 
-          id="shortDescription" 
-          value={state.shortDescription} 
-          onChange={(e) => {
-            console.log('Descrição curta alterada para:', e.target.value);
-            setState({ ...state, shortDescription: e.target.value });
-          }} 
-          placeholder="Uma breve descrição do curso"
-          required 
-        />
-      </div>
 
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -168,7 +143,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
             console.log('Botão Limpar clicado');
             setState({
               title: "",
-              shortDescription: "",
               thumbnail: "",
               price: 0,
               estimatedDuration: "0h 0min",

@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Download, Eye, CheckCircle, ExternalLink } from 'lucide-react';
 
 interface DocumentLessonProps {
@@ -157,7 +156,7 @@ export function DocumentLesson({ title, documentUrl, onComplete, isCompleted = f
           {!isCompleted && (
             <Button 
               onClick={handleComplete}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               Marcar como Concluída
@@ -165,8 +164,8 @@ export function DocumentLesson({ title, documentUrl, onComplete, isCompleted = f
           )}
 
           {isCompleted && (
-            <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4 text-center">
-              <div className="flex items-center justify-center gap-2 text-green-200">
+            <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center gap-2 text-blue-200">
                 <CheckCircle className="w-5 h-5" />
                 <span className="font-medium">Aula Concluída!</span>
               </div>

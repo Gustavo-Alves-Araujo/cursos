@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sidebar } from "@/components/Sidebar";
+import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminCourseForm } from "@/components/admin/AdminCourseForm";
 import { useCourses } from "@/hooks/useCourses";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Course } from "@/types/course";
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -15,13 +14,14 @@ export default function NewCoursePage() {
 
   console.log('NewCoursePage - componente renderizado');
 
-  const handleSubmit = async (data: { title: string; shortDescription: string; thumbnail: string; price: number; estimatedDuration: string; isPublished: boolean }) => {
+  const handleSubmit = async (data: { title: string; thumbnail: string; price: number; estimatedDuration: string; isPublished: boolean }) => {
     console.log('Dados do formulário:', data);
     setIsLoading(true);
     try {
       // Adicionar campos obrigatórios que não são coletados pelo formulário
       const courseData = {
         ...data,
+        shortDescription: '', // Campo removido do formulário, mas ainda necessário no banco
         instructorId: 'default-instructor', // TODO: usar ID do usuário logado
         instructorName: 'Instrutor Padrão' // TODO: usar nome do usuário logado
       };
@@ -40,7 +40,7 @@ export default function NewCoursePage() {
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="relative">
-        <Sidebar />
+        <AdminSidebar />
         <main className="space-y-6 p-6">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Novo Curso</h1>
@@ -53,19 +53,6 @@ export default function NewCoursePage() {
           </div>
           
           <div className="max-w-4xl">
-            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="font-semibold text-blue-800">Debug Info:</h3>
-              <p className="text-sm text-blue-600">Formulário carregado. Verifique o console para logs detalhados.</p>
-              <button 
-                onClick={() => {
-                  console.log('Teste de clique - formulário funcionando');
-                  alert('Formulário está funcionando!');
-                }}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Teste de Funcionamento
-              </button>
-            </div>
             
             <AdminCourseForm 
               onSubmit={handleSubmit}

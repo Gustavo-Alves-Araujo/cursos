@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Crown, UserPlus, Sparkles, Lock, Mail, User } from 'lucide-react';
+import { UserPlus, Sparkles, Lock, Mail, User } from 'lucide-react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');

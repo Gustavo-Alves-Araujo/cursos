@@ -3,13 +3,13 @@
 import { Sidebar } from "@/components/Sidebar";
 import { LogoutButton } from "@/components/LogoutButton";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Play, FileText, BookOpen, Clock, CheckCircle, Download, Eye, Menu, X, Trophy } from "lucide-react";
+import { ArrowLeft, Play, FileText, BookOpen, CheckCircle, Download, Eye, Menu, X, Trophy } from "lucide-react";
 import { LessonViewer } from "@/components/LessonViewer";
 import { useMyCourses } from "@/hooks/useCourses";
 import { Course, Lesson } from "@/types/course";
@@ -186,7 +186,7 @@ export default function CoursePage() {
       case 'document':
         return <FileText className="w-5 h-5 text-blue-400" />;
       case 'text':
-        return <BookOpen className="w-5 h-5 text-green-400" />;
+        return <BookOpen className="w-5 h-5 text-blue-400" />;
       default:
         return <BookOpen className="w-5 h-5 text-gray-400" />;
     }
@@ -265,7 +265,7 @@ export default function CoursePage() {
                                     {getLessonIcon(lesson.type)}
                                     <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
                                     {lesson.completed && (
-                                      <CheckCircle className="w-3 h-3 text-green-400" />
+                                      <CheckCircle className="w-3 h-3 text-blue-400" />
                                     )}
                                   </div>
                                 </div>
@@ -307,7 +307,7 @@ export default function CoursePage() {
                     {getLessonIcon(selectedLesson.type)}
                     {selectedLesson.title}
                     {selectedLesson.completed && (
-                      <Badge className="bg-green-500/20 text-green-200 border-green-500/50 text-sm">
+                      <Badge className="bg-blue-500/20 text-blue-200 border-blue-500/50 text-sm">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Concluída
                       </Badge>
@@ -376,7 +376,7 @@ export default function CoursePage() {
                 {completedLessons}/{totalLessons} aulas concluídas
               </Badge>
               {progressPercentage === 100 && (
-                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
                   <Trophy className="w-3 h-3 mr-1" />
                   Concluído!
                 </Badge>
@@ -395,7 +395,7 @@ export default function CoursePage() {
                 <div 
                   className={`h-4 rounded-full transition-all duration-500 ${
                     progressPercentage === 100 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                      ? 'bg-gradient-to-r from-blue-500 to-cyan-500' 
                       : 'bg-gradient-to-r from-blue-500 to-indigo-500'
                   }`}
                   style={{ width: `${progressPercentage}%` }}
@@ -431,7 +431,7 @@ export default function CoursePage() {
             {progressPercentage === 100 ? (
               <div className="text-center space-y-4">
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
                   <div>
@@ -442,7 +442,7 @@ export default function CoursePage() {
                 
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button 
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-6 py-3"
+                    className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 px-6 py-3"
                     onClick={() => {
                       // Navegar para página de certificados
                       router.push('/certificados');
@@ -510,7 +510,7 @@ export default function CoursePage() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-blue-200">Aulas do Curso</h2>
             <div className="flex items-center gap-2 text-sm text-blue-300">
-              <CheckCircle className="w-4 h-4 text-green-400" />
+              <CheckCircle className="w-4 h-4 text-blue-400" />
               <span>{completedLessons} de {totalLessons} concluídas</span>
             </div>
           </div>
@@ -553,7 +553,7 @@ export default function CoursePage() {
                         <Card 
                           key={lesson.id} 
                           className={`bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 ${
-                            lesson.completed ? 'border-green-500/30 bg-green-500/5' : ''
+                            lesson.completed ? 'border-blue-500/30 bg-blue-500/5' : ''
                           }`}
                         >
                           <CardHeader className="pb-3">
@@ -561,7 +561,7 @@ export default function CoursePage() {
                               <div className="flex items-center gap-4">
                                 <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                   lesson.completed 
-                                    ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
+                                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500' 
                                     : 'bg-white/10'
                                 }`}>
                                   {lesson.completed ? (
@@ -575,7 +575,7 @@ export default function CoursePage() {
                                     {getLessonIcon(lesson.type)}
                                     {lesson.title}
                                     {lesson.completed && (
-                                      <Badge className="bg-green-500/20 text-green-200 border-green-500/50 text-xs">
+                                      <Badge className="bg-blue-500/20 text-blue-200 border-blue-500/50 text-xs">
                                         Concluída
                                       </Badge>
                                     )}
@@ -587,7 +587,7 @@ export default function CoursePage() {
                                   variant="outline" 
                                   className={`${
                                     lesson.completed 
-                                      ? 'bg-green-500/20 border-green-500/50 text-green-200' 
+                                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-200' 
                                       : 'bg-white/10 border-white/20 text-blue-200'
                                   }`}
                                 >
@@ -601,7 +601,7 @@ export default function CoursePage() {
                               <Button 
                                 className={`flex-1 ${
                                   lesson.completed 
-                                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
+                                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' 
                                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                                 }`}
                                 onClick={() => handleLessonSelect(lesson)}
