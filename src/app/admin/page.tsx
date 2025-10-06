@@ -64,63 +64,6 @@ export default function AdminDashboard() {
         </div>
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">1,234</div>
-                  <div className="text-blue-200 text-sm">Total de Alunos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">89</div>
-                  <div className="text-blue-200 text-sm">Cursos Ativos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">456</div>
-                  <div className="text-blue-200 text-sm">Certificados Emitidos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">R$ 45.2K</div>
-                  <div className="text-blue-200 text-sm">Receita Mensal</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Ações Rápidas */}
         <div className="space-y-6">
@@ -213,45 +156,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Atividades Recentes */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-blue-200">Atividades Recentes</h2>
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-            <CardHeader>
-              <CardTitle className="text-blue-200">Últimas Ações</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <BookOpen className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm">Novo curso &quot;React Avançado&quot; criado</p>
-                    <p className="text-blue-300 text-xs">Há 2 horas</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <Users className="w-4 h-4 text-green-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm">15 novos alunos cadastrados</p>
-                    <p className="text-blue-300 text-xs">Há 4 horas</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <div className="w-8 h-8 bg-orange-500/20 rounded-full flex items-center justify-center">
-                    <Award className="w-4 h-4 text-orange-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-white text-sm">8 certificados emitidos</p>
-                    <p className="text-blue-300 text-xs">Há 6 horas</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
       </main>
     </div>
   );
