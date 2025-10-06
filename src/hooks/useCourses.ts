@@ -553,7 +553,7 @@ export function useMyCourses() {
 
   useEffect(() => {
     fetchMyCourses();
-  }, [user]); // Only depend on user, not fetchMyCourses to avoid infinite loop
+  }, [user, fetchMyCourses]); // Include fetchMyCourses in dependencies
 
   const checkCourseAccess = useCallback(async (courseId: string) => {
     if (!user) return null;

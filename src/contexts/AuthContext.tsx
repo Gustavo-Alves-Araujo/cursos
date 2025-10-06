@@ -14,32 +14,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   console.log('AuthProvider - estado atual:', { user, isLoading });
 
   useEffect(() => {
-    // Verificar sessão atual do Supabase
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        await loadUserProfile(session.user);
-      }
-      
-      setIsLoading(false);
-    };
+    let isMounted = true;
 
-    getInitialSession();
+    // A verificação inicial será feita pelo onAuthStateChange com INITIAL_SESSION
 
-    // Escutar mudanças na autenticação
+    // Escutar mudanças na autenticação - callback síncrono para evitar deadlock
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          await loadUserProfile(session.user);
-        } else {
+      (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
+        
+        if (!isMounted) return;
+        
+        // Tratar cada evento específico conforme documentação
+        if (event === 'SIGNED_OUT') {
           setUser(null);
+          setIsLoading(false);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            // Usar setTimeout para evitar deadlock conforme documentação
+            setTimeout(async () => {
+              await loadUserProfile(session.user);
+              setIsLoading(false);
+            }, 0);
+          }
+        } else if (event === 'INITIAL_SESSION') {
+          if (session?.user) {
+            setTimeout(async () => {
+              await loadUserProfile(session.user);
+              setIsLoading(false);
+            }, 0);
+          } else {
+            setIsLoading(false);
+          }
         }
-        setIsLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
@@ -88,8 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: 'Erro desconhecido' };
-    } catch {
-      return { success: false, error: 'Erro de conexão' };
+    } catch (error: unknown) {
+      console.error('Erro no login:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro de conexão';
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -129,8 +145,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: 'Erro desconhecido' };
-    } catch {
-      return { success: false, error: 'Erro de conexão' };
+    } catch (error: unknown) {
+      console.error('Erro no registro:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro de conexão';
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }

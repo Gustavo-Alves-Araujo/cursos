@@ -2,7 +2,8 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,17 +13,29 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   console.log('ProtectedRoute - estado:', { user, isLoading, allowedRoles });
 
   useEffect(() => {
-    if (!isLoading) {
+    // Timeout para evitar loading infinito
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.log('Timeout no ProtectedRoute, redirecionando para login');
+        setHasRedirected(true);
+        router.push('/login');
+      }
+    }, 10000); // 10 segundos de timeout
+
+    if (!isLoading && !hasRedirected) {
       if (!user) {
+        setHasRedirected(true);
         router.push('/login');
         return;
       }
       
       if (allowedRoles && !allowedRoles.includes(user.role)) {
+        setHasRedirected(true);
         // Redirecionar para área apropriada baseada no role
         if (user.role === 'admin') {
           router.push('/admin');
@@ -32,16 +45,20 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         return;
       }
     }
-  }, [user, isLoading, allowedRoles]); // Remove router from dependencies
+
+    return () => clearTimeout(timeout);
+  }, [user, isLoading, allowedRoles, hasRedirected, router]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-          <p className="mt-2">Carregando...</p>
-        </div>
-      </div>
+      <LoadingSpinner 
+        message="Verificando autenticação..."
+        timeout={10000}
+        onTimeout={() => {
+          console.log('Timeout na verificação de autenticação');
+          router.push('/login');
+        }}
+      />
     );
   }
 

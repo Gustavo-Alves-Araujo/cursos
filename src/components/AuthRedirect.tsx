@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export function AuthRedirect() {
   const { user, isLoading } = useAuth();
@@ -21,12 +22,14 @@ export function AuthRedirect() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-          <p className="mt-2">Redirecionando...</p>
-        </div>
-      </div>
+      <LoadingSpinner 
+        message="Redirecionando..."
+        timeout={8000}
+        onTimeout={() => {
+          console.log('Timeout no redirecionamento');
+          router.push('/');
+        }}
+      />
     );
   }
 
