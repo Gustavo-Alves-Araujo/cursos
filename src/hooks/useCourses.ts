@@ -15,6 +15,7 @@ export function useCourses() {
 
   const fetchCourses = useCallback(async () => {
     try {
+      console.log('fetchCourses - iniciando busca de cursos');
       setIsLoading(true);
       setError(null);
 
@@ -29,7 +30,12 @@ export function useCourses() {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('fetchCourses - resposta do Supabase:', { data, error });
+
+      if (error) {
+        console.error('fetchCourses - erro do Supabase:', error);
+        throw error;
+      }
 
       // Transformar dados do banco para o formato esperado
       const transformedCourses: Course[] = data?.map(course => {
@@ -51,6 +57,7 @@ export function useCourses() {
           isPublished: course.is_published,
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
+          expirationDays: course.expiration_days || 0,
         modules: course.modules?.map((module: Record<string, unknown>) => ({
           id: module.id,
           courseId: module.course_id,
@@ -90,17 +97,22 @@ export function useCourses() {
         };
       }) || [];
 
+      console.log('fetchCourses - cursos transformados:', transformedCourses);
       setCourses(transformedCourses);
+      console.log('fetchCourses - cursos definidos no estado');
     } catch (err) {
+      console.error('fetchCourses - erro capturado:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar cursos');
     } finally {
+      console.log('fetchCourses - finalizando, setIsLoading(false)');
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    console.log('useCourses - useEffect chamado');
     fetchCourses();
-  }, [fetchCourses]);
+  }, [fetchCourses]); // Include fetchCourses in dependencies
 
   const createCourse = useCallback(async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at' | 'modules' | 'totalLessons'>) => {
     try {
@@ -113,7 +125,7 @@ export function useCourses() {
         throw new Error('Usuário não autenticado');
       }
 
-      const insertData = {
+      const insertData: Record<string, unknown> = {
         title: courseData.title,
         short_description: courseData.shortDescription || '',
         thumbnail: courseData.thumbnail || null,
@@ -123,6 +135,11 @@ export function useCourses() {
         is_published: courseData.isPublished || false,
         estimated_duration: courseData.estimatedDuration || '0h 0min'
       };
+
+      // Only add expiration_days if it's provided and not 0
+      if (courseData.expirationDays && courseData.expirationDays > 0) {
+        insertData.expiration_days = courseData.expirationDays;
+      }
 
       console.log('createCourse - dados para inserção:', insertData);
       console.log('createCourse - thumbnail específico:', {
@@ -145,8 +162,7 @@ export function useCourses() {
       }
 
       console.log('createCourse - curso criado com sucesso, recarregando lista...');
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
       console.log('createCourse - lista recarregada');
       
       return data;
@@ -156,7 +172,7 @@ export function useCourses() {
       console.error('createCourse - mensagem de erro:', errorMessage);
       throw new Error(errorMessage);
     }
-  }, [user]);
+  }, [user, fetchCourses]);
 
   const updateCourse = useCallback(async (courseId: string, updates: Partial<Course>) => {
     try {
@@ -178,6 +194,7 @@ export function useCourses() {
       if (updates.price !== undefined) updateData.price = updates.price;
       if (updates.isPublished !== undefined) updateData.is_published = updates.isPublished;
       if (updates.estimatedDuration !== undefined) updateData.estimated_duration = updates.estimatedDuration;
+      if (updates.expirationDays !== undefined) updateData.expiration_days = updates.expirationDays;
       
       // Verificar se há dados para atualizar
       if (Object.keys(updateData).length === 0) {
@@ -196,14 +213,13 @@ export function useCourses() {
         throw error;
       }
 
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
       return data;
     } catch (err) {
       console.error('updateCourse - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao atualizar curso');
     }
-  }, [user]);
+  }, [user, fetchCourses]);
 
   const deleteCourse = useCallback(async (courseId: string) => {
     try {
@@ -214,12 +230,11 @@ export function useCourses() {
 
       if (error) throw error;
 
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao deletar curso');
     }
-  }, []);
+  }, [fetchCourses]);
 
   const createModule = useCallback(async (courseId: string, moduleData: Omit<Module, 'id' | 'courseId' | 'created_at' | 'updated_at' | 'lessons'>) => {
     try {
@@ -238,13 +253,12 @@ export function useCourses() {
 
       if (error) throw error;
 
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
       return data;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao criar módulo');
     }
-  }, []);
+  }, [fetchCourses]);
 
   const createLesson = useCallback(async (moduleId: string, lessonData: Omit<Lesson, 'id' | 'moduleId' | 'created_at' | 'updated_at'>) => {
     try {
@@ -277,8 +291,7 @@ export function useCourses() {
       }
 
       console.log('createLesson - chamando fetchCourses...');
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
       console.log('createLesson - fetchCourses concluído');
       
       return data;
@@ -286,7 +299,7 @@ export function useCourses() {
       console.error('createLesson - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao criar aula');
     }
-  }, []);
+  }, [fetchCourses]);
 
   const updateModule = useCallback(async (moduleId: string, updates: Partial<Module>) => {
     try {
@@ -303,12 +316,11 @@ export function useCourses() {
 
       if (error) throw error;
 
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao atualizar módulo');
     }
-  }, []);
+  }, [fetchCourses]);
 
   const deleteModule = useCallback(async (moduleId: string) => {
     try {
@@ -319,12 +331,11 @@ export function useCourses() {
 
       if (error) throw error;
 
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Erro ao deletar módulo');
     }
-  }, []);
+  }, [fetchCourses]);
 
   const updateLesson = useCallback(async (lessonId: string, updates: Partial<Lesson>) => {
     try {
@@ -357,8 +368,7 @@ export function useCourses() {
       }
 
       console.log('updateLesson - chamando fetchCourses...');
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
       console.log('updateLesson - fetchCourses concluído');
       
       return data;
@@ -366,7 +376,7 @@ export function useCourses() {
       console.error('updateLesson - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao atualizar aula');
     }
-  }, []);
+  }, [fetchCourses]);
 
   const deleteLesson = useCallback(async (lessonId: string) => {
     try {
@@ -385,14 +395,13 @@ export function useCourses() {
       }
 
       console.log('deleteLesson - chamando fetchCourses...');
-      // Não recarregar automaticamente para evitar loading infinito
-      // await fetchCourses(); // Recarregar lista
+      await fetchCourses(); // Recarregar lista
       console.log('deleteLesson - fetchCourses concluído');
     } catch (err) {
       console.error('deleteLesson - catch error:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao deletar aula');
     }
-  }, []);
+  }, [fetchCourses]);
 
   return {
     courses,
@@ -492,6 +501,7 @@ export function useMyCourses() {
           isPublished: course.is_published,
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
+          expirationDays: course.expiration_days || 0,
           modules: course.modules?.map((module: Record<string, unknown>) => ({
             id: module.id,
             courseId: module.course_id,
@@ -543,7 +553,7 @@ export function useMyCourses() {
 
   useEffect(() => {
     fetchMyCourses();
-  }, [fetchMyCourses]);
+  }, [user, fetchMyCourses]); // Include fetchMyCourses in dependencies
 
   const checkCourseAccess = useCallback(async (courseId: string) => {
     if (!user) return null;
@@ -610,6 +620,7 @@ export function useMyCourses() {
         isPublished: course.is_published,
         totalLessons: course.total_lessons,
         estimatedDuration: course.estimated_duration,
+        expirationDays: course.expiration_days,
         modules: course.modules?.map((module: Record<string, unknown>) => ({
           id: module.id,
           courseId: module.course_id,

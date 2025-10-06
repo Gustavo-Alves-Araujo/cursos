@@ -88,8 +88,7 @@ export default function CourseDetailPage() {
       console.log('Chamando createLesson...');
       await createLesson(selectedModuleId, lessonData);
       console.log('Aula criada com sucesso');
-      setIsLessonDialogOpen(false);
-      setSelectedModuleId(null);
+      closeLessonDialog();
     } catch (error) {
       console.error('Erro ao criar aula:', error);
       alert('Erro ao criar aula: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
@@ -123,6 +122,11 @@ export default function CourseDetailPage() {
   const openLessonDialog = (moduleId: string) => {
     setSelectedModuleId(moduleId);
     setIsLessonDialogOpen(true);
+  };
+
+  const closeLessonDialog = () => {
+    setIsLessonDialogOpen(false);
+    setSelectedModuleId(null);
   };
 
   const openEditLessonDialog = (lesson: Lesson) => {
@@ -459,7 +463,10 @@ export default function CourseDetailPage() {
       </Card>
 
       {/* Dialog para criar aula */}
-      <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
+      <Dialog open={isLessonDialogOpen} onOpenChange={(open) => {
+        if (!open) closeLessonDialog();
+        else setIsLessonDialogOpen(open);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Adicionar Aula</DialogTitle>
@@ -469,6 +476,7 @@ export default function CourseDetailPage() {
           </DialogHeader>
           {selectedModuleId && (
             <LessonForm
+              key={`lesson-form-${selectedModuleId}`}
               onSubmit={handleCreateLesson}
               moduleId={selectedModuleId}
               isLoading={false}

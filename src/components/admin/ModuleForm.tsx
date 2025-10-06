@@ -32,20 +32,34 @@ export function ModuleForm({ onSubmit, initialData, isLoading = false }: ModuleF
     isPublished: initialData?.isPublished ?? false
   });
   const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError("");
+    setIsSubmitting(true);
     
-    if (!state.title || !state.description) {
+    if (!state.title.trim() || !state.description.trim()) {
       setError("Preencha todos os campos obrigatórios");
+      setIsSubmitting(false);
       return;
     }
 
     try {
       await onSubmit(state);
+      // Limpar formulário após sucesso
+      setState({
+        title: "",
+        description: "",
+        order: 1,
+        unlockAfterDays: 0,
+        isPublished: false
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao salvar módulo");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -121,9 +135,9 @@ export function ModuleForm({ onSubmit, initialData, isLoading = false }: ModuleF
         <Button 
           type="submit" 
           className="rounded-xl"
-          disabled={isLoading}
+          disabled={isLoading || isSubmitting}
         >
-          {isLoading ? "Salvando..." : "Salvar Módulo"}
+          {isLoading || isSubmitting ? "Salvando..." : "Salvar Módulo"}
         </Button>
         <Button 
           type="button" 

@@ -6,14 +6,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { BookOpen, Play, Star, Clock } from "lucide-react";
+import { BookOpen, Play, Star, Clock, Calendar } from "lucide-react";
 import type { Course } from "@/types/course";
+import { ExpirationTimer } from "./ExpirationTimer";
 
 type Props = {
   course: Course;
+  enrollmentDate?: string; // Data de matrícula do usuário
 };
 
-export function CourseCard({ course }: Props) {
+export function CourseCard({ course, enrollmentDate }: Props) {
   return (
     <motion.div 
       whileHover={{ y: -4, scale: 1.01 }} 
@@ -52,6 +54,21 @@ export function CourseCard({ course }: Props) {
                   <Clock className="w-3 h-3 text-white" />
                   <span className="text-white text-xs font-medium">{course.estimatedDuration}</span>
                 </div>
+              </div>
+            )}
+            {course.expirationDays && course.expirationDays > 0 && (
+              <div className="absolute bottom-3 left-3">
+                {enrollmentDate ? (
+                  <ExpirationTimer 
+                    enrolledAt={enrollmentDate} 
+                    expirationDays={course.expirationDays}
+                  />
+                ) : (
+                  <div className="flex items-center gap-1 bg-orange-500/80 backdrop-blur-sm rounded-full px-2 py-1">
+                    <Calendar className="w-3 h-3 text-white" />
+                    <span className="text-white text-xs font-medium">{course.expirationDays} dias</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

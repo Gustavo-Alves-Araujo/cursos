@@ -44,7 +44,7 @@ export default function StudentCoursesPage() {
       setOwnedCourses(foundStudent.ownedCourseIds);
       setAvailableCourses(foundStudent.availableCourseIds);
     }
-  }, [user, isLoading, router, id]);
+  }, [user, isLoading, id]); // Remove router from dependencies
 
   if (isLoading) {
     return (

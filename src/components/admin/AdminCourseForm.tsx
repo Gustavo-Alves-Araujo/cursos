@@ -12,6 +12,7 @@ type FormState = {
   thumbnail: string;
   price: number;
   estimatedDuration: string;
+  expirationDays: number;
   isPublished: boolean;
 };
 
@@ -27,18 +28,24 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
     thumbnail: initialData?.thumbnail ?? "",
     price: initialData?.price ?? 0,
     estimatedDuration: initialData?.estimatedDuration ?? "0h 0min",
+    expirationDays: initialData?.expirationDays ?? 0,
     isPublished: initialData?.isPublished ?? false
   });
   const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError("");
+    setIsSubmitting(true);
     
+    console.log('AdminCourseForm - handleSubmit chamado');
     console.log('AdminCourseForm - dados do formulário:', state);
     
-    if (!state.title) {
+    if (!state.title.trim()) {
       setError("Preencha todos os campos obrigatórios");
+      setIsSubmitting(false);
       return;
     }
 
@@ -46,9 +53,22 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
       console.log('AdminCourseForm - enviando dados para onSubmit');
       await onSubmit(state);
       console.log('AdminCourseForm - dados enviados com sucesso');
+      // Limpar formulário após sucesso (apenas se não estiver editando)
+      if (!initialData) {
+        setState({
+          title: "",
+          thumbnail: "",
+          price: 0,
+          estimatedDuration: "0h 0min",
+          expirationDays: 0,
+          isPublished: false
+        });
+      }
     } catch (err) {
       console.error('AdminCourseForm - erro ao enviar:', err);
       setError(err instanceof Error ? err.message : "Erro ao salvar curso");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -118,6 +138,21 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="expirationDays">Tempo de Expiração (dias)</Label>
+        <Input 
+          id="expirationDays" 
+          type="number" 
+          min="0"
+          value={state.expirationDays} 
+          onChange={(e) => setState({ ...state, expirationDays: parseInt(e.target.value) || 0 })} 
+          placeholder="0 (sem expiração)"
+        />
+        <p className="text-sm text-gray-500">
+          Quantos dias após a matrícula o acesso ao curso expira. Deixe em 0 para acesso permanente.
+        </p>
+      </div>
+
       <div className="flex items-center space-x-2">
         <Switch
           id="isPublished"
@@ -131,9 +166,9 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         <Button 
           type="submit" 
           className="rounded-xl"
-          disabled={isLoading}
+          disabled={isLoading || isSubmitting}
         >
-          {isLoading ? "Salvando..." : "Salvar Curso"}
+          {isLoading || isSubmitting ? "Salvando..." : "Salvar Curso"}
         </Button>
         <Button 
           type="button" 
@@ -146,6 +181,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
               thumbnail: "",
               price: 0,
               estimatedDuration: "0h 0min",
+              expirationDays: 0,
               isPublished: false
             });
           }}

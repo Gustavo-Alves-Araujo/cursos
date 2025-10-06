@@ -109,7 +109,7 @@ export default function AdminCertificatesPage() {
         return;
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]); // Remove router from dependencies
 
   // Carregar templates quando a aba de templates for ativada
   useEffect(() => {

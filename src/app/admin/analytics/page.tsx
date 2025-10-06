@@ -25,7 +25,7 @@ export default function AdminAnalyticsPage() {
         return;
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]); // Remove router from dependencies
 
   if (isLoading) {
     return (

@@ -42,6 +42,7 @@ export type Course = {
   modules: Module[];
   totalLessons: number;
   estimatedDuration: string; // ex: "2h 30min"
+  expirationDays?: number; // dias para expiração do acesso
   created_at: string;
   updated_at: string;
 };
@@ -51,6 +52,7 @@ export type CourseEnrollment = {
   userId: string;
   courseId: string;
   enrolledAt: string;
+  expiresAt?: string; // data de expiração do acesso
   progress: {
     completedLessons: string[];
     currentModuleId?: string;

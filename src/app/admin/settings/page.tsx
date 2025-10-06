@@ -90,7 +90,7 @@ export default function AdminSettingsPage() {
         return;
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]); // Remove router from dependencies
 
   if (isLoading) {
     return (

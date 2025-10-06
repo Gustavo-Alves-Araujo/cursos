@@ -109,7 +109,7 @@ export default function AdminShopPage() {
         return;
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]); // Remove router from dependencies
 
   if (isLoading) {
     return (

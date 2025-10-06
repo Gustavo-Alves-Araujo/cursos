@@ -32,7 +32,7 @@ export default function AdminAssignPage() {
         return;
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]); // Remove router from dependencies
 
   if (isLoading) {
     return (

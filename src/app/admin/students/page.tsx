@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { LogoutButton } from "@/components/LogoutButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, Users, BookOpen, Award, Settings, Eye, Trash2, Plus, Minus, CheckCircle, XCircle } from "lucide-react";
 import { useCourses } from "@/hooks/useCourses";
@@ -23,49 +23,55 @@ type StudentWithEnrollments = User & {
 export default function AdminStudentsPage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const { courses } = useCourses();
+  const { courses, isLoading: coursesLoading } = useCourses();
   const [searchTerm, setSearchTerm] = useState("");
   const [students, setStudents] = useState<StudentWithEnrollments[]>([]);
-  const [studentsLoading, setStudentsLoading] = useState(true);
+  const [studentsLoading, setStudentsLoading] = useState(false); // Começar como false para evitar loading desnecessário
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
 
   // Buscar alunos e suas matrículas
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
+      console.log('fetchStudents - iniciando busca de alunos');
       setStudentsLoading(true);
       
-      // Buscar todos os usuários com role 'student'
+      // Buscar usuários e suas matrículas em uma única consulta otimizada
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          course_enrollments (
+            course_id
+          )
+        `)
         .eq('role', 'student')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limitar resultados para melhor performance
 
-      if (usersError) throw usersError;
+      console.log('fetchStudents - usuários encontrados:', usersData);
+      if (usersError) {
+        console.error('fetchStudents - erro ao buscar usuários:', usersError);
+        throw usersError;
+      }
 
-      // Buscar matrículas de todos os alunos
-      const { data: enrollmentsData, error: enrollmentsError } = await supabase
-        .from('course_enrollments')
-        .select('user_id, course_id');
-
-      if (enrollmentsError) throw enrollmentsError;
-
-      // Combinar dados
-      const studentsWithEnrollments: StudentWithEnrollments[] = usersData.map(user => ({
+      // Combinar dados - agora os enrollments já vêm com o usuário
+      const studentsWithEnrollments: StudentWithEnrollments[] = (usersData || []).map(user => ({
         ...user,
-        enrollments: enrollmentsData
-          .filter(e => e.user_id === user.id)
-          .map(e => e.course_id)
+        enrollments: (user.course_enrollments || []).map((e: { course_id: string }) => e.course_id)
       }));
 
+      console.log('fetchStudents - alunos combinados:', studentsWithEnrollments);
       setStudents(studentsWithEnrollments);
     } catch (error) {
       console.error('Erro ao buscar alunos:', error);
+      // Em caso de erro, definir lista vazia para não ficar carregando
+      setStudents([]);
     } finally {
+      console.log('fetchStudents - finalizando, setIsLoading(false)');
       setStudentsLoading(false);
     }
-  };
+  }, []); // Empty dependency array
 
   useEffect(() => {
     if (!isLoading) {
@@ -78,22 +84,23 @@ export default function AdminStudentsPage() {
         return;
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading]); // Remove router from dependencies
 
   useEffect(() => {
     if (user && user.role === 'admin') {
+      console.log('AdminStudentsPage - iniciando busca de alunos');
       fetchStudents();
     }
-  }, [user]);
+  }, [user, fetchStudents]);
 
-  if (isLoading || studentsLoading) {
+  if (isLoading || studentsLoading || coursesLoading) {
     return (
       <div className="relative">
         <AdminSidebar />
         <main className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-            <p className="mt-2">Carregando...</p>
+            <p className="mt-2">Carregando alunos...</p>
           </div>
         </main>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminCourseForm } from "@/components/admin/AdminCourseForm";
@@ -14,8 +14,16 @@ export default function NewCoursePage() {
 
   console.log('NewCoursePage - componente renderizado');
 
-  const handleSubmit = async (data: { title: string; thumbnail: string; price: number; estimatedDuration: string; isPublished: boolean }) => {
-    console.log('Dados do formulário:', data);
+  // Force reload when component mounts to ensure form works (only once)
+  useEffect(() => {
+    if (!sessionStorage.getItem('course-form-reloaded')) {
+      sessionStorage.setItem('course-form-reloaded', 'true');
+      window.location.reload();
+    }
+  }, []);
+
+  const handleSubmit = async (data: { title: string; thumbnail: string; price: number; estimatedDuration: string; expirationDays: number; isPublished: boolean }) => {
+    console.log('NewCoursePage - handleSubmit chamado com dados:', data);
     setIsLoading(true);
     try {
       // Adicionar campos obrigatórios que não são coletados pelo formulário
@@ -25,11 +33,12 @@ export default function NewCoursePage() {
         instructorId: 'default-instructor', // TODO: usar ID do usuário logado
         instructorName: 'Instrutor Padrão' // TODO: usar nome do usuário logado
       };
+      console.log('NewCoursePage - dados completos para criação:', courseData);
       const result = await createCourse(courseData);
-      console.log('Curso criado com sucesso:', result);
+      console.log('NewCoursePage - curso criado com sucesso:', result);
       router.push('/admin/courses');
     } catch (error) {
-      console.error('Erro ao criar curso:', error);
+      console.error('NewCoursePage - erro ao criar curso:', error);
       alert(`Erro ao criar curso: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
       throw error; // Re-throw para o formulário tratar
     } finally {
