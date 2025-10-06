@@ -113,41 +113,7 @@ export default function LoginPage() {
           </form>
           
           {/* Seção de usuários de teste com design elegante */}
-          <div className="mt-8 p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-white/20">
-            <div className="text-center mb-4">
-              <GraduationCap className="w-6 h-6 text-purple-300 mx-auto mb-2" />
-              <p className="text-purple-200 font-medium">Usuários de Demonstração</p>
-            </div>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-yellow-400" />
-                  <span className="text-purple-200 font-medium">Admin</span>
-                </div>
-                <div className="text-purple-300 text-xs">
-                  admin@example.com / admin123
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-blue-400" />
-                  <span className="text-purple-200 font-medium">Aluno</span>
-                </div>
-                <div className="text-purple-300 text-xs">
-                  ana@example.com / ana123
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-green-400" />
-                  <span className="text-purple-200 font-medium">Aluno</span>
-                </div>
-                <div className="text-purple-300 text-xs">
-                  bruno@example.com / bruno123
-                </div>
-              </div>
-            </div>
-          </div>
+        
         </CardContent>
       </Card>
     </div>
