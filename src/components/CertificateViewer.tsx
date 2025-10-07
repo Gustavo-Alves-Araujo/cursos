@@ -17,8 +17,17 @@ interface CertificateViewerProps {
 export function CertificateViewer({ certificate, courseTitle }: CertificateViewerProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
+  // Debug: verificar se a URL do certificado está sendo passada
+  console.log('CertificateViewer - certificate:', certificate);
+  console.log('CertificateViewer - certificateUrl:', certificate.certificateUrl);
+
   const handleDownload = async () => {
     try {
+      if (!certificate.certificateUrl) {
+        alert('Certificado não disponível para download');
+        return;
+      }
+      
       // Criar um link temporário para download
       const link = document.createElement('a');
       link.href = certificate.certificateUrl;
@@ -92,6 +101,7 @@ export function CertificateViewer({ certificate, courseTitle }: CertificateViewe
                 variant="outline"
                 className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
                 onClick={handleDownload}
+                disabled={!certificate.certificateUrl}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Baixar
@@ -112,19 +122,26 @@ export function CertificateViewer({ certificate, courseTitle }: CertificateViewe
           
           <div className="space-y-4">
             <div className="text-center">
-              <Image
-                src={certificate.certificateUrl}
-                alt="Certificado"
-                width={800}
-                height={600}
-                className="max-w-full h-auto border rounded-lg shadow-lg"
-              />
+              {certificate.certificateUrl ? (
+                <Image
+                  src={certificate.certificateUrl}
+                  alt="Certificado"
+                  width={800}
+                  height={600}
+                  className="max-w-full h-auto border rounded-lg shadow-lg"
+                />
+              ) : (
+                <div className="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <p className="text-gray-500">Certificado não disponível</p>
+                </div>
+              )}
             </div>
             
             <div className="flex justify-center gap-4">
               <Button 
                 onClick={handleDownload}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                disabled={!certificate.certificateUrl}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Baixar Certificado

@@ -3,20 +3,29 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, CheckCircle } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import Plyr from 'plyr';
 
 interface VideoLessonProps {
   title: string;
   videoUrl: string;
+  additionalText?: string;
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function VideoLesson({ title, videoUrl, onComplete, isCompleted = false }: VideoLessonProps) {
-  // Função para converter URL do YouTube para URL de embed
-  const getYouTubeEmbedUrl = (url: string) => {
+export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCompleted = false }: VideoLessonProps) {
+  const playerRef = useRef<HTMLDivElement>(null);
+  const plyrRef = useRef<Plyr | null>(null);
+
+  const handleComplete = () => {
+    onComplete();
+  };
+
+  // Função para extrair o ID do vídeo do YouTube
+  const getYouTubeVideoId = (url: string) => {
     let videoId = '';
     
-    // Extrair ID do vídeo de diferentes formatos de URL do YouTube
     if (url.includes('youtube.com/watch?v=')) {
       videoId = url.split('v=')[1]?.split('&')[0] || '';
     } else if (url.includes('youtu.be/')) {
@@ -25,16 +34,50 @@ export function VideoLesson({ title, videoUrl, onComplete, isCompleted = false }
       videoId = url.split('embed/')[1]?.split('?')[0] || '';
     }
     
-    if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&showinfo=0&controls=1&autoplay=0`;
-    }
-    
-    return url; // Retorna URL original se não conseguir extrair o ID
+    return videoId;
   };
 
-  const handleComplete = () => {
-    onComplete();
-  };
+  useEffect(() => {
+    if (playerRef.current && videoUrl) {
+      const videoId = getYouTubeVideoId(videoUrl);
+      
+      if (videoId) {
+        // Limpar player anterior se existir
+        if (plyrRef.current) {
+          plyrRef.current.destroy();
+        }
+
+        // Configurar o player com Plyr seguindo exatamente a receita do cliente
+        const player = new Plyr(playerRef.current, {
+          youtube: {
+            noCookie: true,
+            rel: 0,
+            showinfo: 0,
+            modestbranding: 1
+          },
+          controls: [
+            'play-large',
+            'play',
+            'progress',
+            'current-time',
+            'mute',
+            'volume',
+            'fullscreen'
+          ],
+          ratio: '16:9'
+        });
+
+        plyrRef.current = player;
+      }
+    }
+
+    // Cleanup
+    return () => {
+      if (plyrRef.current) {
+        plyrRef.current.destroy();
+      }
+    };
+  }, [videoUrl]);
 
   return (
     <div className="space-y-6">
@@ -48,22 +91,20 @@ export function VideoLesson({ title, videoUrl, onComplete, isCompleted = false }
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Player Container */}
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-            {videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? (
-              <iframe
-                src={getYouTubeEmbedUrl(videoUrl)}
-                title={title}
+          <div className="player-container aspect-video">
+            {videoUrl && getYouTubeVideoId(videoUrl) ? (
+              <div 
+                ref={playerRef}
+                data-plyr-provider="youtube" 
+                data-plyr-embed-id={getYouTubeVideoId(videoUrl)}
                 className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                frameBorder="0"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                 <div className="text-center">
                   <Play className="w-16 h-16 text-white mx-auto mb-4" />
-                  <p className="text-white text-lg">Player de Vídeo</p>
-                  <p className="text-gray-400 text-sm">URL: {videoUrl}</p>
+                  <p className="text-white text-lg">URL do vídeo não encontrada</p>
+                  <p className="text-gray-400 text-sm">Verifique se a URL foi configurada corretamente</p>
                 </div>
               </div>
             )}
@@ -73,6 +114,17 @@ export function VideoLesson({ title, videoUrl, onComplete, isCompleted = false }
           <div className="flex items-center justify-between text-sm text-blue-300">
             <span>YouTube</span>
           </div>
+
+          {/* Texto Adicional */}
+          {additionalText && (
+            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+              <h4 className="text-lg font-semibold text-white mb-3">Informações Adicionais</h4>
+              <div 
+                className="text-blue-200 leading-relaxed prose prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: additionalText }}
+              />
+            </div>
+          )}
 
           {/* Botão de Conclusão */}
           {!isCompleted && (

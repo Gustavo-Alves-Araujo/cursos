@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   return (
     <div className="relative">
       <AdminSidebar />
-      <main className="space-y-8 p-6">
+      <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex justify-between items-center bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div>

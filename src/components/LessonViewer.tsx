@@ -4,6 +4,8 @@ import { VideoLesson } from './VideoLesson';
 import { DocumentLesson } from './DocumentLesson';
 import { TextLesson } from './TextLesson';
 import { Lesson } from '@/types/course';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface LessonViewerProps {
   lesson: Lesson;
@@ -14,12 +16,13 @@ interface LessonViewerProps {
   onNext?: () => void;
 }
 
-export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
+export function LessonViewer({ lesson, lessons, onComplete, onPrevious, onNext }: LessonViewerProps) {
   const handleComplete = () => {
     console.log('LessonViewer: handleComplete chamado');
     console.log('LessonViewer: onComplete function:', onComplete);
     onComplete();
   };
+
 
   const renderLessonContent = () => {
     switch (lesson.type) {
@@ -28,6 +31,7 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
           <VideoLesson
             title={lesson.title}
             videoUrl={lesson.content.videoUrl || ''}
+            additionalText={lesson.content.additionalText}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />
@@ -38,6 +42,7 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
           <DocumentLesson
             title={lesson.title}
             documentUrl={lesson.content.documentUrl || ''}
+            additionalText={lesson.content.additionalText}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />
@@ -48,6 +53,7 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
           <TextLesson
             title={lesson.title}
             content={lesson.content.textContent || ''}
+            additionalText={lesson.content.additionalText}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />
@@ -65,6 +71,30 @@ export function LessonViewer({ lesson, onComplete }: LessonViewerProps) {
   return (
     <div className="space-y-6">
       {renderLessonContent()}
+      
+      {/* Navegação entre Aulas - Abaixo do botão "Marcar como Concluída" */}
+      {lessons && onPrevious && onNext && (
+        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={onPrevious}
+              variant="outline"
+              className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Aula Anterior
+            </Button>
+            <Button
+              onClick={onNext}
+              variant="outline"
+              className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+            >
+              Próxima Aula
+              <ArrowLeft className="w-4 h-4 rotate-180" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

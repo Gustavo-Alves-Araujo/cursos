@@ -50,7 +50,7 @@ export default function NewCoursePage() {
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="relative">
         <AdminSidebar />
-        <main className="space-y-6 p-6">
+        <main className="space-y-6 p-6 lg:ml-64">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Novo Curso</h1>
             <button

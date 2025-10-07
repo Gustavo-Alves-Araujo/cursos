@@ -52,27 +52,60 @@ export class CertificateService {
       throw new Error(`Erro ao criar template: ${error.message}`);
     }
 
-    return data;
+    if (!data) {
+      throw new Error('Erro ao criar template: dados não retornados');
+    }
+
+    // Transformar dados do banco para o formato esperado
+    return {
+      id: data.id,
+      courseId: data.course_id,
+      backgroundImageUrl: data.background_image_url,
+      textConfig: data.text_config,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
   }
 
   /**
    * Obtém o template de certificado de um curso
    */
   static async getTemplateByCourseId(courseId: string): Promise<CertificateTemplate | null> {
+    console.log('🔍 Buscando template para curso:', courseId);
+    
     const { data, error } = await supabase
       .from('certificate_templates')
       .select('*')
       .eq('course_id', courseId)
       .single();
 
+    console.log('📊 Resultado da busca:', { data, error });
+
     if (error) {
+      console.log('❌ Erro na busca:', error);
       if (error.code === 'PGRST116') {
+        console.log('📝 Template não encontrado para o curso');
         return null; // Template não encontrado
       }
       throw new Error(`Erro ao buscar template: ${error.message}`);
     }
 
-    return data;
+    if (!data) {
+      console.log('📝 Nenhum dado retornado');
+      return null;
+    }
+
+    console.log('✅ Template encontrado:', data);
+
+    // Transformar dados do banco para o formato esperado
+    return {
+      id: data.id,
+      courseId: data.course_id,
+      backgroundImageUrl: data.background_image_url,
+      textConfig: data.text_config,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
   }
 
   /**
@@ -103,7 +136,33 @@ export class CertificateService {
       throw new Error(`Erro ao atualizar template: ${error.message}`);
     }
 
-    return data;
+    if (!data) {
+      throw new Error('Erro ao atualizar template: dados não retornados');
+    }
+
+    // Transformar dados do banco para o formato esperado
+    return {
+      id: data.id,
+      courseId: data.course_id,
+      backgroundImageUrl: data.background_image_url,
+      textConfig: data.text_config,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  }
+
+  /**
+   * Deleta um template de certificado
+   */
+  static async deleteTemplate(templateId: string): Promise<void> {
+    const { error } = await supabase
+      .from('certificate_templates')
+      .delete()
+      .eq('id', templateId);
+
+    if (error) {
+      throw new Error(`Erro ao deletar template: ${error.message}`);
+    }
   }
 
   /**
@@ -115,12 +174,19 @@ export class CertificateService {
     studentName: string,
     completionDate: string
   ): Promise<Certificate> {
+    console.log('🎓 Gerando certificado:', { userId, courseId, studentName, completionDate });
+    
     // Busca o template do curso
     const template = await this.getTemplateByCourseId(courseId);
+    console.log('📋 Template encontrado:', template);
+    
     if (!template) {
+      console.log('❌ Template não encontrado para o curso:', courseId);
       throw new Error('Template de certificado não encontrado para este curso');
     }
 
+    console.log('🎨 Iniciando geração da imagem do certificado...');
+    
     // Gera a imagem do certificado
     const certificateImageUrl = await this.generateCertificateImage({
       studentName,
@@ -128,7 +194,10 @@ export class CertificateService {
       template
     });
 
+    console.log('✅ Imagem gerada com sucesso:', certificateImageUrl);
+
     // Salva o certificado no banco
+    console.log('💾 Salvando certificado no banco de dados...');
     const { data, error } = await supabase
       .from('certificates')
       .insert({
@@ -143,10 +212,26 @@ export class CertificateService {
       .single();
 
     if (error) {
+      console.error('❌ Erro ao salvar certificado:', error);
       throw new Error(`Erro ao salvar certificado: ${error.message}`);
     }
 
-    return data;
+    console.log('✅ Certificado salvo com sucesso:', data);
+    
+    // Transformar dados do banco para o formato esperado
+    const certificate: Certificate = {
+      id: data.id,
+      userId: data.user_id,
+      courseId: data.course_id,
+      templateId: data.template_id,
+      studentName: data.student_name,
+      completionDate: data.completion_date,
+      certificateUrl: data.certificate_url,
+      createdAt: data.created_at
+    };
+    
+    console.log('🔄 Certificado transformado:', certificate);
+    return certificate;
   }
 
   /**
@@ -199,36 +284,62 @@ export class CertificateService {
         ctx.fillText(completionDate, dateConfig.x, dateConfig.y);
 
         // Converte para blob e faz upload
-        canvas.toBlob(async (blob) => {
+        canvas.toBlob((blob) => {
           if (!blob) {
             reject(new Error('Erro ao gerar imagem do certificado'));
             return;
           }
 
-          try {
-            // Upload para o Supabase Storage
-            const fileName = `certificates/${studentName.replace(/\s+/g, '_')}_${Date.now()}.png`;
-            const { error: uploadError } = await supabase.storage
-              .from('certificates')
-              .upload(fileName, blob, {
-                contentType: 'image/png',
-                upsert: false
-              });
+          // Upload para o Supabase Storage
+          // Limpar nome do estudante para evitar caracteres inválidos
+          const cleanStudentName = studentName
+            .normalize('NFD') // Decompor caracteres acentuados
+            .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+            .replace(/[^a-zA-Z0-9]/g, '_') // Remove caracteres especiais
+            .replace(/_+/g, '_') // Remove underscores duplicados
+            .replace(/^_|_$/g, '') // Remove underscores do início/fim
+            .toLowerCase(); // Converter para minúsculas
+          
+          const fileName = `certificates/${cleanStudentName}_${Date.now()}.png`;
+          console.log('📁 Nome original:', studentName);
+          console.log('📁 Nome limpo:', cleanStudentName);
+          console.log('📁 Nome do arquivo:', fileName);
+          
+          console.log('📤 Iniciando upload para:', fileName);
+          console.log('📊 Tamanho do blob:', blob.size, 'bytes');
+          console.log('📊 Tipo do blob:', blob.type);
+          
+          // Fazer upload sem await (Promise direta)
+          supabase.storage
+            .from('certificates')
+            .upload(fileName, blob, {
+              contentType: 'image/png',
+              upsert: false,
+              cacheControl: '3600'
+            })
+            .then(({ error: uploadError }) => {
+              if (uploadError) {
+                console.error('❌ Erro no upload:', uploadError);
+                console.error('❌ Detalhes do erro:', {
+                  message: uploadError.message
+                });
+                reject(new Error(`Erro no upload: ${uploadError.message}`));
+                return;
+              }
 
-            if (uploadError) {
-              reject(new Error(`Erro no upload: ${uploadError.message}`));
-              return;
-            }
+              console.log('✅ Upload realizado com sucesso');
 
-            // Obtém a URL pública
-            const { data: urlData } = supabase.storage
-              .from('certificates')
-              .getPublicUrl(fileName);
+              // Obtém a URL pública
+              const { data: urlData } = supabase.storage
+                .from('certificates')
+                .getPublicUrl(fileName);
 
-            resolve(urlData.publicUrl);
-          } catch (error) {
-            reject(error);
-          }
+              resolve(urlData.publicUrl);
+            })
+            .catch((error) => {
+              console.error('❌ Erro na Promise do upload:', error);
+              reject(error);
+            });
         }, 'image/png');
       };
 
@@ -260,7 +371,21 @@ export class CertificateService {
       throw new Error(`Erro ao buscar certificados: ${error.message}`);
     }
 
-    return data || [];
+    if (!data) {
+      return [];
+    }
+
+    // Transformar dados do banco para o formato esperado
+    return data.map(cert => ({
+      id: cert.id,
+      userId: cert.user_id,
+      courseId: cert.course_id,
+      templateId: cert.template_id,
+      studentName: cert.student_name,
+      completionDate: cert.completion_date,
+      certificateUrl: cert.certificate_url,
+      createdAt: cert.created_at
+    }));
   }
 
   /**
@@ -286,7 +411,21 @@ export class CertificateService {
       throw new Error(`Erro ao buscar certificado: ${error.message}`);
     }
 
-    return data;
+    if (!data) {
+      return null;
+    }
+
+    // Transformar dados do banco para o formato esperado
+    return {
+      id: data.id,
+      userId: data.user_id,
+      courseId: data.course_id,
+      templateId: data.template_id,
+      studentName: data.student_name,
+      completionDate: data.completion_date,
+      certificateUrl: data.certificate_url,
+      createdAt: data.created_at
+    };
   }
 
   /**

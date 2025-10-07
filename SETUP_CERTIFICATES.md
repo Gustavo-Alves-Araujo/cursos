@@ -2,14 +2,11 @@
 
 ## Passo 1: Configurar o Banco de Dados
 
-Execute os scripts SQL na seguinte ordem:
+Execute o script SQL consolidado:
 
 ```bash
-# 1. Primeiro, configure as tabelas
-psql -f setup-certificates-database.sql
-
-# 2. Depois, configure as políticas de storage (após criar os buckets)
-psql -f setup-certificate-policies.sql
+# Execute o script completo de configuração
+psql -f setup-certificates-complete.sql
 ```
 
 ## Passo 2: Criar Buckets no Supabase
@@ -33,10 +30,12 @@ psql -f setup-certificate-policies.sql
 
 ## Passo 3: Configurar Políticas de Storage
 
+### As políticas de storage são configuradas automaticamente pelo script SQL.
+
 ### No Painel do Supabase:
 
 1. **Acesse Storage** → **Policies**
-2. **Para cada bucket**, configure as políticas conforme especificado no arquivo `setup-certificate-policies.sql`
+2. **Verifique** se as políticas foram criadas corretamente
 
 ### Bucket: certificate-templates
 

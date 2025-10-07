@@ -98,7 +98,7 @@ export default function MinhaContaPage() {
   return (
     <div className="relative">
       <Sidebar />
-      <main className="space-y-8 p-6">
+      <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-4">
@@ -122,63 +122,7 @@ export default function MinhaContaPage() {
         </div>
 
         {/* Estatísticas do Usuário */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">12</div>
-                  <div className="text-blue-200 text-sm">Cursos Concluídos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">8</div>
-                  <div className="text-blue-200 text-sm">Certificados</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">156h</div>
-                  <div className="text-blue-200 text-sm">Tempo de Estudo</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <Star className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">4.8</div>
-                  <div className="text-blue-200 text-sm">Avaliação Média</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Seções Principais */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -221,28 +165,6 @@ export default function MinhaContaPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-blue-200">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/20 transition-all duration-200"
-                  placeholder="(11) 99999-9999"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-blue-200">Localização</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className="bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50 hover:bg-white/20 transition-all duration-200"
-                  placeholder="São Paulo, SP"
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="bio" className="text-blue-200">Biografia</Label>
                 <textarea
                   id="bio"
@@ -255,95 +177,7 @@ export default function MinhaContaPage() {
             </CardContent>
           </Card>
 
-          {/* Segurança */}
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="text-xl text-blue-200 flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Segurança
-              </CardTitle>
-              <CardDescription className="text-blue-300">
-                Mantenha sua conta segura
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword" className="text-blue-200">Senha Atual</Label>
-                <div className="relative">
-                  <Input
-                    id="currentPassword"
-                    type={showPasswords.current ? "text" : "password"}
-                    value={formData.currentPassword}
-                    onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                    className="bg-white/10 border-white/30 text-white placeholder:text-blue-300 focus:border-blue-400 focus:ring-blue-400/50 pr-10"
-                    placeholder="Digite sua senha atual"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => togglePasswordVisibility('current')}
-                  >
-                    {showPasswords.current ? <EyeOff className="w-4 h-4 text-blue-300" /> : <Eye className="w-4 h-4 text-blue-300" />}
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-blue-200">Nova Senha</Label>
-                <div className="relative">
-                  <Input
-                    id="newPassword"
-                    type={showPasswords.new ? "text" : "password"}
-                    value={formData.newPassword}
-                    onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                    className="bg-white/10 border-white/30 text-white placeholder:text-blue-300 focus:border-blue-400 focus:ring-blue-400/50 pr-10"
-                    placeholder="Digite sua nova senha"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => togglePasswordVisibility('new')}
-                  >
-                    {showPasswords.new ? <EyeOff className="w-4 h-4 text-blue-300" /> : <Eye className="w-4 h-4 text-blue-300" />}
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-blue-200">Confirmar Nova Senha</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showPasswords.confirm ? "text" : "password"}
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className="bg-white/10 border-white/30 text-white placeholder:text-blue-300 focus:border-blue-400 focus:ring-blue-400/50 pr-10"
-                    placeholder="Confirme sua nova senha"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => togglePasswordVisibility('confirm')}
-                  >
-                    {showPasswords.confirm ? <EyeOff className="w-4 h-4 text-blue-300" /> : <Eye className="w-4 h-4 text-blue-300" />}
-                  </Button>
-                </div>
-              </div>
 
-              <div className="pt-4 border-t border-white/10">
-                <Button variant="outline" className="w-full bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir Conta
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           
         </div>

@@ -82,8 +82,15 @@ export default function CertificadosPage() {
     if (!user) return;
     
     try {
+      console.log('🎯 Tentando emitir certificado para curso:', courseId);
+      
       const course = myCourses.find(c => c.id === courseId);
-      if (!course) return;
+      if (!course) {
+        console.log('❌ Curso não encontrado na lista do usuário');
+        return;
+      }
+
+      console.log('📚 Curso encontrado:', course.title);
 
       // Verificar se já existe certificado para este curso
       const hasCertificate = await CertificateService.hasCertificate(user.id, courseId);
@@ -91,6 +98,8 @@ export default function CertificadosPage() {
         alert('Você já possui um certificado para este curso!');
         return;
       }
+
+      console.log('✅ Não possui certificado ainda, prosseguindo...');
 
       // Gerar certificado
       const certificate = await CertificateService.generateCertificate(
@@ -136,7 +145,7 @@ export default function CertificadosPage() {
   return (
     <div className="relative">
       <Sidebar />
-      <main className="space-y-8 p-6">
+      <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-4">

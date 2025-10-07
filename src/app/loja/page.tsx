@@ -206,7 +206,7 @@ export default function LojaPage() {
   return (
     <div className="relative">
       <Sidebar />
-      <main className="space-y-8 p-4 sm:p-6">
+      <main className="space-y-8 p-4 sm:p-6 lg:ml-64">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex items-center gap-4">

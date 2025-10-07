@@ -58,13 +58,13 @@ export default function Home() {
   return (
     <div className="relative">
       <Sidebar />
-      <main className="space-y-6 sm:space-y-8 p-4 sm:p-6">
+      <main className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:ml-64">
         {/* Banner de destaque */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex-1">
             <StudentBanner />
           </div>
-          <div className="flex items-center justify-end lg:ml-6">
+          <div className="flex items-center justify-end sm:ml-6">
             <LogoutButton />
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function Home() {
           </div>
           <Carousel ariaLabel="Meus cursos">
             {myCoursesPreview.map((c) => (
-              <CourseCard key={c.id} course={c} />
+              <CourseCard key={c.id} course={c} isOwned={true} />
             ))}
           </Carousel>
         </section>
@@ -109,7 +109,7 @@ export default function Home() {
             </div>
             <Carousel ariaLabel="Cursos disponíveis">
               {availableCoursesPreview.map((c) => (
-                <CourseCard key={c.id} course={c} />
+                <CourseCard key={c.id} course={c} isOwned={false} />
               ))}
             </Carousel>
           </section>

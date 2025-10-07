@@ -17,6 +17,7 @@ type FormState = {
     videoUrl?: string;
     documentUrl?: string;
     textContent?: string;
+    additionalText?: string;
   };
   order: number;
   isPublished: boolean;
@@ -37,7 +38,8 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
     content: {
       videoUrl: initialData?.content?.videoUrl ?? "",
       documentUrl: initialData?.content?.documentUrl ?? "",
-      textContent: initialData?.content?.textContent ?? ""
+      textContent: initialData?.content?.textContent ?? "",
+      additionalText: initialData?.content?.additionalText ?? ""
     },
     order: initialData?.order ?? 1,
     isPublished: initialData?.isPublished ?? false
@@ -281,6 +283,24 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
 
 
       {renderContentFields()}
+
+      {/* Campo de Texto Adicional */}
+      <div className="space-y-2">
+        <Label htmlFor="additionalText">Texto Adicional</Label>
+        <Textarea 
+          id="additionalText" 
+          rows={4} 
+          value={state.content.additionalText || ""} 
+          onChange={(e) => setState({ 
+            ...state, 
+            content: { ...state.content, additionalText: e.target.value }
+          })} 
+          placeholder="Digite informações adicionais sobre a aula (opcional)..."
+        />
+        <p className="text-sm text-gray-500">
+          Este texto será exibido em todas as aulas, independentemente do tipo. Use para adicionar notas, links úteis, ou informações complementares.
+        </p>
+      </div>
 
       <div className="flex items-center space-x-2">
         <Switch

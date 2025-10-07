@@ -95,21 +95,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
             required 
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="price">Preço (R$)</Label>
-          <Input 
-            id="price" 
-            type="number" 
-            step="0.01"
-            min="0"
-            value={state.price} 
-            onChange={(e) => {
-              console.log('Preço alterado para:', e.target.value);
-              setState({ ...state, price: parseFloat(e.target.value) || 0 });
-            }} 
-            placeholder="0.00"
-          />
-        </div>
       </div>
 
 
@@ -127,15 +112,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
             placeholder="https://exemplo.com/imagem.jpg"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="duration">Duração Estimada</Label>
-          <Input 
-            id="duration" 
-            value={state.estimatedDuration} 
-            onChange={(e) => setState({ ...state, estimatedDuration: e.target.value })} 
-            placeholder="Ex: 2h 30min"
-          />
-        </div>
+
       </div>
 
       <div className="space-y-2">
@@ -187,17 +164,6 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
           }}
         >
           Limpar
-        </Button>
-        <Button 
-          type="button" 
-          variant="outline" 
-          className="rounded-xl" 
-          onClick={() => {
-            console.log('Teste de envio manual:', state);
-            alert(`Dados atuais: ${JSON.stringify(state, null, 2)}`);
-          }}
-        >
-          Teste Manual
         </Button>
       </div>
     </form>

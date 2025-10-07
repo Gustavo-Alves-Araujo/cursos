@@ -47,7 +47,9 @@ export function Sidebar() {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="px-4 py-6">
-          <div className="mb-6 text-xl font-semibold">Comunidade ndspro</div>
+          <Link href="/" className="block mb-6 text-xl font-semibold text-white hover:text-blue-200 transition-colors duration-200">
+            Infinitto
+          </Link>
           <nav className="grid gap-2">
             {items.map((item) => {
               const Icon = item.icon;

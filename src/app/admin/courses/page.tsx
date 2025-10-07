@@ -53,7 +53,7 @@ export default function AdminCoursesPage() {
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="relative">
         <AdminSidebar />
-        <main className="space-y-8 p-6">
+        <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div className="flex items-center gap-4">
@@ -87,66 +87,7 @@ export default function AdminCoursesPage() {
           </div>
         </div>
 
-        {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">{courses.length}</div>
-                  <div className="text-blue-200 text-sm">Total de Cursos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">
-                    {courses.filter(c => c.isPublished).length}
-                  </div>
-                  <div className="text-blue-200 text-sm">Cursos Publicados</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">1,234</div>
-                  <div className="text-blue-200 text-sm">Alunos Inscritos</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <Star className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-white">4.8</div>
-                  <div className="text-blue-200 text-sm">Avaliação Média</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Busca e Filtros */}
         <Card className="bg-white/10 backdrop-blur-sm border-white/20">

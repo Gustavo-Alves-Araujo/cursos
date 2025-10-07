@@ -90,7 +90,7 @@ export default function MyCoursesPage() {
   return (
     <div className="relative">
       <Sidebar />
-      <main className="space-y-8 p-6">
+      <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex items-center justify-between bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
           <div className="flex items-center gap-4">

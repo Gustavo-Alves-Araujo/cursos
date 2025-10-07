@@ -1,6 +1,37 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Plyr Player Custom Styles */
+.player-container {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Customizar cores do Plyr para combinar com o tema */
+.plyr--video {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.plyr__control--overlaid {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+.plyr__control--overlaid:hover {
+  background: rgba(59, 130, 246, 1);
+}
+
+.plyr__progress__played {
+  background: #3b82f6;
+}
+
+.plyr__volume__progress {
+  background: #3b82f6;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

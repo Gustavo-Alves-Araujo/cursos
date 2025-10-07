@@ -205,7 +205,7 @@ export default function CourseDetailPage() {
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 lg:ml-64">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">

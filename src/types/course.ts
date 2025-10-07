@@ -9,6 +9,7 @@ export type Lesson = {
     videoUrl?: string; // URL do YouTube para aulas de vídeo
     documentUrl?: string; // URL do arquivo para documentos
     textContent?: string; // conteúdo HTML para aulas de texto
+    additionalText?: string; // texto adicional para todos os tipos de aula
   };
   order: number;
   isPublished: boolean;

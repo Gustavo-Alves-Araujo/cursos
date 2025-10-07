@@ -7,11 +7,12 @@ import { FileText, Download, Eye, CheckCircle, ExternalLink } from 'lucide-react
 interface DocumentLessonProps {
   title: string;
   documentUrl: string;
+  additionalText?: string;
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function DocumentLesson({ title, documentUrl, onComplete, isCompleted = false }: DocumentLessonProps) {
+export function DocumentLesson({ title, documentUrl, additionalText, onComplete, isCompleted = false }: DocumentLessonProps) {
 
   const handleDownload = () => {
     try {
@@ -104,25 +105,36 @@ export function DocumentLesson({ title, documentUrl, onComplete, isCompleted = f
           <div className="bg-white/5 rounded-lg p-4 border border-white/10">
             <div className="flex items-center gap-4">
               <div className="text-4xl">{getFileIcon(documentUrl)}</div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white">{title}</h3>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-white truncate">{title}</h3>
                 <p className="text-blue-200 text-sm">Tipo: {getFileType(documentUrl)}</p>
-                <p className="text-blue-300 text-sm">URL: {documentUrl}</p>
+                <p className="text-blue-300 text-sm truncate">URL: {documentUrl}</p>
               </div>
             </div>
           </div>
 
-          {/* Preview do Documento */}
+          {/* Baixar Documento */}
           <div className="bg-white/5 rounded-lg p-6 border border-white/10">
-            <h4 className="text-lg font-semibold text-white mb-4">Preview do Documento</h4>
+            <h4 className="text-lg font-semibold text-white mb-4">Baixar Documento</h4>
             <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <FileText className="w-16 h-16 text-white mx-auto mb-4" />
                 <p className="text-white text-lg mb-2">Documento: {getFileType(documentUrl)}</p>
-                <p className="text-gray-400 text-sm">Clique em &quot;Visualizar&quot; para abrir o documento</p>
+                <p className="text-gray-400 text-sm">Clique em &quot;Baixar&quot; para salvar o documento</p>
               </div>
             </div>
           </div>
+
+          {/* Texto Adicional */}
+          {additionalText && (
+            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+              <h4 className="text-lg font-semibold text-white mb-3">Informações Adicionais</h4>
+              <div 
+                className="text-blue-200 leading-relaxed prose prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: additionalText }}
+              />
+            </div>
+          )}
 
           {/* Botões de Ação */}
           <div className="flex gap-3">
@@ -143,13 +155,6 @@ export function DocumentLesson({ title, documentUrl, onComplete, isCompleted = f
               Baixar
             </Button>
             
-            <Button 
-              onClick={() => window.open(documentUrl, '_blank')}
-              variant="outline"
-              className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Button>
           </div>
 
           {/* Botão de Conclusão */}

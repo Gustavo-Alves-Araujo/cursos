@@ -20,6 +20,7 @@ export type Lesson = {
     videoUrl?: string; // para aulas de vídeo
     documentUrl?: string; // para documentos
     textContent?: string; // para conteúdo de texto
+    additionalText?: string; // texto adicional para todos os tipos de aula
   };
   order: number;
   completed: boolean;
@@ -291,7 +292,8 @@ export const mockLessons: Lesson[] = [
     type: "video",
     duration: "5:30",
     content: {
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      additionalText: "<p><strong>Dica importante:</strong> Anote suas dúvidas durante o vídeo para consultar depois.</p><p><a href='#'>📚 Material complementar</a> | <a href='#'>❓ Fórum de dúvidas</a></p>"
     },
     order: 1,
     completed: true
@@ -321,7 +323,8 @@ export const mockLessons: Lesson[] = [
           <li>Configure lembretes para não perder aulas</li>
           <li>Explore as diferentes funcionalidades da plataforma</li>
         </ul>
-      `
+      `,
+      additionalText: "<p><strong>💡 Lembrete:</strong> Suas configurações podem ser alteradas a qualquer momento nas configurações da conta.</p><p><a href='#'>📖 Guia completo de configuração</a></p>"
     },
     order: 2,
     completed: true
@@ -333,7 +336,8 @@ export const mockLessons: Lesson[] = [
     description: "Documento com instruções detalhadas de navegação",
     type: "document",
     content: {
-      documentUrl: "/documents/guia-navegacao.pdf"
+      documentUrl: "/documents/guia-navegacao.pdf",
+      additionalText: "<p><strong>📄 Sobre este documento:</strong> Este guia contém todas as informações necessárias para navegar pela plataforma.</p><p><strong>⏱️ Tempo estimado de leitura:</strong> 10-15 minutos</p>"
     },
     order: 3,
     completed: false

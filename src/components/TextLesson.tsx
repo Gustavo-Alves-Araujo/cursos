@@ -8,11 +8,12 @@ import { BookOpen, CheckCircle, Bookmark, Share2 } from 'lucide-react';
 interface TextLessonProps {
   title: string;
   content: string;
+  additionalText?: string;
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function TextLesson({ title, content, onComplete, isCompleted = false }: TextLessonProps) {
+export function TextLesson({ title, content, additionalText, onComplete, isCompleted = false }: TextLessonProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
 
@@ -107,6 +108,17 @@ export function TextLesson({ title, content, onComplete, isCompleted = false }: 
               dangerouslySetInnerHTML={{ __html: content }}
             />
           </div>
+
+          {/* Texto Adicional */}
+          {additionalText && (
+            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+              <h4 className="text-lg font-semibold text-white mb-3">Informações Adicionais</h4>
+              <div 
+                className="text-blue-200 leading-relaxed prose prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: additionalText }}
+              />
+            </div>
+          )}
 
           {/* Botões de Ação */}
           <div className="flex gap-3">

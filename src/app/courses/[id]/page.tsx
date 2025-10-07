@@ -205,16 +205,20 @@ export default function CoursePage() {
     }
   };
 
-  // Se uma aula está selecionada, mostrar o visualizador de aula com barra lateral
+  // Se uma aula está selecionada, mostrar o visualizador de aula
   if (selectedLesson) {
+    const currentIndex = lessons.findIndex(lesson => lesson.id === selectedLesson.id);
+    const hasPrevious = currentIndex > 0;
+    const hasNext = currentIndex < lessons.length - 1;
+
     return (
       <div className="relative">
         <Sidebar />
-        <div className="flex h-screen">
-          {/* Barra Lateral com Histórico das Aulas */}
-          <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 bg-white/5 backdrop-blur-sm border-r border-white/10 overflow-hidden`}>
-            <div className="p-4 h-full overflow-y-auto">
-              <div className="flex items-center justify-between mb-4">
+        <div className="flex h-screen lg:ml-64">
+          {/* Barra Lateral com Lista de Aulas - Apenas Desktop */}
+          <div className="hidden lg:block w-72 bg-white/5 backdrop-blur-sm border-r border-white/10 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-blue-200">Aulas do Curso</h3>
                 <Button
                   variant="ghost"
@@ -230,42 +234,42 @@ export default function CoursePage() {
                 {course.modules
                   .sort((a, b) => a.order - b.order)
                   .map((module, moduleIndex) => (
-                    <div key={module.id} className="space-y-2">
+                    <div key={module.id} className="space-y-3">
                       {/* Cabeçalho do Módulo */}
-                      <div className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded-lg">
-                        <div className="flex items-center justify-center w-6 h-6 bg-blue-500/20 rounded-full">
-                          <span className="text-blue-200 text-xs font-semibold">{moduleIndex + 1}</span>
+                      <div className="flex items-center gap-3 px-3 py-2 bg-white/10 rounded-lg">
+                        <div className="flex items-center justify-center w-8 h-8 bg-blue-500/20 rounded-full">
+                          <span className="text-blue-200 text-sm font-semibold">{moduleIndex + 1}</span>
                         </div>
-                        <h3 className="text-sm font-semibold text-blue-200 truncate">
+                        <h3 className="text-sm font-semibold text-blue-200">
                           {module.title}
                         </h3>
                       </div>
                       
                       {/* Aulas do Módulo */}
-                      <div className="ml-4 space-y-1">
+                      <div className="ml-4 space-y-2">
                         {module.lessons
                           .sort((a, b) => a.order - b.order)
                           .map((lesson, lessonIndex) => (
                             <div
                               key={lesson.id}
-                              className={`p-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                                 selectedLesson.id === lesson.id
                                   ? 'bg-blue-500/20 border border-blue-500/50'
                                   : 'bg-white/5 hover:bg-white/10 border border-transparent'
                               }`}
                               onClick={() => setSelectedLesson(lesson)}
                             >
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center justify-center w-6 h-6 bg-white/10 rounded-full">
-                                  <span className="text-white text-xs font-semibold">{lessonIndex + 1}</span>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
+                                  <span className="text-white text-sm font-semibold">{lessonIndex + 1}</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <h4 className="text-xs font-medium text-white truncate">{lesson.title}</h4>
-                                  <div className="flex items-center gap-1 mt-0.5">
+                                  <h4 className="text-sm font-medium text-white line-clamp-2">{lesson.title}</h4>
+                                  <div className="flex items-center gap-2 mt-1">
                                     {getLessonIcon(lesson.type)}
                                     <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
                                     {lesson.completed && (
-                                      <CheckCircle className="w-3 h-3 text-blue-400" />
+                                      <CheckCircle className="w-4 h-4 text-blue-400" />
                                     )}
                                   </div>
                                 </div>
@@ -280,65 +284,159 @@ export default function CoursePage() {
           </div>
 
           {/* Conteúdo Principal */}
-          <main className="flex-1 space-y-8 p-6 overflow-y-auto">
+          <main className="flex-1 flex flex-col min-w-0">
             {/* Header da Aula */}
-            <div className="flex items-center justify-between bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-              <div className="flex items-center gap-4">
-                {!sidebarOpen && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSidebarOpen(true)}
-                    className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-                  >
-                    <Menu className="w-4 h-4" />
-                  </Button>
-                )}
-                <Button 
-                  onClick={handleBackToCourse}
-                  variant="outline" 
-                  className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Voltar ao Curso
-                </Button>
-                <div>
-                  <h1 className="text-3xl font-bold text-blue-200 flex items-center gap-3">
-                    {getLessonIcon(selectedLesson.type)}
-                    {selectedLesson.title}
-                    {selectedLesson.completed && (
-                      <Badge className="bg-blue-500/20 text-blue-200 border-blue-500/50 text-sm">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Concluída
-                      </Badge>
-                    )}
-                  </h1>
+            <div className="bg-white/5 backdrop-blur-sm border-b border-white/10 p-4 lg:p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex flex-col gap-4">
+                  {/* Navegação */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button 
+                      onClick={handleBackToCourse}
+                      variant="outline" 
+                      size="sm"
+                      className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Voltar ao Curso
+                    </Button>
+                    <Button 
+                      asChild
+                      variant="outline" 
+                      size="sm"
+                      className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+                    >
+                      <Link href="/">
+                        <BookOpen className="w-4 h-4" />
+                        Página Inicial
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSidebarOpen(!sidebarOpen)}
+                      className="lg:hidden bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+                    >
+                      <Menu className="w-4 h-4" />
+                      Mais Aulas
+                    </Button>
+                  </div>
+                  
+                  {/* Título da Aula */}
+                  <div>
+                    <h1 className="text-xl lg:text-3xl font-bold text-blue-200 flex items-center gap-3">
+                      {getLessonIcon(selectedLesson.type)}
+                      {selectedLesson.title}
+                      {selectedLesson.completed && (
+                        <Badge className="bg-green-500/20 text-green-200 border-green-500/50 text-sm">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Concluída
+                        </Badge>
+                      )}
+                    </h1>
+                  </div>
                 </div>
+              
               </div>
-              <LogoutButton />
             </div>
 
+
             {/* Visualizador de Aula */}
-            <LessonViewer
-              lesson={selectedLesson}
-              lessons={lessons}
-              onComplete={() => handleLessonComplete(selectedLesson.id)}
-              onBack={handleBackToCourse}
-              onPrevious={() => {
-                const currentIndex = lessons.findIndex(lesson => lesson.id === selectedLesson.id);
-                if (currentIndex > 0) {
-                  setSelectedLesson(lessons[currentIndex - 1]);
-                }
-              }}
-              onNext={() => {
-                const currentIndex = lessons.findIndex(lesson => lesson.id === selectedLesson.id);
-                if (currentIndex < lessons.length - 1) {
-                  setSelectedLesson(lessons[currentIndex + 1]);
-                }
-              }}
-            />
+            <div className="flex-1 overflow-y-auto">
+              <LessonViewer
+                lesson={selectedLesson}
+                lessons={lessons}
+                onComplete={() => handleLessonComplete(selectedLesson.id)}
+                onBack={handleBackToCourse}
+                onPrevious={() => {
+                  if (hasPrevious) {
+                    setSelectedLesson(lessons[currentIndex - 1]);
+                  }
+                }}
+                onNext={() => {
+                  if (hasNext) {
+                    setSelectedLesson(lessons[currentIndex + 1]);
+                  }
+                }}
+              />
+            </div>
           </main>
         </div>
+
+        {/* Modal Mobile para Lista de Aulas */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden" onClick={() => setSidebarOpen(false)}>
+            <div className="absolute left-0 top-0 h-full w-72 bg-white/5 backdrop-blur-sm border-r border-white/10 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-blue-200">Aulas do Curso</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSidebarOpen(false)}
+                    className="text-blue-200 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  {course.modules
+                    .sort((a, b) => a.order - b.order)
+                    .map((module, moduleIndex) => (
+                      <div key={module.id} className="space-y-3">
+                        {/* Cabeçalho do Módulo */}
+                        <div className="flex items-center gap-3 px-3 py-2 bg-white/10 rounded-lg">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-500/20 rounded-full">
+                            <span className="text-blue-200 text-sm font-semibold">{moduleIndex + 1}</span>
+                          </div>
+                          <h3 className="text-sm font-semibold text-blue-200">
+                            {module.title}
+                          </h3>
+                        </div>
+                        
+                        {/* Aulas do Módulo */}
+                        <div className="ml-4 space-y-2">
+                          {module.lessons
+                            .sort((a, b) => a.order - b.order)
+                            .map((lesson, lessonIndex) => (
+                              <div
+                                key={lesson.id}
+                                className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                  selectedLesson.id === lesson.id
+                                    ? 'bg-blue-500/20 border border-blue-500/50'
+                                    : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                                }`}
+                                onClick={() => {
+                                  setSelectedLesson(lesson);
+                                  setSidebarOpen(false);
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
+                                    <span className="text-white text-sm font-semibold">{lessonIndex + 1}</span>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-medium text-white line-clamp-2">{lesson.title}</h4>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      {getLessonIcon(lesson.type)}
+                                      <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
+                                      {lesson.completed && (
+                                        <CheckCircle className="w-4 h-4 text-blue-400" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -346,7 +444,7 @@ export default function CoursePage() {
   return (
     <div className="relative">
       <Sidebar />
-      <main className="space-y-8 p-6">
+      <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex items-center justify-between bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
           <div className="flex items-center gap-4">
