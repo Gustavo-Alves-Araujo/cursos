@@ -2,19 +2,44 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Tipos para os dados do webhook da Yampi
-interface YampiOrder {
-  status: string;
-  customer: {
+interface YampiCustomer {
+  data: {
     email: string;
     name: string;
+    first_name?: string;
+    last_name?: string;
   };
-  items: Array<{
-    product_id: string;
-  }>;
+}
+
+interface YampiStatus {
+  data: {
+    alias: string;
+    name: string;
+    description: string;
+  };
+}
+
+interface YampiItem {
+  product_id: number;
+  sku_id: number;
+  sku: {
+    data: {
+      title: string;
+    };
+  };
+}
+
+interface YampiOrder {
+  status: YampiStatus;
+  customer: YampiCustomer;
+  items: {
+    data: YampiItem[];
+  };
 }
 
 interface YampiWebhookData {
-  order: YampiOrder;
+  event: string;
+  resource: YampiOrder;
 }
 
 // Função para gerar senha aleatória
@@ -37,25 +62,54 @@ export async function POST(request: NextRequest) {
 
     // Ler o corpo da requisição
     const body: YampiWebhookData = await request.json();
-    const { order } = body;
+    const { resource: order } = body;
 
     console.log('Webhook Yampi recebido:', JSON.stringify(body, null, 2));
 
+    // Validar estrutura básica
+    if (!order || !order.status || !order.status.data || !order.customer || !order.customer.data || !order.items || !order.items.data) {
+      console.error('Estrutura do webhook inválida:', {
+        hasOrder: !!order,
+        hasStatus: !!(order?.status?.data),
+        hasCustomer: !!(order?.customer?.data),
+        hasItems: !!(order?.items?.data)
+      });
+      return NextResponse.json({ error: 'Estrutura do webhook inválida' }, { status: 400 });
+    }
+
+    // Validar dados essenciais do customer
+    if (!order.customer.data.email) {
+      console.error('Email do customer não encontrado');
+      return NextResponse.json({ error: 'Email do customer não encontrado' }, { status: 400 });
+    }
+
+    // Validar se há itens no pedido
+    if (!order.items.data || order.items.data.length === 0) {
+      console.log('Nenhum item encontrado no pedido');
+      return NextResponse.json({ message: 'Nenhum item no pedido' }, { status: 200 });
+    }
+
     // Verificar se o status é "paid"
-    if (order.status !== 'paid') {
-      console.log('Status do pedido não é "paid":', order.status);
+    if (order.status.data.alias !== 'paid') {
+      console.log('Status do pedido não é "paid":', order.status.data.alias);
       return NextResponse.json({ message: 'Status não é paid' }, { status: 200 });
     }
 
     // Processar cada item do pedido
-    for (const item of order.items) {
+    for (const item of order.items.data) {
+      // Validar item
+      if (!item || !item.product_id) {
+        console.log('Item inválido, pulando:', item);
+        continue;
+      }
+
       console.log('Processando item:', item.product_id);
 
       // Buscar integração correspondente
       const { data: integration, error: integrationError } = await supabaseAdmin
         .from('yampi_integrations')
         .select('*')
-        .eq('product_id', item.product_id)
+        .eq('product_id', item.product_id.toString())
         .single();
 
       if (integrationError || !integration) {
@@ -73,7 +127,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
       }
       
-      const existingUser = users.users.find(user => user.email === order.customer.email);
+      const customerEmail = order.customer.data.email;
+      const customerName = order.customer.data.name || 
+        `${order.customer.data.first_name || ''} ${order.customer.data.last_name || ''}`.trim() ||
+        'Usuário';
+
+      const existingUser = users.users.find(user => user.email === customerEmail);
       let currentUserId: string;
 
       if (existingUser) {
@@ -85,7 +144,7 @@ export async function POST(request: NextRequest) {
           existingUser.id,
           {
             user_metadata: {
-              name: order.customer.name,
+              name: customerName,
               needs_password_reset: true
             }
           }
@@ -101,10 +160,10 @@ export async function POST(request: NextRequest) {
         const randomPassword = generateRandomPassword();
         
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          email: order.customer.email,
+          email: customerEmail,
           password: randomPassword,
           user_metadata: {
-            name: order.customer.name,
+            name: customerName,
             needs_password_reset: true
           },
           email_confirm: true // Confirmar email automaticamente
@@ -127,6 +186,7 @@ export async function POST(request: NextRequest) {
 
       // Criar matrícula no curso (se necessário)
       if (integration.course_id) {
+        console.log('Criando matrícula para o curso:', integration.course_id);
         
         const { error: enrollmentError } = await supabaseAdmin
           .from('course_enrollments')
@@ -140,6 +200,8 @@ export async function POST(request: NextRequest) {
         } else {
           console.log('Matrícula criada/atualizada com sucesso');
         }
+      } else {
+        console.log('Nenhum course_id configurado na integração');
       }
     }
 
@@ -147,8 +209,18 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Erro no webhook Yampi:', error);
+    
+    // Log mais detalhado do erro
+    if (error instanceof Error) {
+      console.error('Mensagem de erro:', error.message);
+      console.error('Stack trace:', error.stack);
+    }
+    
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { 
+        error: 'Erro interno do servidor',
+        message: error instanceof Error ? error.message : 'Erro desconhecido'
+      },
       { status: 500 }
     );
   }
