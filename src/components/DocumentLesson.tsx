@@ -102,28 +102,24 @@ export function DocumentLesson({ title, documentUrl, additionalText, onComplete,
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Informações do Documento */}
-          <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+          <div 
+            className="bg-white/5 rounded-lg p-4 border border-white/10 cursor-pointer hover:bg-white/10 transition-colors duration-200"
+            onClick={handleDownload}
+            title="Clique para baixar o documento"
+          >
             <div className="flex items-center gap-4">
               <div className="text-4xl">{getFileIcon(documentUrl)}</div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-semibold text-white truncate">{title}</h3>
                 <p className="text-blue-200 text-sm">Tipo: {getFileType(documentUrl)}</p>
-                <p className="text-blue-300 text-sm truncate">URL: {documentUrl}</p>
+                <p className="text-blue-300 text-xs mt-1">Clique para baixar</p>
               </div>
+              <Download className="w-5 h-5 text-blue-400" />
             </div>
           </div>
 
           {/* Baixar Documento */}
-          <div className="bg-white/5 rounded-lg p-6 border border-white/10">
-            <h4 className="text-lg font-semibold text-white mb-4">Baixar Documento</h4>
-            <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <FileText className="w-16 h-16 text-white mx-auto mb-4" />
-                <p className="text-white text-lg mb-2">Documento: {getFileType(documentUrl)}</p>
-                <p className="text-gray-400 text-sm">Clique em &quot;Baixar&quot; para salvar o documento</p>
-              </div>
-            </div>
-          </div>
+         
 
           {/* Texto Adicional */}
           {additionalText && (
@@ -138,13 +134,7 @@ export function DocumentLesson({ title, documentUrl, additionalText, onComplete,
 
           {/* Botões de Ação */}
           <div className="flex gap-3">
-            <Button 
-              onClick={handleView}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Visualizar
-            </Button>
+           
             
             <Button 
               onClick={handleDownload}
@@ -178,14 +168,7 @@ export function DocumentLesson({ title, documentUrl, additionalText, onComplete,
           )}
 
           {/* Instruções */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-            <h4 className="text-blue-200 font-semibold mb-2">Como usar este documento:</h4>
-            <ul className="text-blue-300 text-sm space-y-1">
-              <li>• Clique em &quot;Visualizar&quot; para abrir o documento em uma nova aba</li>
-              <li>• Use &quot;Baixar&quot; para salvar o arquivo em seu dispositivo</li>
-              <li>• Marque como concluída após revisar o conteúdo</li>
-            </ul>
-          </div>
+        
         </CardContent>
       </Card>
     </div>

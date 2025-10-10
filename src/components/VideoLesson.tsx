@@ -15,6 +15,12 @@ interface VideoLessonProps {
 }
 
 export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCompleted = false }: VideoLessonProps) {
+  console.log('VideoLesson - props recebidas:', {
+    title,
+    videoUrl,
+    isCompleted
+  });
+
   const playerRef = useRef<HTMLDivElement>(null);
   const plyrRef = useRef<Plyr | null>(null);
 
@@ -44,37 +50,68 @@ export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCom
       if (videoId) {
         // Limpar player anterior se existir
         if (plyrRef.current) {
+          console.log('VideoLesson - destruindo player anterior');
           plyrRef.current.destroy();
+          plyrRef.current = null;
         }
 
-        // Configurar o player com Plyr seguindo exatamente a receita do cliente
-        const player = new Plyr(playerRef.current, {
-          youtube: {
-            noCookie: true,
-            rel: 0,
-            showinfo: 0,
-            modestbranding: 1
-          },
-          controls: [
-            'play-large',
-            'play',
-            'progress',
-            'current-time',
-            'mute',
-            'volume',
-            'fullscreen'
-          ],
-          ratio: '16:9'
-        });
+        // Limpar o conteúdo do container antes de criar novo player
+        if (playerRef.current) {
+          console.log('VideoLesson - limpando container HTML');
+          playerRef.current.innerHTML = '';
+        }
 
-        plyrRef.current = player;
+        // Aguardar um pouco para garantir que o DOM foi limpo
+        setTimeout(() => {
+          if (playerRef.current) {
+            console.log('VideoLesson - criando novo player para:', videoId);
+            
+            // Criar um novo elemento div com o ID do vídeo
+            const newPlayerElement = document.createElement('div');
+            newPlayerElement.setAttribute('data-plyr-provider', 'youtube');
+            newPlayerElement.setAttribute('data-plyr-embed-id', videoId);
+            newPlayerElement.className = 'w-full h-full';
+            
+            // Substituir o conteúdo do container
+            playerRef.current.appendChild(newPlayerElement);
+            
+            // Configurar o player com Plyr
+            const player = new Plyr(newPlayerElement, {
+              youtube: {
+                noCookie: true,
+                rel: 0,
+                showinfo: 0,
+                modestbranding: 1
+              },
+              controls: [
+                'play-large',
+                'play',
+                'progress',
+                'current-time',
+                'mute',
+                'volume',
+                'fullscreen'
+              ],
+              ratio: '16:9'
+            });
+
+            plyrRef.current = player;
+          }
+        }, 100);
       }
     }
 
     // Cleanup
     return () => {
+      console.log('VideoLesson - cleanup do useEffect');
       if (plyrRef.current) {
         plyrRef.current.destroy();
+        plyrRef.current = null;
+      }
+      // Limpar o container também - capturar a referência atual
+      const currentPlayerRef = playerRef.current;
+      if (currentPlayerRef) {
+        currentPlayerRef.innerHTML = '';
       }
     };
   }, [videoUrl]);
@@ -95,8 +132,6 @@ export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCom
             {videoUrl && getYouTubeVideoId(videoUrl) ? (
               <div 
                 ref={playerRef}
-                data-plyr-provider="youtube" 
-                data-plyr-embed-id={getYouTubeVideoId(videoUrl)}
                 className="w-full h-full"
               />
             ) : (
@@ -111,9 +146,6 @@ export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCom
           </div>
 
           {/* Informações do Vídeo */}
-          <div className="flex items-center justify-between text-sm text-blue-300">
-            <span>YouTube</span>
-          </div>
 
           {/* Texto Adicional */}
           {additionalText && (

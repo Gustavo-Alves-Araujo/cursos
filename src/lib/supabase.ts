@@ -16,7 +16,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create client with fallback values to prevent build failures
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      autoRefreshToken: false, // Desabilitar refresh automático do token
+      persistSession: true, // Manter sessão persistente
+      detectSessionInUrl: false // Não detectar sessão na URL
+    }
+  }
 )
 
 // Tipos para o banco de dados

@@ -23,6 +23,35 @@ export default function CoursePage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [hasLoadedCourse, setHasLoadedCourse] = useState(false);
+  
+  // Função para salvar a aula selecionada no sessionStorage
+  const saveSelectedLesson = (lesson: Lesson) => {
+    if (typeof window !== 'undefined') {
+      console.log('CoursePage - salvando aula selecionada:', lesson.title, 'ID:', lesson.id);
+      sessionStorage.setItem(`selectedLesson_${id}`, lesson.id);
+    }
+  };
+  
+  // Função para carregar a aula selecionada do sessionStorage
+  const loadSelectedLesson = (lessons: Lesson[]): Lesson | null => {
+    if (typeof window !== 'undefined') {
+      const savedLessonId = sessionStorage.getItem(`selectedLesson_${id}`);
+      console.log('CoursePage - tentando carregar aula salva:', savedLessonId);
+      if (savedLessonId) {
+        const savedLesson = lessons.find(lesson => lesson.id === savedLessonId);
+        if (savedLesson) {
+          console.log('CoursePage - carregando aula salva:', savedLesson.title);
+          return savedLesson;
+        } else {
+          console.log('CoursePage - aula salva não encontrada na lista de aulas');
+        }
+      } else {
+        console.log('CoursePage - nenhuma aula salva encontrada no sessionStorage');
+      }
+    }
+    return null;
+  };
   
   useEffect(() => {
     const loadCourse = async () => {
@@ -39,7 +68,18 @@ export default function CoursePage() {
       
       if (!user || user.role === 'admin') return;
       
-      console.log('CoursePage - carregando curso:', id);
+      console.log('CoursePage - carregando curso:', id, 'hasLoadedCourse:', hasLoadedCourse);
+      
+      // Se já carregou o curso e tem aulas, só verificar se precisa restaurar a seleção
+      if (hasLoadedCourse && lessons.length > 0) {
+        console.log('CoursePage - curso já carregado, verificando seleção de aula');
+        const savedLesson = loadSelectedLesson(lessons);
+        if (savedLesson && (!selectedLesson || selectedLesson.id !== savedLesson.id)) {
+          console.log('CoursePage - restaurando aula salva:', savedLesson.title);
+          setSelectedLesson(savedLesson);
+        }
+        return;
+      }
       
       // Primeiro, tentar encontrar na lista de "meus cursos"
       if (myCourses.length > 0) {
@@ -55,14 +95,21 @@ export default function CoursePage() {
           const sortedLessons = allLessons.sort((a, b) => a.order - b.order);
           setLessons(sortedLessons);
           
-          // Encontrar a primeira aula não concluída e selecioná-la automaticamente
-          const firstIncompleteLesson = sortedLessons.find(lesson => !lesson.completed);
-          if (firstIncompleteLesson) {
-            setSelectedLesson(firstIncompleteLesson);
-          } else if (sortedLessons.length > 0) {
-            // Se todas as aulas estão concluídas, selecionar a última
-            setSelectedLesson(sortedLessons[sortedLessons.length - 1]);
+          // Tentar carregar aula salva primeiro
+          const savedLesson = loadSelectedLesson(sortedLessons);
+          if (savedLesson) {
+            setSelectedLesson(savedLesson);
+          } else {
+            // Se não há aula salva, encontrar a primeira aula não concluída
+            const firstIncompleteLesson = sortedLessons.find(lesson => !lesson.completed);
+            if (firstIncompleteLesson) {
+              setSelectedLesson(firstIncompleteLesson);
+            } else if (sortedLessons.length > 0) {
+              // Se todas as aulas estão concluídas, selecionar a última
+              setSelectedLesson(sortedLessons[sortedLessons.length - 1]);
+            }
           }
+          setHasLoadedCourse(true);
           return;
         }
       }
@@ -81,14 +128,21 @@ export default function CoursePage() {
         const sortedLessons = allLessons.sort((a, b) => a.order - b.order);
         setLessons(sortedLessons);
         
-        // Encontrar a primeira aula não concluída e selecioná-la automaticamente
-        const firstIncompleteLesson = sortedLessons.find(lesson => !lesson.completed);
-        if (firstIncompleteLesson) {
-          setSelectedLesson(firstIncompleteLesson);
-        } else if (sortedLessons.length > 0) {
-          // Se todas as aulas estão concluídas, selecionar a última
-          setSelectedLesson(sortedLessons[sortedLessons.length - 1]);
+        // Tentar carregar aula salva primeiro
+        const savedLesson = loadSelectedLesson(sortedLessons);
+        if (savedLesson) {
+          setSelectedLesson(savedLesson);
+        } else {
+          // Se não há aula salva, encontrar a primeira aula não concluída
+          const firstIncompleteLesson = sortedLessons.find(lesson => !lesson.completed);
+          if (firstIncompleteLesson) {
+            setSelectedLesson(firstIncompleteLesson);
+          } else if (sortedLessons.length > 0) {
+            // Se todas as aulas estão concluídas, selecionar a última
+            setSelectedLesson(sortedLessons[sortedLessons.length - 1]);
+          }
         }
+        setHasLoadedCourse(true);
       } else {
         console.log('CoursePage - curso não encontrado ou sem acesso');
         setCourse(null);
@@ -96,7 +150,7 @@ export default function CoursePage() {
     };
     
     loadCourse();
-  }, [user, isLoading, router, id, myCourses, checkCourseAccess]);
+  }, [user, isLoading, router, id, myCourses, hasLoadedCourse, lessons, selectedLesson]); // Incluído todas as dependências necessárias
 
   if (isLoading || coursesLoading) {
     return (
@@ -134,7 +188,19 @@ export default function CoursePage() {
   const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
   const handleLessonSelect = (lesson: Lesson) => {
-    setSelectedLesson(lesson);
+    // Se for uma aula de vídeo, fazer reload da página para garantir que o vídeo carregue corretamente
+    if (lesson.type === 'video') {
+      console.log('CoursePage - aula de vídeo selecionada, fazendo reload da página');
+      saveSelectedLesson(lesson);
+      // Fazer reload após um pequeno delay para garantir que o sessionStorage seja salvo
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } else {
+      // Para outros tipos de aula, apenas selecionar normalmente
+      setSelectedLesson(lesson);
+      saveSelectedLesson(lesson);
+    }
   };
 
   const handleLessonComplete = async (lessonId: string) => {
@@ -167,6 +233,7 @@ export default function CoursePage() {
         
         if (nextIncompleteLesson) {
           setSelectedLesson(nextIncompleteLesson);
+          saveSelectedLesson(nextIncompleteLesson);
         }
       }
     } catch (error) {

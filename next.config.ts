@@ -13,6 +13,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "poabzfpiirsetoycsgsr.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "formacoesholisticas.online",
+      },
     ],
   },
 };

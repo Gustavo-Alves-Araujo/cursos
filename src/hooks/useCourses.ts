@@ -112,7 +112,7 @@ export function useCourses() {
   useEffect(() => {
     console.log('useCourses - useEffect chamado');
     fetchCourses();
-  }, [fetchCourses]); // Include fetchCourses in dependencies
+  }, []); // Removido fetchCourses das dependências para evitar loop infinito
 
   const createCourse = useCallback(async (courseData: Omit<Course, 'id' | 'created_at' | 'updated_at' | 'modules' | 'totalLessons'>) => {
     try {
@@ -423,12 +423,20 @@ export function useCourses() {
 export function useMyCourses() {
   const [myCourses, setMyCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const { user } = useAuth();
 
   const fetchMyCourses = useCallback(async () => {
     if (!user) {
       setMyCourses([]);
       setIsLoading(false);
+      setHasLoaded(false);
+      return;
+    }
+
+    // Evitar carregar múltiplas vezes se já foi carregado para o mesmo usuário
+    if (hasLoaded && myCourses.length > 0) {
+      console.log('fetchMyCourses - já carregado, pulando...');
       return;
     }
 
@@ -543,6 +551,7 @@ export function useMyCourses() {
       }) || [];
 
       setMyCourses(transformedCourses);
+      setHasLoaded(true);
     } catch (error) {
       console.error('Erro ao carregar meus cursos:', error);
       setMyCourses([]);
@@ -552,8 +561,11 @@ export function useMyCourses() {
   }, [user]);
 
   useEffect(() => {
-    fetchMyCourses();
-  }, [user, fetchMyCourses]); // Include fetchMyCourses in dependencies
+    // Só carregar se não foi carregado ainda ou se o usuário mudou
+    if (!hasLoaded || (user && myCourses.length === 0)) {
+      fetchMyCourses();
+    }
+  }, [user, hasLoaded]); // Incluído hasLoaded para controlar quando carregar
 
   const checkCourseAccess = useCallback(async (courseId: string) => {
     if (!user) return null;

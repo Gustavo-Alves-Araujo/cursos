@@ -10,8 +10,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  console.log('AuthProvider - estado atual:', { user, isLoading });
+  console.log('AuthProvider - estado atual:', { user, isLoading, hasInitialized });
 
   useEffect(() => {
     let isMounted = true;
@@ -29,22 +30,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (event === 'SIGNED_OUT') {
           setUser(null);
           setIsLoading(false);
-        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          if (session?.user) {
-            // Usar setTimeout para evitar deadlock conforme documentação
+          setHasInitialized(true);
+        } else if (event === 'SIGNED_IN') {
+          // Só processar SIGNED_IN se ainda não foi inicializado ou se o usuário mudou
+          if (session?.user && (!hasInitialized || user?.id !== session.user.id)) {
+            console.log('Processing SIGNED_IN event for user:', session.user.id);
             setTimeout(async () => {
               await loadUserProfile(session.user);
               setIsLoading(false);
+              setHasInitialized(true);
             }, 0);
+          } else {
+            console.log('Ignoring SIGNED_IN event - already initialized or same user');
           }
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Não fazer nada no TOKEN_REFRESHED para evitar recarregamentos desnecessários
+          console.log('Token refreshed, but not reloading user data to prevent page refresh');
         } else if (event === 'INITIAL_SESSION') {
           if (session?.user) {
+            console.log('Processing INITIAL_SESSION for user:', session.user.id);
             setTimeout(async () => {
               await loadUserProfile(session.user);
               setIsLoading(false);
+              setHasInitialized(true);
             }, 0);
           } else {
             setIsLoading(false);
+            setHasInitialized(true);
           }
         }
       }

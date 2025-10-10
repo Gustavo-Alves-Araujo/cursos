@@ -17,6 +17,13 @@ interface LessonViewerProps {
 }
 
 export function LessonViewer({ lesson, lessons, onComplete, onPrevious, onNext }: LessonViewerProps) {
+  console.log('LessonViewer - lesson recebida:', {
+    id: lesson.id,
+    title: lesson.title,
+    type: lesson.type,
+    videoUrl: lesson.content.videoUrl
+  });
+
   const handleComplete = () => {
     console.log('LessonViewer: handleComplete chamado');
     console.log('LessonViewer: onComplete function:', onComplete);
