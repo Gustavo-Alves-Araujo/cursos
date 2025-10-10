@@ -74,10 +74,13 @@ export async function POST(request: NextRequest) {
       }
       
       const existingUser = users.users.find(user => user.email === order.customer.email);
+      let currentUserId: string;
 
       if (existingUser) {
         // Usuário já existe, atualizar metadata
         console.log('Usuário já existe, atualizando metadata');
+        currentUserId = existingUser.id;
+        
         const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
           existingUser.id,
           {
@@ -112,17 +115,23 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        console.log('Usuário criado com sucesso:', newUser.user?.id);
+        if (!newUser?.user?.id) {
+          console.error('Erro: ID do usuário não foi retornado');
+          continue;
+        }
+
+        currentUserId = newUser.user.id;
+        console.log('Usuário criado com sucesso:', currentUserId);
+        console.log('Senha temporária:', randomPassword);
       }
 
       // Criar matrícula no curso (se necessário)
       if (integration.course_id) {
-        const userId = existingUser?.id;
         
         const { error: enrollmentError } = await supabaseAdmin
           .from('course_enrollments')
           .upsert({
-            user_id: userId,
+            user_id: currentUserId,
             course_id: integration.course_id
           });
 

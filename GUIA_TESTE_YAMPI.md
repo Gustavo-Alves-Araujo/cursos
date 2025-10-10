@@ -117,14 +117,27 @@ Após enviar o webhook, verifique:
 
 3. **Tabela `course_enrollments`** - deve ter uma nova matrícula
 
-### **Passo 6: Testar o Fluxo de Login**
+### **Passo 6: Testar o Fluxo de Primeiro Acesso**
 
-1. **Tente fazer login** com `teste@exemplo.com`
-   - Como não há senha definida, o usuário será redirecionado para `/definir-senha`
+1. **Acesse a página de primeiro acesso:**
+   ```
+   http://localhost:3000/primeiro-acesso
+   ```
 
-2. **Defina uma nova senha** na página `/definir-senha`
+2. **Digite apenas o email** usado no webhook (`teste@exemplo.com`)
 
-3. **Verifique se foi redirecionado** para o dashboard principal
+3. **Clique em "Acessar Conta"**
+   - O sistema verificará automaticamente se o email existe
+   - Gerará uma senha temporária automaticamente
+   - Fará login automático
+   - Se o usuário tiver `needs_password_reset: true`, será redirecionado para `/definir-senha`
+
+4. **Defina uma nova senha** na página `/definir-senha`
+
+5. **Verifique se foi redirecionado** para o dashboard principal
+
+### **Alternativa: Login Normal**
+Se o usuário já definiu uma senha, pode usar o login normal em `/login`
 
 ---
 
