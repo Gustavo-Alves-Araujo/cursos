@@ -11,10 +11,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, BookOpen, Award, Settings, Eye, Trash2, Plus, Minus, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Search, Users, BookOpen, Award, Settings, Eye, Trash2, Plus, Minus, CheckCircle, XCircle, UserPlus } from "lucide-react";
 import { useCourses } from "@/hooks/useCourses";
 import { supabase } from "@/lib/supabase";
 import { User } from "@/types/auth";
+import { CreateStudentForm } from "@/components/admin/CreateStudentForm";
 
 type StudentWithEnrollments = User & {
   enrollments: string[]; // course IDs
@@ -29,6 +30,7 @@ export default function AdminStudentsPage() {
   const [studentsLoading, setStudentsLoading] = useState(false); // Começar como false para evitar loading desnecessário
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isCreateStudentDialogOpen, setIsCreateStudentDialogOpen] = useState(false);
 
   // Buscar alunos e suas matrículas
   const fetchStudents = useCallback(async () => {
@@ -195,7 +197,16 @@ export default function AdminStudentsPage() {
               </p>
             </div>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-3">
+            <Button 
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              onClick={() => setIsCreateStudentDialogOpen(true)}
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Adicionar Aluno
+            </Button>
+            <LogoutButton />
+          </div>
         </div>
 
         {/* Estatísticas */}
@@ -391,6 +402,15 @@ export default function AdminStudentsPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de Criação de Aluno */}
+        <CreateStudentForm
+          isOpen={isCreateStudentDialogOpen}
+          onClose={() => setIsCreateStudentDialogOpen(false)}
+          onSuccess={() => {
+            fetchStudents(); // Recarregar lista de alunos
+          }}
+        />
       </main>
     </div>
   );

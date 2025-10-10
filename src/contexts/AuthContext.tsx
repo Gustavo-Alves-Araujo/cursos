@@ -70,6 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      console.log('AuthContext - Carregando perfil do usuário:', supabaseUser.id);
+      console.log('AuthContext - User metadata:', supabaseUser.user_metadata);
+      
       const { data: userProfile, error } = await supabase
         .from('users')
         .select('*')
@@ -89,13 +92,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: userProfile.role,
           supabaseUser
         });
+        
+        console.log('AuthContext - Perfil carregado:', userProfile);
+        console.log('AuthContext - Needs password reset:', supabaseUser.user_metadata?.needs_password_reset);
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
     }
   };
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; needsPasswordReset?: boolean }> => {
     try {
       setIsLoading(true);
       
@@ -110,7 +116,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.user) {
         await loadUserProfile(data.user);
-        return { success: true };
+        
+        // Verificar se precisa redefinir senha
+        const needsPasswordReset = data.user.user_metadata?.needs_password_reset;
+        console.log('Login - needs_password_reset:', needsPasswordReset);
+        
+        return { 
+          success: true, 
+          needsPasswordReset: needsPasswordReset === true 
+        };
       }
 
       return { success: false, error: 'Erro desconhecido' };
@@ -171,8 +185,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const refreshUser = async (): Promise<void> => {
+    try {
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      if (supabaseUser) {
+        await loadUserProfile(supabaseUser);
+      }
+    } catch (error) {
+      console.error('Erro ao recarregar usuário:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, refreshUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

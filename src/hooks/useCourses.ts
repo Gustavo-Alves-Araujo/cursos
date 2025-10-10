@@ -83,6 +83,7 @@ export function useCourses() {
               title: lesson.title,
               type: lesson.type,
               content: content || {},
+              supportMaterials: lesson.support_materials || [],
               order: lesson.order_index,
               isPublished: lesson.is_published,
               created_at: lesson.created_at,
@@ -270,6 +271,7 @@ export function useCourses() {
         title: lessonData.title,
         type: lessonData.type,
         content: lessonData.content,
+        support_materials: lessonData.supportMaterials || [],
         order_index: lessonData.order,
         is_published: lessonData.isPublished
       };
@@ -346,6 +348,7 @@ export function useCourses() {
         title: updates.title,
         type: updates.type,
         content: updates.content,
+        support_materials: updates.supportMaterials,
         order_index: updates.order,
         is_published: updates.isPublished
       };
@@ -535,6 +538,7 @@ export function useMyCourses() {
                 title: lesson.title,
                 type: lesson.type,
                 content: content || {},
+                supportMaterials: lesson.support_materials || [],
                 order: lesson.order_index,
                 isPublished: lesson.is_published,
                 completed: completedLessons.includes(lesson.id),
@@ -658,6 +662,7 @@ export function useMyCourses() {
               title: lesson.title,
               type: lesson.type,
               content: content || {},
+              supportMaterials: lesson.support_materials || [],
               order: lesson.order_index,
               isPublished: lesson.is_published,
               completed: completedLessons.includes(lesson.id),

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUpdateUserMetadata } from '@/hooks/useUpdateUserMetadata';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +19,8 @@ export default function DefinirSenhaPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const { refreshUser } = useAuth();
+  const { updateMetadata } = useUpdateUserMetadata();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +41,7 @@ export default function DefinirSenhaPage() {
     }
 
     try {
-      // Usar a instância global do Supabase
+      console.log('DefinirSenha - Iniciando processo de definição de senha');
 
       // Atualizar senha
       const { error: updateError } = await supabase.auth.updateUser({
@@ -48,22 +52,29 @@ export default function DefinirSenhaPage() {
         throw updateError;
       }
 
-      // Atualizar metadata para remover flag de reset
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: {
-          needs_password_reset: false
-        }
+      console.log('DefinirSenha - Senha atualizada com sucesso');
+
+      // Atualizar metadata para remover flag de reset usando a API
+      const metadataResult = await updateMetadata({
+        needs_password_reset: false
       });
 
-      if (metadataError) {
-        console.warn('Erro ao atualizar metadata:', metadataError);
-        // Não falhar por causa disso, apenas log
+      if (!metadataResult.success) {
+        console.error('Erro ao atualizar metadata:', metadataResult.error);
+        // Não falhar por causa disso, mas log o erro
+      } else {
+        console.log('DefinirSenha - Metadata atualizada com sucesso');
+        
+        // Recarregar dados do usuário para atualizar o contexto
+        await refreshUser();
+        console.log('DefinirSenha - Dados do usuário recarregados');
       }
 
       setSuccess(true);
       
       // Redirecionar após 2 segundos
       setTimeout(() => {
+        console.log('DefinirSenha - Redirecionando para home');
         router.push('/');
       }, 2000);
 

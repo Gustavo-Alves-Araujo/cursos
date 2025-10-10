@@ -467,7 +467,7 @@ export default function CourseDetailPage() {
         if (!open) closeLessonDialog();
         else setIsLessonDialogOpen(open);
       }}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="min-w-full max-h-full">
           <DialogHeader>
             <DialogTitle>Adicionar Aula</DialogTitle>
             <DialogDescription>

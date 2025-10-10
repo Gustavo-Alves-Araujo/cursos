@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { PasswordResetGuard } from "@/components/PasswordResetGuard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -46,9 +47,10 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="relative">
-      <AdminSidebar />
-      <main className="space-y-8 p-6 lg:ml-64">
+    <PasswordResetGuard>
+      <div className="relative">
+        <AdminSidebar />
+        <main className="space-y-8 p-6 lg:ml-64">
         {/* Header */}
         <div className="flex justify-between items-center bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
           <div>
@@ -159,6 +161,7 @@ export default function AdminDashboard() {
 
       </main>
     </div>
+    </PasswordResetGuard>
   );
 }
 

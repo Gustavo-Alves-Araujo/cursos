@@ -22,15 +22,20 @@ export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  // Ocultar o menu hamburger quando estiver na página de visualização de aula
+  const isLessonViewPage = pathname?.includes('/courses/') && pathname !== '/courses';
+
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-4 left-4 z-50 lg:hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-2 text-white"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+      {/* Mobile Menu Button - Oculto na página de visualização de aula */}
+      {!isLessonViewPage && (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="fixed top-4 left-4 z-50 lg:hidden bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-2 text-white"
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      )}
 
       {/* Mobile Overlay */}
       {isOpen && (

@@ -105,7 +105,7 @@ export interface Database {
           id: string
           course_id: string
           title: string
-          description: string
+          description: string | null
           order_index: number
           unlock_after_days: number
           is_published: boolean
@@ -116,7 +116,7 @@ export interface Database {
           id?: string
           course_id: string
           title: string
-          description: string
+          description?: string | null
           order_index: number
           unlock_after_days?: number
           is_published?: boolean
@@ -127,7 +127,7 @@ export interface Database {
           id?: string
           course_id?: string
           title?: string
-          description?: string
+          description?: string | null
           order_index?: number
           unlock_after_days?: number
           is_published?: boolean

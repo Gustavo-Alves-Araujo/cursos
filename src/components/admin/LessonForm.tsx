@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Lesson, LessonType } from "@/types/course";
+import { Lesson, LessonType, SupportMaterial } from "@/types/course";
+import { FileUpload } from "@/components/FileUpload";
 import { supabase } from "@/lib/supabase";
 
 type FormState = {
@@ -19,6 +20,7 @@ type FormState = {
     textContent?: string;
     additionalText?: string;
   };
+  supportMaterials?: SupportMaterial[];
   order: number;
   isPublished: boolean;
 };
@@ -31,7 +33,7 @@ interface LessonFormProps {
   isEditing?: boolean;
 }
 
-export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing = false }: LessonFormProps) {
+export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId, isEditing = false }: LessonFormProps) {
   const [state, setState] = useState<FormState>({
     title: initialData?.title ?? "",
     type: initialData?.type ?? "video",
@@ -41,6 +43,7 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
       textContent: initialData?.content?.textContent ?? "",
       additionalText: initialData?.content?.additionalText ?? ""
     },
+    supportMaterials: initialData?.supportMaterials ?? [],
     order: initialData?.order ?? 1,
     isPublished: initialData?.isPublished ?? false
   });
@@ -109,7 +112,7 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
       case "video":
         return (
           <div className="space-y-2">
-            <Label htmlFor="videoUrl">URL do Vídeo do YouTube *</Label>
+            <Label htmlFor="videoUrl" className="text-blue-200">URL do Vídeo do YouTube *</Label>
             <Input 
               id="videoUrl" 
               value={state.content.videoUrl || ""} 
@@ -119,8 +122,9 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
               })} 
               placeholder="https://www.youtube.com/watch?v=..."
               required
+              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
             />
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-blue-300">
               Cole a URL completa do vídeo do YouTube
             </p>
           </div>
@@ -128,8 +132,8 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
       case "document":
         return (
           <div className="space-y-2">
-            <Label htmlFor="documentFile">Arquivo do Documento *</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+            <Label htmlFor="documentFile" className="text-blue-200">Arquivo do Documento *</Label>
+            <div className="border-2 border-dashed border-white/20 rounded-lg p-4 text-center hover:border-white/30 transition-colors bg-white/5">
               <input
                 id="documentFile"
                 type="file"
@@ -179,27 +183,27 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
               />
               <label htmlFor="documentFile" className="cursor-pointer">
                 <div className="flex flex-col items-center">
-                  <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-8 h-8 text-blue-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <p className="text-sm text-gray-600 mb-2">
-                    <span className="font-medium text-blue-600 hover:text-blue-500">Clique para selecionar</span> ou arraste o arquivo aqui
+                  <p className="text-sm text-blue-200 mb-2">
+                    <span className="font-medium text-blue-400 hover:text-blue-300">Clique para selecionar</span> ou arraste o arquivo aqui
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-blue-300">
                     PDF, DOC, DOCX, TXT (máx. 10MB)
                   </p>
                 </div>
               </label>
             </div>
             {state.content.documentUrl && (
-              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="mt-2 p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-green-800">Arquivo carregado com sucesso!</p>
-                    <p className="text-xs text-green-600">{state.content.documentUrl.split('/').pop()}</p>
+                    <p className="text-sm font-medium text-green-300">Arquivo carregado com sucesso!</p>
+                    <p className="text-xs text-green-400">{state.content.documentUrl.split('/').pop()}</p>
                   </div>
                 </div>
               </div>
@@ -209,10 +213,10 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
       case "text":
         return (
           <div className="space-y-2">
-            <Label htmlFor="textContent">Conteúdo da Aula *</Label>
+            <Label htmlFor="textContent" className="text-blue-200">Conteúdo da Aula *</Label>
             <Textarea 
               id="textContent" 
-              rows={10} 
+              rows={6} 
               value={state.content.textContent || ""} 
               onChange={(e) => setState({ 
                 ...state, 
@@ -220,8 +224,9 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
               })} 
               placeholder="Digite o conteúdo da aula em HTML ou texto simples..."
               required
+              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
             />
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-blue-300">
               Você pode usar HTML para formatação (títulos, listas, links, etc.)
             </p>
           </div>
@@ -232,108 +237,160 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, isEditing
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="w-full max-h-screen overflow-y-auto pr-2">
+      <form onSubmit={handleSubmit} className="space-y-4 pb-4">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        <div className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg">
           {error}
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="title">Título da Aula *</Label>
-        <Input 
-          id="title" 
-          value={state.title} 
-          onChange={(e) => setState({ ...state, title: e.target.value })} 
-          placeholder="Ex: Introdução aos Componentes"
-          required 
-        />
-      </div>
+        {/* Layout em três colunas para reduzir altura */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          
+          {/* Coluna 1 - Informações Básicas */}
+          <div className="space-y-4">
+            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+              <h3 className="text-base font-semibold text-white">Informações Básicas</h3>
+              
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="title" className="text-blue-200 text-sm">Título da Aula *</Label>
+                  <Input 
+                    id="title" 
+                    value={state.title} 
+                    onChange={(e) => setState({ ...state, title: e.target.value })} 
+                    placeholder="Ex: Introdução aos Componentes"
+                    required 
+                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
+                  />
+                </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="type" className="text-blue-200 text-sm">Tipo de Aula *</Label>
+                  <Select 
+                    value={state.type} 
+                    onValueChange={(value: LessonType) => setState({ ...state, type: value })}
+                  >
+                    <SelectTrigger className="w-full bg-white/10 border-white/20 text-white text-sm">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="video">Vídeo (YouTube)</SelectItem>
+                      <SelectItem value="document">Documento</SelectItem>
+                      <SelectItem value="text">Texto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="order" className="text-blue-200 text-sm">Ordem da Aula</Label>
+                  <Input 
+                    id="order" 
+                    type="number" 
+                    min="1"
+                    value={state.order} 
+                    onChange={(e) => setState({ ...state, order: parseInt(e.target.value) || 1 })} 
+                    placeholder="1"
+                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="type">Tipo de Aula *</Label>
-          <Select 
-            value={state.type} 
-            onValueChange={(value: LessonType) => setState({ ...state, type: value })}
+            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+              <h3 className="text-base font-semibold text-white">Conteúdo da Aula</h3>
+              {renderContentFields()}
+            </div>
+            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+              <h3 className="text-base font-semibold text-white">Configurações</h3>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="isPublished"
+                  checked={state.isPublished}
+                  onCheckedChange={(checked) => setState({ ...state, isPublished: checked })}
+                />
+                <Label htmlFor="isPublished" className="text-blue-200 text-sm">Publicar aula</Label>
+              </div>
+            </div>
+          </div>
+
+          {/* Coluna 2 - Conteúdo da Aula */}
+          <div className="space-y-4">
+          
+            <div className="space-y-4">
+            {/* Texto Adicional */}
+            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+              <h3 className="text-base font-semibold text-white">Texto Adicional</h3>
+              <div className="space-y-2">
+                <Label htmlFor="additionalText" className="text-blue-200 text-sm">Informações Complementares</Label>
+                <Textarea 
+                  id="additionalText" 
+                  rows={3} 
+                  value={state.content.additionalText || ""} 
+                  onChange={(e) => setState({ 
+                    ...state, 
+                    content: { ...state.content, additionalText: e.target.value }
+                  })} 
+                  placeholder="Digite informações adicionais sobre a aula (opcional)..."
+                  className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
+                />
+                <p className="text-xs text-blue-300">
+                  Este texto será exibido em todas as aulas, independentemente do tipo.
+                </p>
+              </div>
+            </div>
+
+            {/* Materiais de Apoio */}
+            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+              <h3 className="text-base font-semibold text-white">Materiais de Apoio</h3>
+              <div className="space-y-2">
+                <Label className="text-blue-200 text-sm">Arquivos de Apoio</Label>
+                <FileUpload
+                  lessonId={moduleId}
+                  existingMaterials={state.supportMaterials || []}
+                  onMaterialsChange={(materials) => setState({ ...state, supportMaterials: materials })}
+                  maxFiles={10}
+                  maxSize={50}
+                />
+                <p className="text-xs text-blue-300">
+                  Faça upload de documentos, PDFs, planilhas e outros materiais.
+                </p>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          {/* Coluna 3 - Texto Adicional e Materiais */}
+        
+        </div>
+
+        {/* Botões de Ação */}
+        <div className="flex gap-3 pt-4">
+          <Button 
+            type="submit" 
+            className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
+            disabled={isLoading || isSubmitting}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="video">Vídeo (YouTube)</SelectItem>
-              <SelectItem value="document">Documento</SelectItem>
-              <SelectItem value="text">Texto</SelectItem>
-            </SelectContent>
-          </Select>
+            {isLoading || isSubmitting ? "Salvando..." : (isEditing ? "Atualizar Aula" : "Salvar Aula")}
+          </Button>
+          <Button 
+            type="button" 
+            variant="secondary" 
+            className="rounded-xl" 
+            onClick={() => setState({
+              title: "",
+              type: "video",
+              content: {},
+              supportMaterials: [],
+              order: 1,
+              isPublished: false
+            })}
+          >
+            Limpar
+          </Button>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="order">Ordem da Aula</Label>
-          <Input 
-            id="order" 
-            type="number" 
-            min="1"
-            value={state.order} 
-            onChange={(e) => setState({ ...state, order: parseInt(e.target.value) || 1 })} 
-            placeholder="1"
-          />
-        </div>
-      </div>
-
-
-      {renderContentFields()}
-
-      {/* Campo de Texto Adicional */}
-      <div className="space-y-2">
-        <Label htmlFor="additionalText">Texto Adicional</Label>
-        <Textarea 
-          id="additionalText" 
-          rows={4} 
-          value={state.content.additionalText || ""} 
-          onChange={(e) => setState({ 
-            ...state, 
-            content: { ...state.content, additionalText: e.target.value }
-          })} 
-          placeholder="Digite informações adicionais sobre a aula (opcional)..."
-        />
-        <p className="text-sm text-gray-500">
-          Este texto será exibido em todas as aulas, independentemente do tipo. Use para adicionar notas, links úteis, ou informações complementares.
-        </p>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="isPublished"
-          checked={state.isPublished}
-          onCheckedChange={(checked) => setState({ ...state, isPublished: checked })}
-        />
-        <Label htmlFor="isPublished">Publicar aula</Label>
-      </div>
-
-      <div className="flex gap-3 pt-4">
-        <Button 
-          type="submit" 
-          className="rounded-xl"
-          disabled={isLoading || isSubmitting}
-        >
-          {isLoading || isSubmitting ? "Salvando..." : (isEditing ? "Atualizar Aula" : "Salvar Aula")}
-        </Button>
-        <Button 
-          type="button" 
-          variant="secondary" 
-          className="rounded-xl" 
-          onClick={() => setState({
-            title: "",
-            type: "video",
-            content: {},
-            order: 1,
-            isPublished: false
-          })}
-        >
-          Limpar
-        </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

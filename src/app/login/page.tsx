@@ -23,7 +23,13 @@ export default function LoginPage() {
     const result = await login(email, password);
     
     if (result.success) {
-      router.push('/');
+      // Verificar se precisa redefinir senha
+      if (result.needsPasswordReset) {
+        console.log('Redirecionando para /definir-senha');
+        router.push('/definir-senha');
+      } else {
+        router.push('/');
+      }
     } else {
       setError(result.error || 'Email ou senha incorretos');
     }

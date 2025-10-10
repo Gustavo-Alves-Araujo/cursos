@@ -32,7 +32,10 @@ export function Carousel({ children, ariaLabel }: Props) {
   const scrollBy = (dir: number) => {
     const el = containerRef.current;
     if (!el) return;
-    const amount = Math.floor(el.clientWidth * 0.9) * dir;
+    // Em mobile, scroll por um card inteiro (280px + gap), em desktop por 90% da tela
+    const isMobile = window.innerWidth < 640;
+    const cardWidth = 280 + 16; // 280px + 16px gap
+    const amount = isMobile ? cardWidth * dir : Math.floor(el.clientWidth * 0.9) * dir;
     el.scrollBy({ left: amount, behavior: "smooth" });
   };
 
@@ -53,28 +56,28 @@ export function Carousel({ children, ariaLabel }: Props) {
         ))}
       </div>
 
-      <div className="pointer-events-none absolute -left-2 top-1/2 hidden -translate-y-1/2 items-center gap-2 md:flex">
+      <div className="pointer-events-none absolute -left-1 sm:-left-2 top-1/2 -translate-y-1/2 items-center gap-2 flex z-10">
         <Button
           size="icon"
           variant="secondary"
           aria-label="Anterior"
-          className="pointer-events-auto rounded-xl"
+          className="pointer-events-auto rounded-xl bg-blue-600 hover:bg-blue-700 border-blue-500 text-white shadow-xl w-8 h-8 sm:w-10 sm:h-10"
           disabled={!canScroll.left}
           onClick={() => scrollBy(-1)}
         >
-          <ChevronLeftIcon />
+          <ChevronLeftIcon className="w-3 h-3 sm:w-4 sm:h-4" />
         </Button>
       </div>
-      <div className="pointer-events-none absolute -right-2 top-1/2 hidden -translate-y-1/2 items-center md:flex">
+      <div className="pointer-events-none absolute -right-1 sm:-right-2 top-1/2 -translate-y-1/2 items-center flex z-10">
         <Button
           size="icon"
           variant="secondary"
           aria-label="Próximo"
-          className="pointer-events-auto rounded-xl"
+          className="pointer-events-auto rounded-xl bg-blue-600 hover:bg-blue-700 border-blue-500 text-white shadow-xl w-8 h-8 sm:w-10 sm:h-10"
           disabled={!canScroll.right}
           onClick={() => scrollBy(1)}
         >
-          <ChevronRightIcon />
+          <ChevronRightIcon className="w-3 h-3 sm:w-4 sm:h-4" />
         </Button>
       </div>
     </div>

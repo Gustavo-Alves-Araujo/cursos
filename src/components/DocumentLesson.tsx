@@ -3,16 +3,19 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Download, Eye, CheckCircle, ExternalLink } from 'lucide-react';
+import { SupportMaterials } from '@/components/SupportMaterials';
+import { SupportMaterial } from '@/types/course';
 
 interface DocumentLessonProps {
   title: string;
   documentUrl: string;
   additionalText?: string;
+  supportMaterials?: SupportMaterial[];
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function DocumentLesson({ title, documentUrl, additionalText, onComplete, isCompleted = false }: DocumentLessonProps) {
+export function DocumentLesson({ title, documentUrl, additionalText, supportMaterials, onComplete, isCompleted = false }: DocumentLessonProps) {
 
   const handleDownload = () => {
     try {
@@ -146,6 +149,11 @@ export function DocumentLesson({ title, documentUrl, additionalText, onComplete,
             </Button>
             
           </div>
+
+          {/* Materiais de Apoio */}
+          {supportMaterials && supportMaterials.length > 0 && (
+            <SupportMaterials materials={supportMaterials} />
+          )}
 
           {/* Botão de Conclusão */}
           {!isCompleted && (

@@ -1,5 +1,14 @@
 export type LessonType = 'video' | 'document' | 'text';
 
+export type SupportMaterial = {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  type: string;
+  uploadedAt: string;
+};
+
 export type Lesson = {
   id: string;
   moduleId: string;
@@ -11,6 +20,7 @@ export type Lesson = {
     textContent?: string; // conteúdo HTML para aulas de texto
     additionalText?: string; // texto adicional para todos os tipos de aula
   };
+  supportMaterials?: SupportMaterial[]; // Materiais de apoio da aula
   order: number;
   isPublished: boolean;
   completed?: boolean; // indica se a aula foi concluída pelo usuário
@@ -22,7 +32,7 @@ export type Module = {
   id: string;
   courseId: string;
   title: string;
-  description: string;
+  description?: string; // Descrição agora é opcional
   order: number;
   unlockAfterDays: number; // dias após atribuição do curso para liberar este módulo
   isPublished: boolean;

@@ -40,8 +40,8 @@ export function ModuleForm({ onSubmit, initialData, isLoading = false }: ModuleF
     setError("");
     setIsSubmitting(true);
     
-    if (!state.title.trim() || !state.description.trim()) {
-      setError("Preencha todos os campos obrigatórios");
+    if (!state.title.trim()) {
+      setError("Preencha o título do módulo");
       setIsSubmitting(false);
       return;
     }
@@ -83,14 +83,13 @@ export function ModuleForm({ onSubmit, initialData, isLoading = false }: ModuleF
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Descrição do Módulo *</Label>
+        <Label htmlFor="description">Descrição do Módulo (opcional)</Label>
         <Textarea 
           id="description" 
           rows={3} 
           value={state.description} 
           onChange={(e) => setState({ ...state, description: e.target.value })} 
-          placeholder="Descreva o que será ensinado neste módulo..."
-          required
+          placeholder="Descreva o que será ensinado neste módulo (opcional)..."
         />
       </div>
 

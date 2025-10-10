@@ -39,6 +39,7 @@ export function LessonViewer({ lesson, lessons, onComplete, onPrevious, onNext }
             title={lesson.title}
             videoUrl={lesson.content.videoUrl || ''}
             additionalText={lesson.content.additionalText}
+            supportMaterials={lesson.supportMaterials}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />
@@ -50,6 +51,7 @@ export function LessonViewer({ lesson, lessons, onComplete, onPrevious, onNext }
             title={lesson.title}
             documentUrl={lesson.content.documentUrl || ''}
             additionalText={lesson.content.additionalText}
+            supportMaterials={lesson.supportMaterials}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />
@@ -61,6 +63,7 @@ export function LessonViewer({ lesson, lessons, onComplete, onPrevious, onNext }
             title={lesson.title}
             content={lesson.content.textContent || ''}
             additionalText={lesson.content.additionalText}
+            supportMaterials={lesson.supportMaterials}
             onComplete={handleComplete}
             isCompleted={lesson.completed}
           />

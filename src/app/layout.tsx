@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { FirstLoginRedirect } from "@/components/FirstLoginRedirect";
 import Script from "next/script";
 
 const geistSans = Geist({
@@ -33,6 +34,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`}
       >
         <AuthProvider>
+          <FirstLoginRedirect />
           <div className="min-h-screen">
             {children}
           </div>

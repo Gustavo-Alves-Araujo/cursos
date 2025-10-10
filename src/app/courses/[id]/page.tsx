@@ -385,7 +385,7 @@ export default function CoursePage() {
                       className="lg:hidden bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
                     >
                       <Menu className="w-4 h-4" />
-                      Mais Aulas
+                      Continue seu curso
                     </Button>
                   </div>
                   

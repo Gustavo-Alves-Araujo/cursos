@@ -4,16 +4,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, CheckCircle, Bookmark, Share2 } from 'lucide-react';
+import { SupportMaterials } from '@/components/SupportMaterials';
+import { SupportMaterial } from '@/types/course';
 
 interface TextLessonProps {
   title: string;
   content: string;
   additionalText?: string;
+  supportMaterials?: SupportMaterial[];
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function TextLesson({ title, content, additionalText, onComplete, isCompleted = false }: TextLessonProps) {
+export function TextLesson({ title, content, additionalText, supportMaterials, onComplete, isCompleted = false }: TextLessonProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
 
@@ -118,6 +121,11 @@ export function TextLesson({ title, content, additionalText, onComplete, isCompl
                 dangerouslySetInnerHTML={{ __html: additionalText }}
               />
             </div>
+          )}
+
+          {/* Materiais de Apoio */}
+          {supportMaterials && supportMaterials.length > 0 && (
+            <SupportMaterials materials={supportMaterials} />
           )}
 
           {/* Botões de Ação */}

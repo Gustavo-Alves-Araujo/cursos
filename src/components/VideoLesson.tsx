@@ -5,16 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, CheckCircle } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import Plyr from 'plyr';
+import { SupportMaterials } from '@/components/SupportMaterials';
+import { SupportMaterial } from '@/types/course';
 
 interface VideoLessonProps {
   title: string;
   videoUrl: string;
   additionalText?: string;
+  supportMaterials?: SupportMaterial[];
   onComplete: () => void;
   isCompleted?: boolean;
 }
 
-export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCompleted = false }: VideoLessonProps) {
+export function VideoLesson({ title, videoUrl, additionalText, supportMaterials, onComplete, isCompleted = false }: VideoLessonProps) {
   console.log('VideoLesson - props recebidas:', {
     title,
     videoUrl,
@@ -156,6 +159,11 @@ export function VideoLesson({ title, videoUrl, additionalText, onComplete, isCom
                 dangerouslySetInnerHTML={{ __html: additionalText }}
               />
             </div>
+          )}
+
+          {/* Materiais de Apoio */}
+          {supportMaterials && supportMaterials.length > 0 && (
+            <SupportMaterials materials={supportMaterials} />
           )}
 
           {/* Botão de Conclusão */}

@@ -5,6 +5,7 @@ import { StudentBanner } from "@/components/StudentBanner";
 import { Carousel } from "@/components/Carousel";
 import { CourseCard } from "@/components/CourseCard";
 import { LogoutButton } from "@/components/LogoutButton";
+import { PasswordResetGuard } from "@/components/PasswordResetGuard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -56,9 +57,10 @@ export default function Home() {
   const availableCoursesPreview = availableCourses.slice(0, 6);
 
   return (
-    <div className="relative">
-      <Sidebar />
-      <main className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:ml-64">
+    <PasswordResetGuard>
+      <div className="relative">
+        <Sidebar />
+        <main className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:ml-64">
         {/* Banner de destaque */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex-1">
@@ -134,5 +136,6 @@ export default function Home() {
         )}
       </main>
     </div>
+    </PasswordResetGuard>
   );
 }
