@@ -60,7 +60,7 @@ export default function Home() {
     <PasswordResetGuard>
       <div className="relative">
         <Sidebar />
-        <main className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:ml-64">
+        <main className="space-y-6 sm:space-y-8 p-4 sm:p-6 lg:ml-64 min-h-screen">
         {/* Banner de destaque */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex-1">
@@ -79,9 +79,10 @@ export default function Home() {
               Meus Cursos
             </h2>
             {myCourses.length > 6 && (
-                <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200">
-                <Link href="/my-courses" className="flex items-center gap-2">
-                  Ver todos os cursos
+                <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200 text-sm sm:text-base">
+                <Link href="/my-courses" className="flex items-center justify-center gap-2">
+                  <span className="hidden sm:inline">Ver todos os cursos</span>
+                  <span className="sm:hidden">Ver todos</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>
@@ -102,9 +103,10 @@ export default function Home() {
                 <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                 Cursos que você ainda não tem
               </h2>
-              <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200">
-                <Link href="/loja" className="flex items-center gap-2">
-                  Ir para a Loja
+              <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200 text-sm sm:text-base">
+                <Link href="/loja" className="flex items-center justify-center gap-2">
+                  <span className="hidden sm:inline">Ir para a Loja</span>
+                  <span className="sm:hidden">Loja</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </Button>

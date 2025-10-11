@@ -90,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: userProfile.name,
           email: userProfile.email,
           role: userProfile.role,
+          cpf: userProfile.cpf,
           supabaseUser
         });
         
@@ -185,6 +186,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/redefinir-senha-simples`,
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erro ao enviar email de reset:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Erro ao enviar email de reset' 
+      };
+    }
+  };
+
   const refreshUser = async (): Promise<void> => {
     try {
       const { data: { user: supabaseUser } } = await supabase.auth.getUser();
@@ -197,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, refreshUser, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, resetPassword, logout, refreshUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

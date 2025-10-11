@@ -11,11 +11,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Users, BookOpen, Award, Settings, Eye, Trash2, Plus, Minus, CheckCircle, XCircle, UserPlus } from "lucide-react";
+import { ArrowLeft, Search, Users, BookOpen, Award, Settings, Eye, Trash2, Plus, Minus, CheckCircle, XCircle, UserPlus, Upload } from "lucide-react";
 import { useCourses } from "@/hooks/useCourses";
 import { supabase } from "@/lib/supabase";
 import { User } from "@/types/auth";
 import { CreateStudentForm } from "@/components/admin/CreateStudentForm";
+import { ImportStudentsDialog } from "@/components/admin/ImportStudentsDialog";
 
 type StudentWithEnrollments = User & {
   enrollments: string[]; // course IDs
@@ -31,6 +32,7 @@ export default function AdminStudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
   const [isCreateStudentDialogOpen, setIsCreateStudentDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   // Buscar alunos e suas matrículas
   const fetchStudents = useCallback(async () => {
@@ -198,6 +200,13 @@ export default function AdminStudentsPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              onClick={() => setIsImportDialogOpen(true)}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Importar Alunos
+            </Button>
             <Button 
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
               onClick={() => setIsCreateStudentDialogOpen(true)}
@@ -407,6 +416,15 @@ export default function AdminStudentsPage() {
         <CreateStudentForm
           isOpen={isCreateStudentDialogOpen}
           onClose={() => setIsCreateStudentDialogOpen(false)}
+          onSuccess={() => {
+            fetchStudents(); // Recarregar lista de alunos
+          }}
+        />
+
+        {/* Dialog de Importação de Alunos */}
+        <ImportStudentsDialog
+          isOpen={isImportDialogOpen}
+          onClose={() => setIsImportDialogOpen(false)}
           onSuccess={() => {
             fetchStudents(); // Recarregar lista de alunos
           }}

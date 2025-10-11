@@ -21,6 +21,7 @@ export function CreateStudentForm({ isOpen, onClose, onSuccess }: CreateStudentF
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    cpf: '',
     role: 'student' as 'student' | 'admin'
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +55,7 @@ export function CreateStudentForm({ isOpen, onClose, onSuccess }: CreateStudentF
   };
 
   const handleClose = () => {
-    setFormData({ name: '', email: '', role: 'student' });
+    setFormData({ name: '', email: '', cpf: '', role: 'student' });
     setCreatedUser(null);
     setShowPassword(false);
     setCopied(false);
@@ -72,7 +73,7 @@ export function CreateStudentForm({ isOpen, onClose, onSuccess }: CreateStudentF
       setCopied(true);
       // toast.success('Copiado para a área de transferência!');
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       alert('Erro ao copiar');
     }
   };
@@ -130,6 +131,23 @@ export function CreateStudentForm({ isOpen, onClose, onSuccess }: CreateStudentF
                     required
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cpf" className="text-blue-200">
+                CPF (Opcional)
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-300" />
+                <Input
+                  id="cpf"
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={formData.cpf}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cpf: e.target.value }))}
+                  className="pl-10 bg-white/15 border-white/40 text-white placeholder:text-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/50"
+                />
               </div>
             </div>
 

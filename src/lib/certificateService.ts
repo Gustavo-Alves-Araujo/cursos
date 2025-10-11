@@ -17,7 +17,8 @@ export class CertificateService {
   static async createTemplate(
     courseId: string,
     backgroundImageUrl: string,
-    textConfig?: Record<string, unknown>
+    textConfig?: Record<string, unknown>,
+    secondPageConfig?: Record<string, unknown>
   ): Promise<CertificateTemplate> {
     const defaultTextConfig = {
       studentName: {
@@ -43,7 +44,8 @@ export class CertificateService {
       .insert({
         course_id: courseId,
         background_image_url: backgroundImageUrl,
-        text_config: textConfig || defaultTextConfig
+        text_config: textConfig || defaultTextConfig,
+        second_page_config: secondPageConfig || null
       })
       .select()
       .single();
@@ -62,6 +64,7 @@ export class CertificateService {
       courseId: data.course_id,
       backgroundImageUrl: data.background_image_url,
       textConfig: data.text_config,
+      secondPageConfig: data.second_page_config,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
@@ -103,6 +106,7 @@ export class CertificateService {
       courseId: data.course_id,
       backgroundImageUrl: data.background_image_url,
       textConfig: data.text_config,
+      secondPageConfig: data.second_page_config,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
@@ -113,7 +117,7 @@ export class CertificateService {
    */
   static async updateTemplate(
     templateId: string,
-    updates: Partial<Pick<CertificateTemplate, 'backgroundImageUrl' | 'textConfig'>>
+    updates: Partial<Pick<CertificateTemplate, 'backgroundImageUrl' | 'textConfig' | 'secondPageConfig'>>
   ): Promise<CertificateTemplate> {
     const updateData: Record<string, unknown> = {};
     
@@ -123,6 +127,10 @@ export class CertificateService {
     
     if (updates.textConfig) {
       updateData.text_config = updates.textConfig;
+    }
+    
+    if (updates.secondPageConfig !== undefined) {
+      updateData.second_page_config = updates.secondPageConfig;
     }
 
     const { data, error } = await supabase
@@ -146,6 +154,7 @@ export class CertificateService {
       courseId: data.course_id,
       backgroundImageUrl: data.background_image_url,
       textConfig: data.text_config,
+      secondPageConfig: data.second_page_config,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
@@ -172,7 +181,9 @@ export class CertificateService {
     userId: string,
     courseId: string,
     studentName: string,
-    completionDate: string
+    completionDate: string,
+    studentCpf?: string,
+    courseName?: string
   ): Promise<Certificate> {
     console.log('🎓 Gerando certificado:', { userId, courseId, studentName, completionDate });
     
@@ -187,14 +198,33 @@ export class CertificateService {
 
     console.log('🎨 Iniciando geração da imagem do certificado...');
     
-    // Gera a imagem do certificado
+    // Gera a primeira página do certificado
     const certificateImageUrl = await this.generateCertificateImage({
       studentName,
       completionDate,
-      template
+      template,
+      studentCpf,
+      courseName
     });
 
-    console.log('✅ Imagem gerada com sucesso:', certificateImageUrl);
+    console.log('✅ Primeira página gerada com sucesso:', certificateImageUrl);
+
+    // Gera a segunda página se configurada
+    let secondPageImageUrl: string | null = null;
+    if (template.secondPageConfig?.showSecondPage) {
+      console.log('🎨 Gerando segunda página...');
+      console.log('📋 Configuração da segunda página:', template.secondPageConfig);
+      secondPageImageUrl = this.generateSecondPageImage({
+        studentName,
+        completionDate,
+        template,
+        studentCpf,
+        courseName
+      });
+      console.log('✅ Segunda página gerada com sucesso:', secondPageImageUrl ? 'Sim' : 'Não');
+    } else {
+      console.log('❌ Segunda página não configurada no template');
+    }
 
     // Salva o certificado no banco
     console.log('💾 Salvando certificado no banco de dados...');
@@ -206,7 +236,8 @@ export class CertificateService {
         template_id: template.id,
         student_name: studentName,
         completion_date: completionDate,
-        certificate_url: certificateImageUrl
+        certificate_url: certificateImageUrl,
+        second_page_url: secondPageImageUrl
       })
       .select()
       .single();
@@ -227,11 +258,101 @@ export class CertificateService {
       studentName: data.student_name,
       completionDate: data.completion_date,
       certificateUrl: data.certificate_url,
+      secondPageUrl: data.second_page_url,
       createdAt: data.created_at
     };
     
     console.log('🔄 Certificado transformado:', certificate);
     return certificate;
+  }
+
+  /**
+   * Gera a segunda página do certificado
+   */
+  private static generateSecondPageImage(
+    data: CertificateGenerationData
+  ): string {
+    const { studentName, completionDate, template, studentCpf, courseName } = data;
+
+    if (!template.secondPageConfig?.showSecondPage) {
+      throw new Error('Segunda página não configurada');
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('Não foi possível criar contexto do canvas');
+    }
+
+    canvas.width = this.DEFAULT_CONFIG.width;
+    canvas.height = this.DEFAULT_CONFIG.height;
+
+    // Fundo branco
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Configurações de fonte
+    ctx.fillStyle = '#000000';
+    ctx.font = '16px Arial';
+
+    let yPosition = 50;
+    const lineHeight = 25;
+    const leftMargin = 50;
+
+    // Primeira linha: Nome, CPF e Curso em uma linha só
+    ctx.font = 'bold 16px Arial';
+    let firstLineText = `Nome do aluno: ${studentName}`;
+    
+    if (template.secondPageConfig.includeCpf && studentCpf) {
+      firstLineText += `, CPF: ${studentCpf}`;
+    }
+    
+    if (template.secondPageConfig.includeCourseName && courseName) {
+      firstLineText += `, Curso: ${courseName}`;
+    }
+    
+    ctx.fillText(firstLineText, leftMargin, yPosition);
+    yPosition += lineHeight + 20;
+
+    // Conteúdo Programático
+    yPosition += 10;
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText('Conteúdo Programático:', leftMargin, yPosition);
+    yPosition += lineHeight + 10;
+
+    // Conteúdo programático
+    if (template.secondPageConfig.programmaticContent) {
+      ctx.font = '14px Arial';
+      const lines = template.secondPageConfig.programmaticContent.split('\n');
+      
+      lines.forEach(line => {
+        if (line.trim()) {
+          ctx.fillText(line.trim(), leftMargin, yPosition);
+          yPosition += lineHeight;
+        } else {
+          yPosition += lineHeight / 2; // Espaço menor para linhas vazias
+        }
+      });
+    }
+
+    // Data de emissão no canto direito
+    const formatDate = (dateString: string) => {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+    
+    ctx.fillStyle = '#000000';
+    ctx.font = '14px Arial';
+    const emissionText = `Certificado emitido em: ${formatDate(completionDate)}`;
+    const textWidth = ctx.measureText(emissionText).width;
+    const rightMargin = canvas.width - 50;
+    ctx.fillText(emissionText, rightMargin - textWidth, canvas.height - 50);
+
+    return canvas.toDataURL();
   }
 
   /**
@@ -280,8 +401,17 @@ export class CertificateService {
         ctx.textAlign = dateConfig.textAlign;
         ctx.textBaseline = 'middle';
         
-        // Desenha a data
-        ctx.fillText(completionDate, dateConfig.x, dateConfig.y);
+        // Formata a data para dd/mm/yyyy
+        const formatDate = (dateString: string) => {
+          const date = new Date(dateString);
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+        
+        // Desenha a data formatada
+        ctx.fillText(formatDate(completionDate), dateConfig.x, dateConfig.y);
 
         // Converte para blob e faz upload
         canvas.toBlob((blob) => {
@@ -355,6 +485,8 @@ export class CertificateService {
    * Obtém todos os certificados de um usuário
    */
   static async getUserCertificates(userId: string): Promise<Certificate[]> {
+    console.log('🔍 Buscando certificados do usuário:', userId);
+    
     const { data, error } = await supabase
       .from('certificates')
       .select(`
@@ -368,24 +500,36 @@ export class CertificateService {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('❌ Erro ao buscar certificados:', error);
       throw new Error(`Erro ao buscar certificados: ${error.message}`);
     }
+
+    console.log('✅ Certificados encontrados:', data?.length || 0);
+    console.log('📋 Dados dos certificados:', data);
 
     if (!data) {
       return [];
     }
 
     // Transformar dados do banco para o formato esperado
-    return data.map(cert => ({
-      id: cert.id,
-      userId: cert.user_id,
-      courseId: cert.course_id,
-      templateId: cert.template_id,
-      studentName: cert.student_name,
-      completionDate: cert.completion_date,
-      certificateUrl: cert.certificate_url,
-      createdAt: cert.created_at
-    }));
+    const certificates = data.map(cert => {
+      const transformed = {
+        id: cert.id,
+        userId: cert.user_id,
+        courseId: cert.course_id,
+        templateId: cert.template_id,
+        studentName: cert.student_name,
+        completionDate: cert.completion_date,
+        certificateUrl: cert.certificate_url,
+        secondPageUrl: cert.second_page_url,
+        createdAt: cert.created_at
+      };
+      console.log('🔄 Certificado transformado:', transformed);
+      return transformed;
+    });
+    
+    console.log('✅ Certificados transformados:', certificates);
+    return certificates;
   }
 
   /**

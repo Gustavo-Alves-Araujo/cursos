@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+interface UserUpdateData {
+  role?: string;
+  cpf?: string;
+}
+
 // Função para gerar senha temporária fixa
 function generateTemporaryPassword(): string {
   return '123123';
@@ -8,7 +13,7 @@ function generateTemporaryPassword(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, role = 'student' } = await request.json();
+    const { name, email, cpf, role = 'student' } = await request.json();
 
     // Validação básica
     if (!name || !email) {
@@ -53,6 +58,7 @@ export async function POST(request: NextRequest) {
       password: temporaryPassword,
       user_metadata: {
         name,
+        cpf: cpf || null,
         needs_password_reset: true
       },
       email_confirm: true // Confirmar email automaticamente
@@ -75,15 +81,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Atualizar role na tabela users se necessário
+    // Atualizar role e CPF na tabela users se necessário
+    const updateData: UserUpdateData = {};
     if (role !== 'student') {
+      updateData.role = role;
+    }
+    if (cpf) {
+      updateData.cpf = cpf;
+    }
+
+    if (Object.keys(updateData).length > 0) {
       const { error: updateError } = await supabaseAdmin
         .from('users')
-        .update({ role })
+        .update(updateData)
         .eq('id', newUser.user.id);
 
       if (updateError) {
-        console.error('Erro ao atualizar role do usuário:', updateError);
+        console.error('Erro ao atualizar dados do usuário:', updateError);
         // Não falhar aqui, pois o usuário já foi criado
       }
     }

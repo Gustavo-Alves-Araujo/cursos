@@ -36,6 +36,7 @@ export interface Database {
           email: string
           name: string
           role: 'admin' | 'student'
+          cpf: string | null
           created_at: string
           updated_at: string
         }
@@ -44,6 +45,7 @@ export interface Database {
           email: string
           name: string
           role?: 'admin' | 'student'
+          cpf?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -52,6 +54,7 @@ export interface Database {
           email?: string
           name?: string
           role?: 'admin' | 'student'
+          cpf?: string | null
           created_at?: string
           updated_at?: string
         }

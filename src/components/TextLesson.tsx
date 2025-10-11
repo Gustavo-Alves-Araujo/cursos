@@ -20,6 +20,13 @@ export function TextLesson({ title, content, additionalText, supportMaterials, o
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
 
+  // Função para processar links no conteúdo
+  const processLinks = (text: string) => {
+    // Regex para encontrar URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-400 underline hover:text-blue-300 transition-colors cursor-pointer">$1</a>');
+  };
+
   const handleComplete = () => {
     onComplete();
   };
@@ -107,8 +114,8 @@ export function TextLesson({ title, content, additionalText, supportMaterials, o
             style={{ maxHeight: '600px', overflowY: 'auto' }}
           >
             <div 
-              className="text-white leading-relaxed space-y-4"
-              dangerouslySetInnerHTML={{ __html: content }}
+              className="text-white leading-relaxed space-y-4 [&_a]:text-blue-400 [&_a]:underline [&_a]:hover:text-blue-300 [&_a]:transition-colors [&_a]:cursor-pointer"
+              dangerouslySetInnerHTML={{ __html: processLinks(content) }}
             />
           </div>
 
@@ -117,8 +124,8 @@ export function TextLesson({ title, content, additionalText, supportMaterials, o
             <div className="bg-white/5 rounded-lg p-4 border border-white/10">
               <h4 className="text-lg font-semibold text-white mb-3">Informações Adicionais</h4>
               <div 
-                className="text-blue-200 leading-relaxed prose prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: additionalText }}
+                className="text-blue-200 leading-relaxed prose prose-invert max-w-none [&_a]:text-blue-400 [&_a]:underline [&_a]:hover:text-blue-300 [&_a]:transition-colors [&_a]:cursor-pointer"
+                dangerouslySetInnerHTML={{ __html: processLinks(additionalText) }}
               />
             </div>
           )}

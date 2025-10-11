@@ -3,9 +3,17 @@ import { supabase } from '@/lib/supabase';
 
 export interface BannerSettings {
   id: string;
-  welcome_message: string;
+  welcome_message?: string;
+  banner_image_url?: string;
+  banner_image_link?: string;
   created_at: string;
   updated_at: string;
+}
+
+interface BannerSettingsUpdate {
+  welcome_message: string;
+  banner_image_url?: string;
+  banner_image_link?: string;
 }
 
 export function useBannerSettings() {
@@ -36,15 +44,19 @@ export function useBannerSettings() {
     }
   };
 
-  const updateSettings = async (welcomeMessage: string) => {
+  const updateSettings = async (welcomeMessage: string, bannerImageUrl?: string, bannerImageLink?: string) => {
     try {
       setError(null);
+
+      const updateData: BannerSettingsUpdate = { welcome_message: welcomeMessage };
+      if (bannerImageUrl !== undefined) updateData.banner_image_url = bannerImageUrl;
+      if (bannerImageLink !== undefined) updateData.banner_image_link = bannerImageLink;
 
       // Se não existir configuração, criar uma nova
       if (!settings) {
         const { data, error: insertError } = await supabase
           .from('banner_settings')
-          .insert([{ welcome_message: welcomeMessage }])
+          .insert([updateData])
           .select()
           .single();
 
@@ -58,7 +70,7 @@ export function useBannerSettings() {
         // Atualizar configuração existente
         const { data, error: updateError } = await supabase
           .from('banner_settings')
-          .update({ welcome_message: welcomeMessage })
+          .update(updateData)
           .eq('id', settings.id)
           .select()
           .single();

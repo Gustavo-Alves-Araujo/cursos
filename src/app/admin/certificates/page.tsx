@@ -537,7 +537,7 @@ export default function AdminCertificatesPage() {
 
         {/* Dialog de Edição de Template */}
         <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-          <DialogContent className="max-w-4xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
+          <DialogContent className="max-w-7xl w-full h-[90vh] overflow-y-auto bg-white/10 backdrop-blur-sm border-white/20 text-white">
             <DialogHeader>
               <DialogTitle className="text-blue-200 text-xl">
                 Editar Template de Certificado

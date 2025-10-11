@@ -42,9 +42,6 @@ export function StudentBanner() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">
                   Bem-vindo, {user.name}!
@@ -62,7 +59,31 @@ export function StudentBanner() {
               </div>
             </div>
             
-           
+            {/* Imagem do banner */}
+            {settings?.banner_image_url && (
+              <div className="mt-4">
+                {settings.banner_image_link ? (
+                  <a 
+                    href={settings.banner_image_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <img 
+                      src={settings.banner_image_url} 
+                      alt="Banner" 
+                      className="w-full h-32 sm:h-40 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    />
+                  </a>
+                ) : (
+                  <img 
+                    src={settings.banner_image_url} 
+                    alt="Banner" 
+                    className="w-full h-32 sm:h-40 object-cover rounded-lg"
+                  />
+                )}
+              </div>
+            )}
           </div>
           
         

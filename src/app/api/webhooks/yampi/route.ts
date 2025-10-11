@@ -8,6 +8,8 @@ interface YampiCustomer {
     name: string;
     first_name?: string;
     last_name?: string;
+    cpf?: string;
+    document?: string;
   };
 }
 
@@ -50,6 +52,23 @@ function generateRandomPassword(length: number = 16): string {
     password += charset.charAt(Math.floor(Math.random() * charset.length));
   }
   return password;
+}
+
+// Função para formatar CPF (remove caracteres especiais e adiciona formatação)
+function formatCPF(cpf: string): string {
+  if (!cpf) return '';
+  
+  // Remove todos os caracteres não numéricos
+  const cleanCPF = cpf.replace(/\D/g, '');
+  
+  // Verifica se tem 11 dígitos
+  if (cleanCPF.length !== 11) {
+    console.warn('CPF inválido (não tem 11 dígitos):', cpf);
+    return cpf; // Retorna o original se não conseguir formatar
+  }
+  
+  // Formata: 000.000.000-00
+  return cleanCPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
 
 export async function POST(request: NextRequest) {
@@ -131,13 +150,24 @@ export async function POST(request: NextRequest) {
       const customerName = order.customer.data.name || 
         `${order.customer.data.first_name || ''} ${order.customer.data.last_name || ''}`.trim() ||
         'Usuário';
+      
+      // Extrair CPF do customer (pode vir como 'cpf' ou 'document')
+      const customerCPF = order.customer.data.cpf || order.customer.data.document;
+      const formattedCPF = customerCPF ? formatCPF(customerCPF) : null;
+      
+      console.log('Dados do customer:', {
+        email: customerEmail,
+        name: customerName,
+        cpf: customerCPF,
+        formattedCPF
+      });
 
       const existingUser = users.users.find(user => user.email === customerEmail);
       let currentUserId: string;
 
       if (existingUser) {
-        // Usuário já existe, atualizar metadata
-        console.log('Usuário já existe, atualizando metadata');
+        // Usuário já existe, atualizar metadata e CPF
+        console.log('Usuário já existe, atualizando metadata e CPF');
         currentUserId = existingUser.id;
         
         const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -145,6 +175,7 @@ export async function POST(request: NextRequest) {
           {
             user_metadata: {
               name: customerName,
+              cpf: formattedCPF,
               needs_password_reset: true
             }
           }
@@ -153,6 +184,20 @@ export async function POST(request: NextRequest) {
         if (updateError) {
           console.error('Erro ao atualizar usuário:', updateError);
           continue;
+        }
+
+        // Atualizar CPF na tabela users também
+        if (formattedCPF) {
+          const { error: updateUserError } = await supabaseAdmin
+            .from('users')
+            .update({ cpf: formattedCPF })
+            .eq('id', currentUserId);
+
+          if (updateUserError) {
+            console.error('Erro ao atualizar CPF na tabela users:', updateUserError);
+          } else {
+            console.log('CPF atualizado na tabela users:', formattedCPF);
+          }
         }
       } else {
         // Criar novo usuário
@@ -164,6 +209,7 @@ export async function POST(request: NextRequest) {
           password: randomPassword,
           user_metadata: {
             name: customerName,
+            cpf: formattedCPF,
             needs_password_reset: true
           },
           email_confirm: true // Confirmar email automaticamente
@@ -182,6 +228,20 @@ export async function POST(request: NextRequest) {
         currentUserId = newUser.user.id;
         console.log('Usuário criado com sucesso:', currentUserId);
         console.log('Senha temporária:', randomPassword);
+
+        // Atualizar CPF na tabela users se fornecido
+        if (formattedCPF) {
+          const { error: updateUserError } = await supabaseAdmin
+            .from('users')
+            .update({ cpf: formattedCPF })
+            .eq('id', currentUserId);
+
+          if (updateUserError) {
+            console.error('Erro ao atualizar CPF na tabela users:', updateUserError);
+          } else {
+            console.log('CPF adicionado na tabela users:', formattedCPF);
+          }
+        }
       }
 
       // Criar matrícula no curso (se necessário)

@@ -32,9 +32,9 @@ export function Carousel({ children, ariaLabel }: Props) {
   const scrollBy = (dir: number) => {
     const el = containerRef.current;
     if (!el) return;
-    // Em mobile, scroll por um card inteiro (280px + gap), em desktop por 90% da tela
+    // Em mobile, scroll por um card inteiro (192px + gap), em desktop por 90% da tela
     const isMobile = window.innerWidth < 640;
-    const cardWidth = 280 + 16; // 280px + 16px gap
+    const cardWidth = 192 + 8; // 192px + 8px gap
     const amount = isMobile ? cardWidth * dir : Math.floor(el.clientWidth * 0.9) * dir;
     el.scrollBy({ left: amount, behavior: "smooth" });
   };
@@ -46,11 +46,11 @@ export function Carousel({ children, ariaLabel }: Props) {
         role="group"
         aria-roledescription="carousel"
         aria-label={ariaLabel}
-        className="scrollbar-none flex snap-x gap-4 overflow-x-auto scroll-smooth"
+        className="scrollbar-none flex snap-x gap-2 overflow-x-auto scroll-smooth"
         tabIndex={0}
       >
         {Children.map(children, (child) => (
-          <div className="min-w-[280px] flex-[0_0_auto] snap-start sm:min-w-[320px] md:min-w-[340px] lg:min-w-[360px]">
+          <div className="min-w-[192px] flex-[0_0_auto] snap-start sm:min-w-[192px] md:min-w-[192px] lg:min-w-[192px]">
             {child}
           </div>
         ))}

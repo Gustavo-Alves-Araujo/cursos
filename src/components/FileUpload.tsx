@@ -237,7 +237,7 @@ export function FileUpload({
             <div className="flex flex-col items-center space-y-2">
               <Upload className="w-8 h-8 text-gray-400" />
               <div>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium ">
                   Arraste arquivos aqui ou{' '}
                   <button
                     type="button"

@@ -8,9 +8,11 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { MessageSquare, Save, RotateCcw } from 'lucide-react';
+import { MessageSquare, Save, RotateCcw, Image, Link, Upload, X } from 'lucide-react';
 import { useNotification } from '@/components/Notification';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminBannerPage() {
   const { user, isLoading } = useAuth();
@@ -18,12 +20,17 @@ export default function AdminBannerPage() {
   const { settings, isLoading: settingsLoading, error, updateSettings } = useBannerSettings();
   const { showNotification, NotificationContainer } = useNotification();
   const [welcomeMessage, setWelcomeMessage] = useState('');
+  const [bannerImageUrl, setBannerImageUrl] = useState('');
+  const [bannerImageLink, setBannerImageLink] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Atualizar o estado local quando as configurações forem carregadas
   useEffect(() => {
     if (settings) {
       setWelcomeMessage(settings.welcome_message || '');
+      setBannerImageUrl(settings.banner_image_url || '');
+      setBannerImageLink(settings.banner_image_link || '');
     }
   }, [settings]);
 
@@ -69,7 +76,7 @@ export default function AdminBannerPage() {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await updateSettings(welcomeMessage);
+      await updateSettings(welcomeMessage, bannerImageUrl, bannerImageLink);
       showNotification({
         type: 'success',
         title: 'Sucesso!',
@@ -89,6 +96,8 @@ export default function AdminBannerPage() {
 
   const handleReset = () => {
     setWelcomeMessage(settings?.welcome_message || '');
+    setBannerImageUrl(settings?.banner_image_url || '');
+    setBannerImageLink(settings?.banner_image_link || '');
     showNotification({
       type: 'info',
       title: 'Resetado!',
@@ -96,7 +105,61 @@ export default function AdminBannerPage() {
     });
   };
 
-  const hasChanges = welcomeMessage !== (settings?.welcome_message || '');
+  const hasChanges = 
+    welcomeMessage !== (settings?.welcome_message || '') ||
+    bannerImageUrl !== (settings?.banner_image_url || '') ||
+    bannerImageLink !== (settings?.banner_image_link || '');
+
+  const handleImageUpload = async (file: File) => {
+    try {
+      setIsUploading(true);
+      
+      // Gerar nome único para o arquivo
+      const timestamp = Date.now();
+      const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `banner-images/${timestamp}_${cleanName}`;
+
+      // Upload do arquivo
+      const { data, error } = await supabase.storage
+        .from('support-materials')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Obter URL pública
+      const { data: urlData } = supabase.storage
+        .from('support-materials')
+        .getPublicUrl(fileName);
+
+      setBannerImageUrl(urlData.publicUrl);
+      
+      showNotification({
+        type: 'success',
+        title: 'Upload realizado!',
+        message: 'A imagem foi enviada com sucesso.'
+      });
+
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      showNotification({
+        type: 'error',
+        title: 'Erro no upload',
+        message: error instanceof Error ? error.message : 'Erro desconhecido'
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setBannerImageUrl('');
+    setBannerImageLink('');
+  };
 
   return (
     <div className="relative">
@@ -167,6 +230,30 @@ export default function AdminBannerPage() {
                         )}
                       </div>
                     </div>
+                    {bannerImageUrl && (
+                      <div className="mt-4">
+                        {bannerImageLink ? (
+                          <a 
+                            href={bannerImageLink} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            <img 
+                              src={bannerImageUrl} 
+                              alt="Banner" 
+                              className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            />
+                          </a>
+                        ) : (
+                          <img 
+                            src={bannerImageUrl} 
+                            alt="Banner" 
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -205,6 +292,101 @@ export default function AdminBannerPage() {
                   <div className="text-amber-400 text-sm flex items-center gap-2">
                     <div className="w-2 h-2 bg-amber-400 rounded-full"></div>
                     Você tem alterações não salvas
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Card de configuração da imagem */}
+            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Image className="w-5 h-5" />
+                  Imagem do Banner
+                </CardTitle>
+                <CardDescription className="text-blue-200">
+                  Adicione uma imagem que aparecerá abaixo do texto no banner. A imagem pode ser clicável e direcionar para um link.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Upload de imagem */}
+                <div className="space-y-2">
+                  <Label className="text-white">Imagem do Banner</Label>
+                  {!bannerImageUrl ? (
+                    <div className="border-2 border-dashed border-white/20 rounded-lg p-6 text-center hover:border-white/40 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="banner-image-upload"
+                        disabled={isUploading}
+                      />
+                      <label 
+                        htmlFor="banner-image-upload" 
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        {isUploading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+                            <span className="text-blue-200">Enviando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-blue-400" />
+                            <span className="text-white font-medium">Clique para fazer upload</span>
+                            <span className="text-blue-200 text-sm">PNG, JPG até 5MB</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <img 
+                          src={bannerImageUrl} 
+                          alt="Banner preview" 
+                          className="w-full h-32 object-cover rounded-lg border border-white/20"
+                        />
+                        <Button
+                          onClick={handleRemoveImage}
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-2 right-2"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="text-sm text-blue-200">
+                        Imagem carregada com sucesso!
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Link da imagem */}
+                {bannerImageUrl && (
+                  <div className="space-y-2">
+                    <Label htmlFor="banner-image-link" className="text-white flex items-center gap-2">
+                      <Link className="w-4 h-4" />
+                      Link de Destino (Opcional)
+                    </Label>
+                    <Input
+                      id="banner-image-link"
+                      type="url"
+                      placeholder="https://exemplo.com"
+                      value={bannerImageLink}
+                      onChange={(e) => setBannerImageLink(e.target.value)}
+                      className="bg-white/5 border-white/20 text-white placeholder:text-gray-400 focus:border-blue-500"
+                    />
+                    <p className="text-sm text-blue-200">
+                      Se preenchido, a imagem se tornará clicável e direcionará para este link
+                    </p>
                   </div>
                 )}
               </CardContent>

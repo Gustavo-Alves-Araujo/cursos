@@ -106,7 +106,9 @@ export default function CertificadosPage() {
         user.id,
         courseId,
         user.name,
-        new Date().toISOString().split('T')[0]
+        new Date().toISOString().split('T')[0],
+        user.cpf, // CPF do usuário
+        course.title // Nome do curso
       );
 
       // Atualizar lista de certificados

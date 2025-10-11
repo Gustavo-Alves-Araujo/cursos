@@ -20,6 +20,12 @@ export type CertificateTemplate = {
       textAlign: 'left' | 'center' | 'right';
     };
   };
+  secondPageConfig?: {
+    showSecondPage: boolean;
+    programmaticContent: string;
+    includeCpf: boolean;
+    includeCourseName: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 };
@@ -31,6 +37,7 @@ export type Certificate = {
   studentName: string;
   completionDate: string;
   certificateUrl: string;
+  secondPageUrl?: string;
   templateId: string;
   createdAt: string;
 };
@@ -39,6 +46,8 @@ export type CertificateGenerationData = {
   studentName: string;
   completionDate: string;
   template: CertificateTemplate;
+  studentCpf?: string;
+  courseName?: string;
 };
 
 export type CertificateConfig = {
