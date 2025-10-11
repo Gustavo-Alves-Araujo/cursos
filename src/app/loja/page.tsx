@@ -130,6 +130,7 @@ export default function LojaPage() {
   const [sortBy, setSortBy] = useState("featured");
   const [cart, setCart] = useState<string[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
+  const [storeUrl, setStoreUrl] = useState("");
 
   useEffect(() => {
     if (!isLoading) {
@@ -144,6 +145,18 @@ export default function LojaPage() {
     }
   }, [user, isLoading, router]);
 
+  // Carregar URL da loja configurada pelo admin
+  useEffect(() => {
+    const savedUrl = localStorage.getItem('storeUrl');
+    if (savedUrl) {
+      setStoreUrl(savedUrl);
+      // Redirecionar automaticamente para a loja externa
+      window.open(savedUrl, '_blank');
+      // Voltar para a página inicial após redirecionamento
+      router.push('/');
+    }
+  }, [router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -157,6 +170,57 @@ export default function LojaPage() {
 
   if (!user || user.role === 'admin') {
     return null;
+  }
+
+  // Se não há URL configurada, mostrar mensagem
+  if (!storeUrl) {
+    return (
+      <div className="relative">
+        <Sidebar />
+        <main className="space-y-8 p-4 sm:p-6 lg:ml-64">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white transition-all duration-200">
+                <Link href="/" className="flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-blue-200 flex items-center gap-3">
+                  <ShoppingCart className="w-8 h-8" />
+                  Loja
+                </h1>
+                <p className="text-blue-300 mt-1">
+                  Descubra cursos incríveis e acelere sua carreira
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <LogoutButton />
+            </div>
+          </div>
+
+          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <CardContent className="p-8 text-center">
+              <ShoppingCart className="w-16 h-16 text-blue-300 mx-auto mb-4" />
+              <h2 className="text-2xl font-semibold text-blue-200 mb-2">
+                Loja em Configuração
+              </h2>
+              <p className="text-blue-300 mb-6">
+                A loja está sendo configurada pelo administrador. Em breve você poderá acessar todos os cursos disponíveis.
+              </p>
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                <Link href="/" className="flex items-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  Voltar aos Cursos
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
   }
 
   const filteredProducts = mockProducts.filter(product => {

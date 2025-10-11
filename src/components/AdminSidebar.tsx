@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Menu, X, Home, Users, BookOpen, Settings, Award, Zap, MessageSquare } from "lucide-react";
+import { Menu, X, Home, Users, BookOpen, Settings, Award, Zap, MessageSquare, ShoppingCart } from "lucide-react";
 
 type IconType = React.ComponentType<{ className?: string }>;
 
@@ -16,6 +16,7 @@ const adminItems: { href: string; label: string; icon: IconType }[] = [
   { href: "/admin/certificates", label: "Certificados", icon: Award },
   { href: "/admin/integracoes/yampi", label: "Integrações Yampi", icon: Zap },
   { href: "/admin/banner", label: "Configurar Banner", icon: MessageSquare },
+  { href: "/admin/loja", label: "Configurar Loja", icon: ShoppingCart },
   { href: "/admin/settings", label: "Configurações", icon: Settings },
 ];
 

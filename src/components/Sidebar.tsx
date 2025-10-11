@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import type { ComponentType } from "react";
 import { PersonIcon, IdCardIcon, RowsIcon, PlusIcon } from "@radix-ui/react-icons";
@@ -21,9 +21,34 @@ const items: { href: string; label: string; icon: IconType }[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [storeUrl, setStoreUrl] = useState<string | null>(null);
 
   // Ocultar o menu hamburger quando estiver na página de visualização de aula
   const isLessonViewPage = pathname?.includes('/courses/') && pathname !== '/courses';
+
+  // Carregar URL da loja configurada
+  useEffect(() => {
+    const loadStoreUrl = async () => {
+      try {
+        const response = await fetch('/api/store-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setStoreUrl(data.store_url);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar URL da loja:', error);
+      }
+    };
+
+    loadStoreUrl();
+  }, []);
+
+  const handleStoreClick = (e: React.MouseEvent) => {
+    if (storeUrl) {
+      e.preventDefault();
+      window.open(storeUrl, '_blank');
+    }
+  };
 
   return (
     <>
@@ -59,21 +84,36 @@ export function Sidebar() {
             {items.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href;
+              const isStoreItem = item.href === "/loja";
+              
               return (
                 <Button
                   key={item.href}
-                  asChild
+                  asChild={!isStoreItem || !storeUrl}
                   variant={active ? "secondary" : "ghost"}
                   className={cn(
                     "justify-start rounded-2xl px-3 py-6 text-base",
                     active && "bg-white/10"
                   )}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false);
+                  }}
                 >
-                  <Link href={item.href} aria-current={active ? "page" : undefined}>
-                    <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
-                    {item.label}
-                  </Link>
+                  {isStoreItem && storeUrl ? (
+                    <button
+                      onClick={handleStoreClick}
+                      className="flex items-center w-full"
+                      aria-current={active ? "page" : undefined}
+                    >
+                      <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
+                      {item.label}
+                    </button>
+                  ) : (
+                    <Link href={item.href} aria-current={active ? "page" : undefined}>
+                      <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
+                      {item.label}
+                    </Link>
+                  )}
                 </Button>
               );
             })}
