@@ -21,7 +21,8 @@ import {
   Loader2, 
   AlertCircle,
   CheckCircle,
-  Zap
+  Zap,
+  Search
 } from 'lucide-react';
 
 interface YampiIntegration {
@@ -53,6 +54,7 @@ export default function YampiIntegrationsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -194,6 +196,18 @@ export default function YampiIntegrationsPage() {
     setError('');
     setSuccess('');
   };
+
+  // Filtrar integrações com base no termo de busca
+  const filteredIntegrations = integrations.filter((integration) => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    const nameMatch = integration.name.toLowerCase().includes(searchLower);
+    const productIdMatch = integration.product_id.toLowerCase().includes(searchLower);
+    const courseMatch = integration.courses?.title.toLowerCase().includes(searchLower);
+    
+    return nameMatch || productIdMatch || courseMatch;
+  });
 
   if (isLoading) {
     return (
@@ -338,6 +352,27 @@ export default function YampiIntegrationsPage() {
           </Alert>
         )}
 
+        {/* Campo de Busca */}
+        {!isLoadingData && integrations.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-300" />
+              <Input
+                type="text"
+                placeholder="Buscar por nome ou ID do produto..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/10 border-white/20 text-blue-100 placeholder:text-blue-300/50 focus:bg-white/15"
+              />
+            </div>
+            {searchTerm && (
+              <p className="text-sm text-blue-300 mt-2">
+                {filteredIntegrations.length} {filteredIntegrations.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Lista de Integrações */}
         {isLoadingData ? (
           <div className="flex items-center justify-center py-12">
@@ -363,9 +398,28 @@ export default function YampiIntegrationsPage() {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredIntegrations.length === 0 ? (
+          <Card className="bg-white/10 backdrop-blur-sm border-white/20">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Search className="w-12 h-12 text-blue-400 mb-4" />
+              <h3 className="text-lg font-semibold text-blue-200 mb-2">
+                Nenhum resultado encontrado
+              </h3>
+              <p className="text-blue-300 text-center mb-4">
+                Tente buscar por outro termo
+              </p>
+              <Button 
+                onClick={() => setSearchTerm('')}
+                variant="outline"
+                className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
+              >
+                Limpar busca
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-4">
-            {integrations.map((integration) => (
+            {filteredIntegrations.map((integration) => (
               <Card key={integration.id} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 transition-all duration-200">
                 <CardHeader>
                   <div className="flex justify-between items-start">

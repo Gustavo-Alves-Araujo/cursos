@@ -4,6 +4,7 @@ export interface StudentImportData {
   name: string;
   email: string;
   cpf?: string;
+  curso?: string; // Nome do curso para matrícula automática
 }
 
 export interface ImportResult {
@@ -30,7 +31,8 @@ export function useImportStudents() {
     // Verificar se tem cabeçalho
     const hasHeader = lines[0].toLowerCase().includes('nome') || 
                      lines[0].toLowerCase().includes('email') ||
-                     lines[0].toLowerCase().includes('cpf');
+                     lines[0].toLowerCase().includes('cpf') ||
+                     lines[0].toLowerCase().includes('curso');
 
     const dataLines = hasHeader ? lines.slice(1) : lines;
     
@@ -47,7 +49,7 @@ export function useImportStudents() {
         throw new Error(`Linha ${index + 1}: Dados insuficientes. Necessário pelo menos nome e email.`);
       }
 
-      const [name, email, cpf] = row;
+      const [name, email, cpf, curso] = row;
 
       if (!name || !email) {
         throw new Error(`Linha ${index + 1}: Nome e email são obrigatórios.`);
@@ -62,7 +64,8 @@ export function useImportStudents() {
       students.push({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        cpf: cpf ? cpf.trim() : undefined
+        cpf: cpf ? cpf.trim() : undefined,
+        curso: curso ? curso.trim() : undefined
       });
     });
 

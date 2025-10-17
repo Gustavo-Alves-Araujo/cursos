@@ -79,7 +79,7 @@ export function ImportStudentsDialog({ isOpen, onClose, onSuccess }: ImportStude
   };
 
   const downloadTemplate = () => {
-    const csvContent = 'Nome,Email,CPF\nJoão Silva,joao@exemplo.com,123.456.789-01\nMaria Santos,maria@exemplo.com,987.654.321-00';
+    const csvContent = 'Nome,Email,CPF,Curso\nJoão Silva,joao@exemplo.com,123.456.789-01,Curso de React\nMaria Santos,maria@exemplo.com,987.654.321-00,Curso de Node.js';
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
@@ -112,8 +112,13 @@ export function ImportStudentsDialog({ isOpen, onClose, onSuccess }: ImportStude
               <div className="flex-1">
                 <h4 className="font-medium text-blue-900">Formato do Arquivo</h4>
                 <p className="text-sm text-blue-700 mt-1">
-                  O arquivo CSV deve conter as colunas: <strong>Nome, Email, CPF</strong> (CPF é opcional)
+                  O arquivo CSV deve conter as colunas: <strong>Nome, Email, CPF, Curso</strong>
                 </p>
+                <ul className="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                  <li><strong>Nome</strong> e <strong>Email</strong> são obrigatórios</li>
+                  <li><strong>CPF</strong> é opcional</li>
+                  <li><strong>Curso</strong> é opcional - se informado e o curso existir, o aluno será matriculado automaticamente</li>
+                </ul>
                 <Button
                   variant="outline"
                   size="sm"

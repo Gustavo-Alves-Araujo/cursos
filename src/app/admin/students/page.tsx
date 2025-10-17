@@ -37,8 +37,12 @@ export default function AdminStudentsPage() {
   // Buscar alunos e suas matrículas
   const fetchStudents = useCallback(async () => {
     try {
-      console.log('fetchStudents - iniciando busca de alunos');
+      console.log('🔍 fetchStudents - iniciando busca de alunos');
       setStudentsLoading(true);
+      
+      // Primeiro, vamos ver TODOS os usuários do auth.users
+      const { data: allAuthUsers, error: authError } = await supabase.auth.admin.listUsers();
+      console.log('📊 Total de usuários no auth.users:', allAuthUsers?.users?.length || 0);
       
       // Buscar usuários e suas matrículas em uma única consulta otimizada
       const { data: usersData, error: usersError } = await supabase
@@ -50,14 +54,24 @@ export default function AdminStudentsPage() {
           )
         `)
         .eq('role', 'student')
-        .order('created_at', { ascending: false })
-        .limit(100); // Limitar resultados para melhor performance
+        .order('created_at', { ascending: false });
 
-      console.log('fetchStudents - usuários encontrados:', usersData);
+      console.log('📦 fetchStudents - usuários com role=student encontrados:', usersData?.length || 0);
+      console.log('📦 Dados:', usersData);
+      
       if (usersError) {
-        console.error('fetchStudents - erro ao buscar usuários:', usersError);
+        console.error('❌ fetchStudents - erro ao buscar usuários:', usersError);
         throw usersError;
       }
+
+      // Verificar se há usuários na tabela users sem role definida
+      const { data: allUsers, error: allUsersError } = await supabase
+        .from('users')
+        .select('id, email, role')
+        .order('created_at', { ascending: false });
+      
+      console.log('📊 Total de usuários na tabela users:', allUsers?.length || 0);
+      console.log('📊 Usuários sem role student:', allUsers?.filter(u => u.role !== 'student').length || 0);
 
       // Combinar dados - agora os enrollments já vêm com o usuário
       const studentsWithEnrollments: StudentWithEnrollments[] = (usersData || []).map(user => ({
@@ -65,14 +79,14 @@ export default function AdminStudentsPage() {
         enrollments: (user.course_enrollments || []).map((e: { course_id: string }) => e.course_id)
       }));
 
-      console.log('fetchStudents - alunos combinados:', studentsWithEnrollments);
+      console.log('✅ fetchStudents - alunos combinados:', studentsWithEnrollments.length);
       setStudents(studentsWithEnrollments);
     } catch (error) {
-      console.error('Erro ao buscar alunos:', error);
+      console.error('❌ Erro ao buscar alunos:', error);
       // Em caso de erro, definir lista vazia para não ficar carregando
       setStudents([]);
     } finally {
-      console.log('fetchStudents - finalizando, setIsLoading(false)');
+      console.log('🏁 fetchStudents - finalizando');
       setStudentsLoading(false);
     }
   }, []); // Empty dependency array
@@ -168,6 +182,52 @@ export default function AdminStudentsPage() {
     } catch (error) {
       console.error('Erro ao remover curso:', error);
       alert('Erro ao remover curso');
+    }
+  };
+
+  const handleDeleteStudent = async (studentId: string, studentName: string, studentEmail: string) => {
+    // Confirmação
+    const confirmed = window.confirm(
+      `⚠️ ATENÇÃO!\n\nDeseja realmente deletar o aluno:\n\n` +
+      `Nome: ${studentName}\n` +
+      `Email: ${studentEmail}\n\n` +
+      `Esta ação irá:\n` +
+      `- Remover o usuário da autenticação\n` +
+      `- Remover todos os dados da tabela users\n` +
+      `- Remover todas as matrículas\n\n` +
+      `ESTA AÇÃO NÃO PODE SER DESFEITA!`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      console.log('🗑️ Deletando aluno:', studentId, studentEmail);
+
+      // Chamar API para deletar
+      const response = await fetch('/api/admin/delete-student', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId: studentId })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao deletar aluno');
+      }
+
+      console.log('✅ Aluno deletado com sucesso');
+
+      // Atualizar lista local
+      setStudents(prev => prev.filter(student => student.id !== studentId));
+
+      alert('✅ Aluno deletado com sucesso!');
+
+    } catch (error) {
+      console.error('❌ Erro ao deletar aluno:', error);
+      alert('Erro ao deletar aluno: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
     }
   };
 
@@ -303,7 +363,12 @@ export default function AdminStudentsPage() {
                             <Button size="sm" variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button size="sm" variant="outline" className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200 hover:text-red-100"
+                              onClick={() => handleDeleteStudent(student.id, student.name, student.email)}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>

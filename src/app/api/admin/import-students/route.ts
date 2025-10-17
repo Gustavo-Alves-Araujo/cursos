@@ -5,6 +5,11 @@ interface StudentImportData {
   name: string;
   email: string;
   cpf?: string;
+  curso?: string; // Nome do curso para matrícula automática
+}
+
+interface StudentImportDataWithObservacao extends StudentImportData {
+  observacao?: string;
 }
 
 interface ImportResult {
@@ -13,7 +18,7 @@ interface ImportResult {
   imported: number;
   errors: string[];
   details?: {
-    successful: StudentImportData[];
+    successful: StudentImportDataWithObservacao[];
     failed: Array<{ data: StudentImportData; error: string }>;
   };
 }
@@ -78,6 +83,22 @@ export async function POST(request: NextRequest) {
     }
 
     const existingEmails = new Set(existingUsers.users.map(user => user.email));
+
+    // Buscar todos os cursos para matrícula automática
+    const { data: allCourses, error: coursesError } = await supabaseAdmin
+      .from('courses')
+      .select('id, title');
+    
+    if (coursesError) {
+      console.error('Erro ao buscar cursos:', coursesError);
+    }
+    
+    // Criar mapa de cursos por nome (case-insensitive)
+    const coursesMap = new Map(
+      (allCourses || []).map(course => [course.title.toLowerCase().trim(), course.id])
+    );
+    
+    console.log('📚 Cursos disponíveis:', Array.from(coursesMap.keys()));
 
     const result: ImportResult = {
       success: true,
@@ -149,7 +170,46 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        result.details!.successful.push(student);
+        // Matrícula automática em curso se fornecido
+        if (student.curso) {
+          const courseNameLower = student.curso.toLowerCase().trim();
+          const courseId = coursesMap.get(courseNameLower);
+          
+          if (courseId) {
+            console.log(`📝 Matriculando ${student.name} no curso "${student.curso}" (ID: ${courseId})`);
+            
+            const { error: enrollError } = await supabaseAdmin
+              .from('course_enrollments')
+              .insert({
+                user_id: newUser.user.id,
+                course_id: courseId,
+                created_at: new Date().toISOString()
+              });
+            
+            if (enrollError) {
+              console.error('❌ Erro ao matricular aluno no curso:', enrollError);
+              // Não falhar a importação por causa disso, apenas logar
+              result.details!.successful.push({
+                ...student,
+                observacao: `Aluno criado, mas falhou matrícula no curso: ${enrollError.message}`
+              });
+            } else {
+              console.log(`✅ Aluno matriculado com sucesso no curso "${student.curso}"`);
+            }
+          } else {
+            console.log(`⚠️ Curso "${student.curso}" não encontrado. Cursos disponíveis:`, Array.from(coursesMap.keys()));
+            // Aluno foi criado, mas curso não existe
+            result.details!.successful.push({
+              ...student,
+              observacao: `Aluno criado, mas curso "${student.curso}" não foi encontrado`
+            });
+          }
+        }
+
+        if (!student.curso || coursesMap.get(student.curso.toLowerCase().trim())) {
+          result.details!.successful.push(student);
+        }
+        
         result.imported++;
         existingEmails.add(student.email); // Adicionar à lista para evitar duplicatas no mesmo lote
 

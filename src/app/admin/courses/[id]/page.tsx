@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCourses } from "@/hooks/useCourses";
 import { Course, Module, Lesson } from "@/types/course";
-import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Play, FileText, BookOpen } from "lucide-react";
+import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Play, FileText, BookOpen, CreditCard } from "lucide-react";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminCourseForm } from "@/components/admin/AdminCourseForm";
 import { ModuleForm } from "@/components/admin/ModuleForm";
@@ -222,6 +222,14 @@ export default function CourseDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => router.push(`/admin/courses/${course.id}/card`)}
+            className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 hover:from-purple-600/20 hover:to-pink-600/20 border-purple-500/50"
+          >
+            <CreditCard className="h-4 w-4 mr-2" />
+            Carteirinha
+          </Button>
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">

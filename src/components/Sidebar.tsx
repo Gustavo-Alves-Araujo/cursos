@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, CreditCard } from "lucide-react";
 import type { ComponentType } from "react";
 import { PersonIcon, IdCardIcon, RowsIcon, PlusIcon } from "@radix-ui/react-icons";
 
@@ -14,6 +14,7 @@ type IconType = ComponentType<{ className?: string }>;
 const items: { href: string; label: string; icon: IconType }[] = [
   { href: "/", label: "Cursos e materiais", icon: RowsIcon },
   { href: "/loja", label: "Loja", icon: PlusIcon },
+  { href: "/carteirinhas", label: "Carteirinhas", icon: CreditCard },
   { href: "/certificados", label: "Certificados", icon: IdCardIcon },
   { href: "/minha-conta", label: "Minha Conta", icon: PersonIcon },
 ];
@@ -86,10 +87,26 @@ export function Sidebar() {
               const active = pathname === item.href;
               const isStoreItem = item.href === "/loja";
               
-              return (
+              return isStoreItem && storeUrl ? (
+                <button
+                  key={item.href}
+                  onClick={(e) => {
+                    handleStoreClick(e);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "flex items-center justify-start rounded-2xl px-3 py-6 text-base w-full",
+                    active ? "bg-white/10" : "hover:bg-white/5",
+                    "transition-colors"
+                  )}
+                >
+                  <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
+                  {item.label}
+                </button>
+              ) : (
                 <Button
                   key={item.href}
-                  asChild={!isStoreItem || !storeUrl}
+                  asChild
                   variant={active ? "secondary" : "ghost"}
                   className={cn(
                     "justify-start rounded-2xl px-3 py-6 text-base",
@@ -99,21 +116,10 @@ export function Sidebar() {
                     setIsOpen(false);
                   }}
                 >
-                  {isStoreItem && storeUrl ? (
-                    <button
-                      onClick={handleStoreClick}
-                      className="flex items-center w-full"
-                      aria-current={active ? "page" : undefined}
-                    >
-                      <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
-                      {item.label}
-                    </button>
-                  ) : (
-                    <Link href={item.href} aria-current={active ? "page" : undefined}>
-                      <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
-                      {item.label}
-                    </Link>
-                  )}
+                  <Link href={item.href} aria-current={active ? "page" : undefined}>
+                    <span className="mr-3 inline-flex h-5 w-5 items-center justify-center"><Icon /></span>
+                    {item.label}
+                  </Link>
                 </Button>
               );
             })}

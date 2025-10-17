@@ -9,7 +9,7 @@ import { PasswordResetGuard } from "@/components/PasswordResetGuard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Plus } from "lucide-react";
 import { useMyCourses, useCourses } from "@/hooks/useCourses";
@@ -19,6 +19,7 @@ export default function Home() {
   const router = useRouter();
   const { myCourses, isLoading: coursesLoading } = useMyCourses();
   const { courses: allCourses, isLoading: allCoursesLoading } = useCourses();
+  const [storeUrl, setStoreUrl] = useState<string | null>(null);
   
   useEffect(() => {
     if (!isLoading) {
@@ -32,6 +33,23 @@ export default function Home() {
       }
     }
   }, [user, isLoading, router]);
+
+  // Carregar URL da loja configurada
+  useEffect(() => {
+    const loadStoreUrl = async () => {
+      try {
+        const response = await fetch('/api/store-settings');
+        if (response.ok) {
+          const data = await response.json();
+          setStoreUrl(data.store_url);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar URL da loja:', error);
+      }
+    };
+
+    loadStoreUrl();
+  }, []);
 
   if (isLoading || coursesLoading || allCoursesLoading) {
     return (
@@ -55,6 +73,14 @@ export default function Home() {
   const myCourseIds = myCourses.map(c => c.id);
   const availableCourses = allCourses.filter(c => !myCourseIds.includes(c.id) && c.isPublished);
   const availableCoursesPreview = availableCourses.slice(0, 6);
+
+  const handleStoreClick = () => {
+    if (storeUrl) {
+      window.open(storeUrl, '_blank');
+    } else {
+      router.push('/loja');
+    }
+  };
 
   return (
     <PasswordResetGuard>
@@ -103,12 +129,14 @@ export default function Home() {
                 <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                 Cursos que você ainda não tem
               </h2>
-              <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200 text-sm sm:text-base">
-                <Link href="/loja" className="flex items-center justify-center gap-2">
-                  <span className="hidden sm:inline">Ir para a Loja</span>
-                  <span className="sm:hidden">Loja</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+              <Button 
+                variant="outline" 
+                className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200 text-sm sm:text-base"
+                onClick={handleStoreClick}
+              >
+                <span className="hidden sm:inline">Ir para a Loja</span>
+                <span className="sm:hidden">Loja</span>
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
             <Carousel ariaLabel="Cursos disponíveis">
