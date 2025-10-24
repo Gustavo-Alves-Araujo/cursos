@@ -31,22 +31,9 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  // Verificar se o usuário precisa redefinir a senha
-  const needsPasswordReset = session.user?.user_metadata?.needs_password_reset;
-  
-  // Debug: log para verificar se a flag está sendo detectada
-  console.log('Middleware - needs_password_reset:', needsPasswordReset, 'pathname:', req.nextUrl.pathname);
-
-  // Se precisa redefinir senha e não está na página de definir senha, redirecionar
-  if (needsPasswordReset && req.nextUrl.pathname !== '/definir-senha') {
-    console.log('Middleware - Redirecionando para /definir-senha');
-    return NextResponse.redirect(new URL('/definir-senha', req.url));
-  }
-
-  // Se está na página de definir senha mas não precisa redefinir, redirecionar para home
-  if (req.nextUrl.pathname === '/definir-senha' && !needsPasswordReset) {
-    return NextResponse.redirect(new URL('/', req.url));
-  }
+  // Como agora todos os usuários vêm com senha padrão "123123",
+  // não precisamos mais verificar needs_password_reset
+  // O middleware pode ser simplificado ou removido se não houver outras verificações necessárias
 
   return res;
 }

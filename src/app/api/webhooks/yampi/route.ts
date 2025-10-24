@@ -44,14 +44,9 @@ interface YampiWebhookData {
   resource: YampiOrder;
 }
 
-// Função para gerar senha aleatória
-function generateRandomPassword(length: number = 16): string {
-  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-  let password = '';
-  for (let i = 0; i < length; i++) {
-    password += charset.charAt(Math.floor(Math.random() * charset.length));
-  }
-  return password;
+// Função para gerar senha fixa padrão
+function generateDefaultPassword(): string {
+  return '123123';
 }
 
 // Função para formatar CPF (remove caracteres especiais e adiciona formatação)
@@ -175,8 +170,8 @@ export async function POST(request: NextRequest) {
           {
             user_metadata: {
               name: customerName,
-              cpf: formattedCPF,
-              needs_password_reset: true
+              cpf: formattedCPF
+              // Removido needs_password_reset para não redirecionar para /primeiro-acesso
             }
           }
         );
@@ -202,15 +197,15 @@ export async function POST(request: NextRequest) {
       } else {
         // Criar novo usuário
         console.log('Criando novo usuário');
-        const randomPassword = generateRandomPassword();
+        const defaultPassword = generateDefaultPassword();
         
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email: customerEmail,
-          password: randomPassword,
+          password: defaultPassword,
           user_metadata: {
             name: customerName,
-            cpf: formattedCPF,
-            needs_password_reset: true
+            cpf: formattedCPF
+            // Removido needs_password_reset para não redirecionar para /primeiro-acesso
           },
           email_confirm: true // Confirmar email automaticamente
         });
@@ -227,7 +222,7 @@ export async function POST(request: NextRequest) {
 
         currentUserId = newUser.user.id;
         console.log('Usuário criado com sucesso:', currentUserId);
-        console.log('Senha temporária:', randomPassword);
+        console.log('Senha padrão:', defaultPassword);
 
         // Atualizar CPF na tabela users se fornecido
         if (formattedCPF) {

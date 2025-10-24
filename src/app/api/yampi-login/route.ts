@@ -38,35 +38,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar se precisa redefinir senha
-    if (!user.user_metadata?.needs_password_reset) {
-      return NextResponse.json(
-        { error: 'Este email já tem uma senha definida' },
-        { status: 400 }
-      );
-    }
-
-    // Buscar a senha temporária do usuário
-    // Como não podemos recuperar a senha original, vamos gerar uma nova temporária
-    const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-4);
-    
-    // Atualizar a senha do usuário com uma nova temporária
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-      password: tempPassword
-    });
-
-    if (updateError) {
-      console.error('Erro ao atualizar senha temporária:', updateError);
-      return NextResponse.json(
-        { error: 'Erro ao gerar acesso temporário' },
-        { status: 500 }
-      );
-    }
-
+    // Como agora todos os usuários vêm com senha padrão "123123",
+    // não precisamos mais gerar senhas temporárias
     return NextResponse.json({ 
       success: true,
-      tempPassword: tempPassword,
-      message: 'Acesso temporário gerado com sucesso'
+      tempPassword: '123123',
+      message: 'Use a senha padrão: 123123'
     });
 
   } catch (error) {

@@ -95,7 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         
         console.log('AuthContext - Perfil carregado:', userProfile);
-        console.log('AuthContext - Needs password reset:', supabaseUser.user_metadata?.needs_password_reset);
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
@@ -118,13 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.user) {
         await loadUserProfile(data.user);
         
-        // Verificar se precisa redefinir senha
-        const needsPasswordReset = data.user.user_metadata?.needs_password_reset;
-        console.log('Login - needs_password_reset:', needsPasswordReset);
-        
+        // Como agora todos os usuários vêm com senha padrão "123123",
+        // não precisamos mais verificar needs_password_reset
         return { 
-          success: true, 
-          needsPasswordReset: needsPasswordReset === true 
+          success: true
         };
       }
 

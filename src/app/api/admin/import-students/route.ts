@@ -135,8 +135,8 @@ export async function POST(request: NextRequest) {
           password: temporaryPassword,
           user_metadata: {
             name: student.name,
-            cpf: formattedCPF,
-            needs_password_reset: true
+            cpf: formattedCPF
+            // Removido needs_password_reset para não redirecionar para /primeiro-acesso
           },
           email_confirm: true
         });

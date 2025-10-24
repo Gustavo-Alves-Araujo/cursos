@@ -58,8 +58,8 @@ export async function POST(request: NextRequest) {
       password: temporaryPassword,
       user_metadata: {
         name,
-        cpf: cpf || null,
-        needs_password_reset: true
+        cpf: cpf || null
+        // Removido needs_password_reset para não redirecionar para /primeiro-acesso
       },
       email_confirm: true // Confirmar email automaticamente
     });
