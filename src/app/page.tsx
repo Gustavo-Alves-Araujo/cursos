@@ -9,12 +9,11 @@ import { PasswordResetGuard } from "@/components/PasswordResetGuard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Plus } from "lucide-react";
 import { useMyCourses, useCourses } from "@/hooks/useCourses";
 import { supabase } from "@/lib/supabase";
-import { Course } from "@/types/course";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
@@ -106,8 +105,10 @@ export default function Home() {
         // Filtrar apenas cursos de vitrines ativas e extrair IDs únicos
         const courseIds = [...new Set(
           showcaseCourses
-            .filter((sc: any) => sc.showcases?.is_active === true)
-            .map((sc: any) => sc.course_id)
+            .filter((sc: { course_id: string; showcases: { is_active: boolean }[] }) => 
+              sc.showcases && sc.showcases.length > 0 && sc.showcases[0]?.is_active === true
+            )
+            .map((sc: { course_id: string }) => sc.course_id)
         )];
 
         setShowcaseCoursesIds(courseIds);

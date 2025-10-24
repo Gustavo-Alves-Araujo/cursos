@@ -16,10 +16,11 @@ import { useShowcase, useShowcases } from "@/hooks/useShowcases";
 import { useCourses } from "@/hooks/useCourses";
 import { Course } from "@/types/course";
 
-export default function EditShowcasePage({ params }: { params: { id: string } }) {
+export default function EditShowcasePage({ params }: { params: Promise<{ id: string }> }) {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const { showcase, isLoading: showcaseLoading, refetch } = useShowcase(params.id);
+  const [showcaseId, setShowcaseId] = useState<string | null>(null);
+  const { showcase, isLoading: showcaseLoading, refetch } = useShowcase(showcaseId || '');
   const { updateShowcase, addCourseToShowcase, removeCourseFromShowcase } = useShowcases();
   const { courses: allCourses, isLoading: coursesLoading } = useCourses();
   
@@ -27,6 +28,13 @@ export default function EditShowcasePage({ params }: { params: { id: string } })
   const [description, setDescription] = useState('');
   const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Resolver params Promise
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setShowcaseId(resolvedParams.id);
+    });
+  }, [params]);
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'admin')) {
@@ -52,8 +60,10 @@ export default function EditShowcasePage({ params }: { params: { id: string } })
 
     setIsSaving(true);
 
+    if (!showcaseId) return;
+
     // Atualizar dados básicos da vitrine
-    const { error: updateError } = await updateShowcase(params.id, {
+    const { error: updateError } = await updateShowcase(showcaseId, {
       name,
       description: description || undefined
     });
@@ -72,12 +82,12 @@ export default function EditShowcasePage({ params }: { params: { id: string } })
 
     // Adicionar novos cursos
     for (const courseId of coursesToAdd) {
-      await addCourseToShowcase(params.id, courseId);
+      await addCourseToShowcase(showcaseId, courseId);
     }
 
     // Remover cursos
     for (const courseId of coursesToRemove) {
-      await removeCourseFromShowcase(params.id, courseId);
+      await removeCourseFromShowcase(showcaseId, courseId);
     }
 
     setIsSaving(false);

@@ -1,7 +1,22 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Showcase, ShowcaseWithCourses, Course } from '@/types/course';
+import { ShowcaseWithCourses, Course } from '@/types/course';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Tipo para o curso retornado pelo Supabase
+type SupabaseCourse = {
+  id: string;
+  title: string;
+  shortDescription: string;
+  thumbnail?: string;
+  price: number;
+  instructorId: string;
+  instructorName: string;
+  isPublished: boolean;
+  expirationDays?: number;
+  created_at: string;
+  updated_at: string;
+};
 
 export function useShowcases() {
   const [showcases, setShowcases] = useState<ShowcaseWithCourses[]>([]);
@@ -48,8 +63,8 @@ export function useShowcases() {
 
           // Extrair os cursos e adicionar módulos
           const coursesWithModules = await Promise.all(
-            (showcaseCoursesData || []).map(async (sc: any) => {
-              const course = sc.courses;
+            (showcaseCoursesData || []).map(async (sc: { course_id: string; position: number; courses: SupabaseCourse[] }) => {
+              const course = sc.courses[0]; // Supabase retorna array
               if (!course) return null;
 
               // Buscar módulos e lições do curso
@@ -295,8 +310,8 @@ export function useShowcase(id: string) {
 
       // Extrair os cursos e adicionar módulos
       const coursesWithModules = await Promise.all(
-        (showcaseCoursesData || []).map(async (sc: any) => {
-          const course = sc.courses;
+        (showcaseCoursesData || []).map(async (sc: { course_id: string; position: number; courses: SupabaseCourse[] }) => {
+          const course = sc.courses[0]; // Supabase retorna array
           if (!course) return null;
 
           // Buscar módulos e lições do curso
