@@ -9,10 +9,12 @@ import { PasswordResetGuard } from "@/components/PasswordResetGuard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Plus } from "lucide-react";
 import { useMyCourses, useCourses } from "@/hooks/useCourses";
+import { supabase } from "@/lib/supabase";
+import { Course } from "@/types/course";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
@@ -20,6 +22,7 @@ export default function Home() {
   const { myCourses, isLoading: coursesLoading } = useMyCourses();
   const { courses: allCourses, isLoading: allCoursesLoading } = useCourses();
   const [storeUrl, setStoreUrl] = useState<string | null>(null);
+  const [showcaseCoursesIds, setShowcaseCoursesIds] = useState<string[]>([]);
   
   useEffect(() => {
     if (!isLoading) {
@@ -51,6 +54,72 @@ export default function Home() {
     loadStoreUrl();
   }, []);
 
+  // Buscar cursos de vitrines relacionadas aos cursos do aluno
+  useEffect(() => {
+    const fetchShowcaseCourses = async () => {
+      if (!user || myCourses.length === 0) {
+        setShowcaseCoursesIds([]);
+        return;
+      }
+
+      try {
+        const myCourseIds = myCourses.map(c => c.id);
+
+        // 1. Buscar todas as vitrines que contêm os cursos do aluno
+        const { data: myShowcases, error: showcasesError } = await supabase
+          .from('showcase_courses')
+          .select('showcase_id')
+          .in('course_id', myCourseIds);
+
+        if (showcasesError) {
+          console.error('Erro ao buscar vitrines:', showcasesError);
+          return;
+        }
+
+        if (!myShowcases || myShowcases.length === 0) {
+          setShowcaseCoursesIds([]);
+          return;
+        }
+
+        // Extrair IDs únicos das vitrines
+        const showcaseIds = [...new Set(myShowcases.map(s => s.showcase_id))];
+
+        // 2. Buscar todos os cursos dessas vitrines (apenas de vitrines ativas)
+        const { data: showcaseCourses, error: coursesError } = await supabase
+          .from('showcase_courses')
+          .select(`
+            course_id,
+            showcases!inner(is_active)
+          `)
+          .in('showcase_id', showcaseIds);
+
+        if (coursesError) {
+          console.error('Erro ao buscar cursos das vitrines:', coursesError);
+          return;
+        }
+
+        if (!showcaseCourses || showcaseCourses.length === 0) {
+          setShowcaseCoursesIds([]);
+          return;
+        }
+
+        // Filtrar apenas cursos de vitrines ativas e extrair IDs únicos
+        const courseIds = [...new Set(
+          showcaseCourses
+            .filter((sc: any) => sc.showcases?.is_active === true)
+            .map((sc: any) => sc.course_id)
+        )];
+
+        setShowcaseCoursesIds(courseIds);
+      } catch (error) {
+        console.error('Erro ao buscar cursos das vitrines:', error);
+        setShowcaseCoursesIds([]);
+      }
+    };
+
+    fetchShowcaseCourses();
+  }, [user, myCourses]);
+
   if (isLoading || coursesLoading || allCoursesLoading) {
     return (
       <div className="relative">
@@ -71,7 +140,26 @@ export default function Home() {
 
   const myCoursesPreview = myCourses.slice(0, 6); // Mostrar até 6
   const myCourseIds = myCourses.map(c => c.id);
-  const availableCourses = allCourses.filter(c => !myCourseIds.includes(c.id) && c.isPublished);
+  
+  // Filtrar cursos disponíveis:
+  // - Cursos que o aluno NÃO possui
+  // - Cursos que estão publicados
+  // - Cursos que fazem parte de vitrines relacionadas aos cursos do aluno
+  //   (se o aluno não tiver cursos, não mostra nenhum curso disponível)
+  const availableCourses = allCourses.filter(c => {
+    // Não mostrar cursos que o aluno já possui
+    if (myCourseIds.includes(c.id)) return false;
+    
+    // Apenas cursos publicados
+    if (!c.isPublished) return false;
+    
+    // Se o aluno não tiver cursos, não mostrar nenhum curso disponível
+    if (myCourses.length === 0) return false;
+    
+    // Apenas cursos que fazem parte de vitrines relacionadas aos cursos do aluno
+    return showcaseCoursesIds.includes(c.id);
+  });
+  
   const availableCoursesPreview = availableCourses.slice(0, 6);
 
   const handleStoreClick = () => {

@@ -79,3 +79,24 @@ export type CourseProgress = {
   completionPercentage: number;
   lastAccessedAt: string;
 };
+
+export type Showcase = {
+  id: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ShowcaseCourse = {
+  id: string;
+  showcase_id: string;
+  course_id: string;
+  position: number;
+  created_at: string;
+};
+
+export type ShowcaseWithCourses = Showcase & {
+  courses: Course[];
+};

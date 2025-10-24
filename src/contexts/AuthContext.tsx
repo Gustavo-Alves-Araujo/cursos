@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { LoggedInUser, AuthContextType } from '@/types/auth';
 import { supabase } from '@/lib/supabase';
 import { User as SupabaseUser } from '@supabase/supabase-js';
@@ -11,6 +11,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LoggedInUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const isInitializing = useRef(false);
+  const lastProcessedUserId = useRef<string | null>(null);
 
   console.log('AuthProvider - estado atual:', { user, isLoading, hasInitialized });
 
@@ -32,27 +34,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoading(false);
           setHasInitialized(true);
         } else if (event === 'SIGNED_IN') {
-          // Só processar SIGNED_IN se ainda não foi inicializado ou se o usuário mudou
-          if (session?.user && (!hasInitialized || user?.id !== session.user.id)) {
+          // Processar SIGNED_IN apenas se o usuário mudou e não está sendo inicializado
+          if (session?.user && !isInitializing.current && lastProcessedUserId.current !== session.user.id) {
             console.log('Processing SIGNED_IN event for user:', session.user.id);
+            isInitializing.current = true;
+            lastProcessedUserId.current = session.user.id;
+            
             setTimeout(async () => {
-              await loadUserProfile(session.user);
-              setIsLoading(false);
-              setHasInitialized(true);
+              if (isMounted) {
+                await loadUserProfile(session.user);
+                setIsLoading(false);
+                setHasInitialized(true);
+                isInitializing.current = false;
+              }
             }, 0);
           } else {
-            console.log('Ignoring SIGNED_IN event - already initialized or same user');
+            console.log('Ignoring SIGNED_IN - already processing or same user');
           }
         } else if (event === 'TOKEN_REFRESHED') {
           // Não fazer nada no TOKEN_REFRESHED para evitar recarregamentos desnecessários
+          // Este evento pode ser disparado frequentemente e não deve causar refresh da página
           console.log('Token refreshed, but not reloading user data to prevent page refresh');
+          return; // Sair imediatamente para evitar qualquer processamento
         } else if (event === 'INITIAL_SESSION') {
-          if (session?.user) {
+          if (session?.user && !isInitializing.current) {
             console.log('Processing INITIAL_SESSION for user:', session.user.id);
+            isInitializing.current = true;
+            lastProcessedUserId.current = session.user.id;
+            
             setTimeout(async () => {
-              await loadUserProfile(session.user);
-              setIsLoading(false);
-              setHasInitialized(true);
+              if (isMounted) {
+                await loadUserProfile(session.user);
+                setIsLoading(false);
+                setHasInitialized(true);
+                isInitializing.current = false;
+              }
             }, 0);
           } else {
             setIsLoading(false);
