@@ -475,27 +475,29 @@ export default function CourseDetailPage() {
         if (!open) closeLessonDialog();
         else setIsLessonDialogOpen(open);
       }}>
-        <DialogContent className="min-w-full max-h-full">
+        <DialogContent className="min-w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Aula</DialogTitle>
             <DialogDescription>
               Crie uma nova aula para o módulo
             </DialogDescription>
           </DialogHeader>
-          {selectedModuleId && (
-            <LessonForm
-              key={`lesson-form-${selectedModuleId}`}
-              onSubmit={handleCreateLesson}
-              moduleId={selectedModuleId}
-              isLoading={false}
-            />
-          )}
+          <div className="overflow-y-auto max-h-[calc(90vh-120px)] pr-2">
+            {selectedModuleId && (
+              <LessonForm
+                key={`lesson-form-${selectedModuleId}`}
+                onSubmit={handleCreateLesson}
+                moduleId={selectedModuleId}
+                isLoading={false}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Dialog para editar módulo */}
       <Dialog open={isEditModuleDialogOpen} onOpenChange={setIsEditModuleDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-full max-h-full">
           <DialogHeader>
             <DialogTitle>Editar Módulo</DialogTitle>
             <DialogDescription>
@@ -515,22 +517,24 @@ export default function CourseDetailPage() {
 
       {/* Dialog para editar aula */}
       <Dialog open={isEditLessonDialogOpen} onOpenChange={setIsEditLessonDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Aula</DialogTitle>
             <DialogDescription>
               Atualize as informações da aula
             </DialogDescription>
           </DialogHeader>
-          {editingLesson && (
-            <LessonForm
-              onSubmit={handleEditLesson}
-              moduleId={editingLesson.moduleId}
-              initialData={editingLesson}
-              isLoading={false}
-              isEditing={true}
-            />
-          )}
+          <div className="overflow-y-auto max-h-[calc(90vh-120px)] pr-2">
+            {editingLesson && (
+              <LessonForm
+                onSubmit={handleEditLesson}
+                moduleId={editingLesson.moduleId}
+                initialData={editingLesson}
+                isLoading={false}
+                isEditing={true}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
       </div>

@@ -43,13 +43,10 @@ export function useShowcases() {
       // Para cada vitrine, buscar os cursos associados
       const showcasesWithCourses = await Promise.all(
         showcasesData.map(async (showcase) => {
+          // Buscar os IDs dos cursos associados
           const { data: showcaseCoursesData, error: showcaseCoursesError } = await supabase
             .from('showcase_courses')
-            .select(`
-              course_id,
-              position,
-              courses (*)
-            `)
+            .select('course_id, position')
             .eq('showcase_id', showcase.id)
             .order('position', { ascending: true });
 
@@ -61,10 +58,41 @@ export function useShowcases() {
             };
           }
 
-          // Extrair os cursos e adicionar módulos
+          if (!showcaseCoursesData || showcaseCoursesData.length === 0) {
+            return {
+              ...showcase,
+              courses: []
+            };
+          }
+
+          // Extrair os IDs dos cursos
+          const courseIds = showcaseCoursesData.map((sc: { course_id: string; position: number }) => sc.course_id);
+
+          // Buscar os cursos completos de uma vez
+          const { data: coursesData, error: coursesError } = await supabase
+            .from('courses')
+            .select('*')
+            .in('id', courseIds);
+
+          if (coursesError) {
+            console.error('Erro ao buscar cursos:', coursesError);
+            return {
+              ...showcase,
+              courses: []
+            };
+          }
+
+          if (!coursesData || coursesData.length === 0) {
+            return {
+              ...showcase,
+              courses: []
+            };
+          }
+
+          // Adicionar módulos a cada curso e manter a ordem original
           const coursesWithModules = await Promise.all(
-            (showcaseCoursesData || []).map(async (sc: { course_id: string; position: number; courses: SupabaseCourse[] }) => {
-              const course = sc.courses[0]; // Supabase retorna array
+            showcaseCoursesData.map(async (sc: { course_id: string; position: number }) => {
+              const course = coursesData.find((c: SupabaseCourse) => c.id === sc.course_id);
               if (!course) return null;
 
               // Buscar módulos e lições do curso
@@ -295,23 +323,46 @@ export function useShowcase(id: string) {
         return;
       }
 
-      // Buscar os cursos associados
+      // Buscar os IDs dos cursos associados
       const { data: showcaseCoursesData, error: showcaseCoursesError } = await supabase
         .from('showcase_courses')
-        .select(`
-          course_id,
-          position,
-          courses (*)
-        `)
+        .select('course_id, position')
         .eq('showcase_id', id)
         .order('position', { ascending: true });
 
       if (showcaseCoursesError) throw showcaseCoursesError;
 
-      // Extrair os cursos e adicionar módulos
+      if (!showcaseCoursesData || showcaseCoursesData.length === 0) {
+        setShowcase({
+          ...showcaseData,
+          courses: []
+        });
+        return;
+      }
+
+      // Extrair os IDs dos cursos
+      const courseIds = showcaseCoursesData.map((sc: { course_id: string; position: number }) => sc.course_id);
+
+      // Buscar os cursos completos de uma vez
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('*')
+        .in('id', courseIds);
+
+      if (coursesError) throw coursesError;
+
+      if (!coursesData || coursesData.length === 0) {
+        setShowcase({
+          ...showcaseData,
+          courses: []
+        });
+        return;
+      }
+
+      // Adicionar módulos a cada curso e manter a ordem original
       const coursesWithModules = await Promise.all(
-        (showcaseCoursesData || []).map(async (sc: { course_id: string; position: number; courses: SupabaseCourse[] }) => {
-          const course = sc.courses[0]; // Supabase retorna array
+        showcaseCoursesData.map(async (sc: { course_id: string; position: number }) => {
+          const course = coursesData.find((c: SupabaseCourse) => c.id === sc.course_id);
           if (!course) return null;
 
           // Buscar módulos e lições do curso

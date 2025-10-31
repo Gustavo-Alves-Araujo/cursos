@@ -148,33 +148,38 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                         return;
                       }
                       
-                      // Upload real para Supabase Storage
-                      const fileExt = file.name.split('.').pop();
-                      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-                      const filePath = `documents/${fileName}`;
-                      
-                      const { error } = await supabase.storage
-                        .from('course-documents')
-                        .upload(filePath, file);
-                      
-                      if (error) {
-                        console.error('Erro no upload:', error);
-                        alert('Erro ao fazer upload do arquivo');
+                      // Upload via API para evitar problemas de RLS
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (!session) {
+                        alert('Sessão expirada. Faça login novamente.');
                         return;
                       }
-                      
-                      // Obter URL pública do arquivo
-                      const { data: { publicUrl } } = supabase.storage
-                        .from('course-documents')
-                        .getPublicUrl(filePath);
+
+                      const formData = new FormData();
+                      formData.append('file', file);
+
+                      const response = await fetch('/api/document-upload', {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: formData
+                      });
+
+                      if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Erro no upload');
+                      }
+
+                      const { url } = await response.json();
                       
                       setState({ 
                         ...state, 
-                        content: { ...state.content, documentUrl: publicUrl }
+                        content: { ...state.content, documentUrl: url }
                       });
                     } catch (error) {
                       console.error('Erro no upload:', error);
-                      alert('Erro ao fazer upload do arquivo');
+                      alert('Erro ao fazer upload do arquivo: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
                     }
                   }
                 }}
@@ -237,115 +242,114 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
   };
 
   return (
-    <div className="w-full max-h-screen overflow-y-auto pr-2">
-      <form onSubmit={handleSubmit} className="space-y-4 pb-4">
+    <form onSubmit={handleSubmit} className="space-y-4 w-full pb-24">
       {error && (
         <div className="bg-red-500/20 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg">
           {error}
         </div>
       )}
 
-        {/* Layout em três colunas para reduzir altura */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          
-          {/* Coluna 1 - Informações Básicas */}
-          <div className="space-y-4">
-            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
-              <h3 className="text-base font-semibold text-white">Informações Básicas</h3>
-              
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-blue-200 text-sm">Título da Aula *</Label>
-                  <Input 
-                    id="title" 
-                    value={state.title} 
-                    onChange={(e) => setState({ ...state, title: e.target.value })} 
-                    placeholder="Ex: Introdução aos Componentes"
-                    required 
-                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="type" className="text-blue-200 text-sm">Tipo de Aula *</Label>
-                  <Select 
-                    value={state.type} 
-                    onValueChange={(value: LessonType) => setState({ ...state, type: value })}
-                  >
-                    <SelectTrigger className="w-full bg-white/10 border-white/20 text-white text-sm">
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="video">Vídeo (YouTube)</SelectItem>
-                      <SelectItem value="document">Documento</SelectItem>
-                      <SelectItem value="text">Texto</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="order" className="text-blue-200 text-sm">Ordem da Aula</Label>
-                  <Input 
-                    id="order" 
-                    type="number" 
-                    min="1"
-                    value={state.order} 
-                    onChange={(e) => setState({ ...state, order: parseInt(e.target.value) || 1 })} 
-                    placeholder="1"
-                    className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
-              <h3 className="text-base font-semibold text-white">Conteúdo da Aula</h3>
-              {renderContentFields()}
-            </div>
-            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
-              <h3 className="text-base font-semibold text-white">Configurações</h3>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isPublished"
-                  checked={state.isPublished}
-                  onCheckedChange={(checked) => setState({ ...state, isPublished: checked })}
+      {/* Layout em duas colunas para melhor organização */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        
+        {/* Coluna 1 - Informações Básicas */}
+        <div className="space-y-4">
+          <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+            <h3 className="text-base font-semibold text-white">Informações Básicas</h3>
+            
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-blue-200 text-sm">Título da Aula *</Label>
+                <Input 
+                  id="title" 
+                  value={state.title} 
+                  onChange={(e) => setState({ ...state, title: e.target.value })} 
+                  placeholder="Ex: Introdução aos Componentes"
+                  required 
+                  className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
                 />
-                <Label htmlFor="isPublished" className="text-blue-200 text-sm">Publicar aula</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type" className="text-blue-200 text-sm">Tipo de Aula *</Label>
+                <Select 
+                  value={state.type} 
+                  onValueChange={(value: LessonType) => setState({ ...state, type: value })}
+                >
+                  <SelectTrigger className="w-full bg-white/10 border-white/20 text-white text-sm">
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="video">Vídeo (YouTube)</SelectItem>
+                    <SelectItem value="document">Documento</SelectItem>
+                    <SelectItem value="text">Texto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="order" className="text-blue-200 text-sm">Ordem da Aula</Label>
+                <Input 
+                  id="order" 
+                  type="number" 
+                  min="1"
+                  value={state.order} 
+                  onChange={(e) => setState({ ...state, order: parseInt(e.target.value) || 1 })} 
+                  placeholder="1"
+                  className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
+                />
               </div>
             </div>
           </div>
 
-          {/* Coluna 2 - Conteúdo da Aula */}
-          <div className="space-y-4">
+          <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+            <h3 className="text-base font-semibold text-white">Conteúdo da Aula</h3>
+            {renderContentFields()}
+          </div>
           
-            <div className="space-y-4">
-            {/* Texto Adicional */}
-            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
-              <h3 className="text-base font-semibold text-white">Texto Adicional</h3>
-              <div className="space-y-2">
-                <Label htmlFor="additionalText" className="text-blue-200 text-sm">Informações Complementares</Label>
-                <Textarea 
-                  id="additionalText" 
-                  rows={3} 
-                  value={state.content.additionalText || ""} 
-                  onChange={(e) => setState({ 
-                    ...state, 
-                    content: { ...state.content, additionalText: e.target.value }
-                  })} 
-                  placeholder="Digite informações adicionais sobre a aula (opcional)..."
-                  className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
-                />
-                <p className="text-xs text-blue-300">
-                  Este texto será exibido em todas as aulas, independentemente do tipo.
-                </p>
-              </div>
+          <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+            <h3 className="text-base font-semibold text-white">Configurações</h3>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isPublished"
+                checked={state.isPublished}
+                onCheckedChange={(checked) => setState({ ...state, isPublished: checked })}
+              />
+              <Label htmlFor="isPublished" className="text-blue-200 text-sm">Publicar aula</Label>
             </div>
+          </div>
+        </div>
 
-            {/* Materiais de Apoio */}
-            <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
-              <h3 className="text-base font-semibold text-white">Materiais de Apoio</h3>
-              <div className="space-y-2">
-                <Label className="text-blue-200 text-sm">Arquivos de Apoio</Label>
+        {/* Coluna 2 - Texto Adicional e Materiais */}
+        <div className="space-y-4">
+          {/* Texto Adicional */}
+          <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+            <h3 className="text-base font-semibold text-white">Texto Adicional</h3>
+            <div className="space-y-2">
+              <Label htmlFor="additionalText" className="text-blue-200 text-sm">Informações Complementares</Label>
+              <Textarea 
+                id="additionalText" 
+                rows={6} 
+                value={state.content.additionalText || ""} 
+                onChange={(e) => setState({ 
+                  ...state, 
+                  content: { ...state.content, additionalText: e.target.value }
+                })} 
+                placeholder="Digite informações adicionais sobre a aula (opcional)..."
+                className="w-full bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-sm"
+              />
+              <p className="text-xs text-blue-300">
+                Este texto será exibido em todas as aulas, independentemente do tipo.
+              </p>
+            </div>
+          </div>
+
+          {/* Materiais de Apoio - Com altura máxima controlada */}
+          <div className="bg-white/5 rounded-lg border border-white/10 p-4 space-y-3">
+            <h3 className="text-base font-semibold text-white">Materiais de Apoio</h3>
+            <div className="space-y-2">
+              <Label className="text-blue-200 text-sm">Arquivos de Apoio</Label>
+              <div className="max-h-[300px] overflow-y-auto pr-2">
                 <FileUpload
                   lessonId={moduleId}
                   existingMaterials={state.supportMaterials || []}
@@ -353,44 +357,41 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                   maxFiles={10}
                   maxSize={50}
                 />
-                <p className="text-xs text-blue-300">
-                  Faça upload de documentos, PDFs, planilhas e outros materiais.
-                </p>
               </div>
+              <p className="text-xs text-blue-300">
+                Faça upload de documentos, PDFs, planilhas e outros materiais.
+              </p>
             </div>
           </div>
-          </div>
-
-          {/* Coluna 3 - Texto Adicional e Materiais */}
-        
         </div>
+      </div>
 
-        {/* Botões de Ação */}
-        <div className="flex gap-3 pt-4">
-          <Button 
-            type="submit" 
-            className="flex-1 bg-blue-600 hover:bg-blue-700 rounded-xl"
-            disabled={isLoading || isSubmitting}
-          >
-            {isLoading || isSubmitting ? "Salvando..." : (isEditing ? "Atualizar Aula" : "Salvar Aula")}
-          </Button>
-          <Button 
-            type="button" 
-            variant="secondary" 
-            className="rounded-xl" 
-            onClick={() => setState({
-              title: "",
-              type: "video",
-              content: {},
-              supportMaterials: [],
-              order: 1,
-              isPublished: false
-            })}
-          >
-            Limpar
-          </Button>
-        </div>
-      </form>
-    </div>
+      {/* Botões de Ação - Fixados no final */}
+      <div className="flex gap-3 pt-6 border-t border-white/10 mt-6">
+        <Button 
+          type="submit" 
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+          disabled={isLoading || isSubmitting}
+        >
+          {isLoading || isSubmitting ? "Salvando..." : (isEditing ? "Atualizar Aula" : "Salvar Aula")}
+        </Button>
+        <Button 
+          type="button" 
+          variant="secondary" 
+          className="bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-xl shadow-lg" 
+          onClick={() => setState({
+            title: "",
+            type: "video",
+            content: {},
+            supportMaterials: [],
+            order: 1,
+            isPublished: false
+          })}
+          disabled={isLoading || isSubmitting}
+        >
+          Limpar
+        </Button>
+      </div>
+    </form>
   );
 }

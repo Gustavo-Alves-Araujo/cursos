@@ -15,6 +15,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useShowcase, useShowcases } from "@/hooks/useShowcases";
 import { useCourses } from "@/hooks/useCourses";
 import { Course } from "@/types/course";
+import { supabase } from "@/lib/supabase";
 
 export default function EditShowcasePage({ params }: { params: Promise<{ id: string }> }) {
   const { user, isLoading: authLoading } = useAuth();
@@ -58,41 +59,157 @@ export default function EditShowcasePage({ params }: { params: Promise<{ id: str
       return;
     }
 
-    setIsSaving(true);
-
-    if (!showcaseId) return;
-
-    // Atualizar dados básicos da vitrine
-    const { error: updateError } = await updateShowcase(showcaseId, {
-      name,
-      description: description || undefined
-    });
-
-    if (updateError) {
-      alert('Erro ao atualizar vitrine');
-      console.error(updateError);
-      setIsSaving(false);
+    if (!showcaseId) {
+      alert('ID da vitrine não encontrado');
       return;
     }
 
-    // Identificar cursos a adicionar e remover
-    const currentCourseIds = showcase?.courses.map(c => c.id) || [];
-    const coursesToAdd = selectedCourseIds.filter(id => !currentCourseIds.includes(id));
-    const coursesToRemove = currentCourseIds.filter(id => !selectedCourseIds.includes(id));
+    setIsSaving(true);
 
-    // Adicionar novos cursos
-    for (const courseId of coursesToAdd) {
-      await addCourseToShowcase(showcaseId, courseId);
+    try {
+      // 1. Atualizar dados básicos da vitrine
+      const { error: updateError } = await updateShowcase(showcaseId, {
+        name,
+        description: description || undefined
+      });
+
+      if (updateError) {
+        alert('Erro ao atualizar vitrine: ' + (updateError.message || 'Erro desconhecido'));
+        console.error('Erro ao atualizar vitrine:', updateError);
+        setIsSaving(false);
+        return;
+      }
+
+      // 2. Buscar cursos atuais diretamente do banco
+      console.log('🔍 Buscando cursos atuais do banco...');
+      const { data: currentShowcaseCourses, error: fetchError } = await supabase
+        .from('showcase_courses')
+        .select('course_id')
+        .eq('showcase_id', showcaseId);
+      
+      if (fetchError) {
+        console.error('❌ Erro ao buscar cursos atuais:', fetchError);
+        alert('Erro ao buscar cursos atuais: ' + fetchError.message);
+        setIsSaving(false);
+        return;
+      }
+      
+      const currentCourseIds = currentShowcaseCourses?.map((sc: { course_id: string }) => sc.course_id) || [];
+      console.log('📋 Cursos atuais no banco:', currentCourseIds);
+      console.log('✅ Cursos selecionados:', selectedCourseIds);
+      
+      // 3. Identificar cursos a adicionar e remover
+      const coursesToAdd = selectedCourseIds.filter(id => !currentCourseIds.includes(id));
+      const coursesToRemove = currentCourseIds.filter(id => !selectedCourseIds.includes(id));
+      
+      console.log('➕ Cursos para adicionar:', coursesToAdd);
+      console.log('➖ Cursos para remover:', coursesToRemove);
+
+      // 4. Remover cursos primeiro (para evitar problemas de posição)
+      if (coursesToRemove.length > 0) {
+        console.log('🗑️ Removendo cursos...');
+        for (const courseId of coursesToRemove) {
+          const { error: removeError } = await supabase
+            .from('showcase_courses')
+            .delete()
+            .eq('showcase_id', showcaseId)
+            .eq('course_id', courseId);
+          
+          if (removeError) {
+            const isNotFoundError = removeError.code === 'PGRST116' || removeError.message?.includes('not found');
+            if (!isNotFoundError) {
+              console.error(`❌ Erro ao remover curso ${courseId}:`, removeError);
+              alert(`Erro ao remover curso da vitrine: ${removeError.message || 'Erro desconhecido'}`);
+              setIsSaving(false);
+              return;
+            }
+            console.warn(`⚠️ Curso ${courseId} já não está na vitrine`);
+          } else {
+            console.log(`✅ Curso ${courseId} removido com sucesso`);
+          }
+        }
+      }
+
+      // 5. Adicionar novos cursos
+      if (coursesToAdd.length > 0) {
+        console.log('➕ Adicionando cursos...');
+        
+        // Buscar a posição máxima atual
+        const { data: lastCourse } = await supabase
+          .from('showcase_courses')
+          .select('position')
+          .eq('showcase_id', showcaseId)
+          .order('position', { ascending: false })
+          .limit(1)
+          .single();
+        
+        let nextPosition = lastCourse?.position !== undefined ? lastCourse.position + 1 : 0;
+        
+        for (const courseId of coursesToAdd) {
+          const { error: addError } = await supabase
+            .from('showcase_courses')
+            .insert({
+              showcase_id: showcaseId,
+              course_id: courseId,
+              position: nextPosition++
+            })
+            .select()
+            .single();
+          
+          if (addError) {
+            const isDuplicateError = addError.code === '23505' || addError.message?.includes('duplicate') || addError.message?.includes('unique');
+            if (!isDuplicateError) {
+              console.error(`❌ Erro ao adicionar curso ${courseId}:`, addError);
+              alert(`Erro ao adicionar curso à vitrine: ${addError.message || 'Erro desconhecido'}`);
+              setIsSaving(false);
+              return;
+            }
+            console.warn(`⚠️ Curso ${courseId} já está na vitrine`);
+          } else {
+            console.log(`✅ Curso ${courseId} adicionado com sucesso`);
+          }
+        }
+      }
+
+      // 6. Verificar se tudo foi salvo corretamente
+      const { data: finalCourses, error: verifyError } = await supabase
+        .from('showcase_courses')
+        .select('course_id')
+        .eq('showcase_id', showcaseId);
+      
+      if (verifyError) {
+        console.error('❌ Erro ao verificar cursos salvos:', verifyError);
+      } else {
+        const finalCourseIds = finalCourses?.map((sc: { course_id: string }) => sc.course_id) || [];
+        console.log('✅ Cursos finais salvos:', finalCourseIds);
+        console.log('📊 Comparação - Selecionados:', selectedCourseIds.length, 'Salvos:', finalCourseIds.length);
+        
+        // Verificar se os IDs correspondem (ignorando ordem)
+        const allSaved = selectedCourseIds.every(id => finalCourseIds.includes(id));
+        const noExtra = finalCourseIds.every(id => selectedCourseIds.includes(id));
+        
+        if (!allSaved || !noExtra) {
+          console.error('⚠️ ATENÇÃO: Os cursos salvos não correspondem aos selecionados!');
+          console.error('Selecionados:', selectedCourseIds);
+          console.error('Salvos:', finalCourseIds);
+        }
+      }
+
+      // 7. Recarregar dados antes de redirecionar
+      await refetch();
+      
+      setIsSaving(false);
+      
+      // Aguardar um pouco para garantir que tudo foi persistido
+      setTimeout(() => {
+        router.push('/admin/showcases');
+      }, 500);
+      
+    } catch (error) {
+      console.error('❌ Erro geral ao salvar:', error);
+      alert('Erro ao salvar alterações: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+      setIsSaving(false);
     }
-
-    // Remover cursos
-    for (const courseId of coursesToRemove) {
-      await removeCourseFromShowcase(showcaseId, courseId);
-    }
-
-    setIsSaving(false);
-    await refetch();
-    router.push('/admin/showcases');
   };
 
   const toggleCourse = (courseId: string) => {

@@ -83,14 +83,31 @@ export default function Home() {
         // Extrair IDs únicos das vitrines
         const showcaseIds = [...new Set(myShowcases.map(s => s.showcase_id))];
 
-        // 2. Buscar todos os cursos dessas vitrines (apenas de vitrines ativas)
+        // 2. Verificar quais vitrines estão ativas
+        const { data: activeShowcases, error: activeError } = await supabase
+          .from('showcases')
+          .select('id')
+          .in('id', showcaseIds)
+          .eq('is_active', true);
+
+        if (activeError) {
+          console.error('Erro ao buscar vitrines ativas:', activeError);
+          return;
+        }
+
+        if (!activeShowcases || activeShowcases.length === 0) {
+          setShowcaseCoursesIds([]);
+          return;
+        }
+
+        // IDs das vitrines ativas
+        const activeShowcaseIds = activeShowcases.map(s => s.id);
+
+        // 3. Buscar todos os cursos dessas vitrines ativas
         const { data: showcaseCourses, error: coursesError } = await supabase
           .from('showcase_courses')
-          .select(`
-            course_id,
-            showcases!inner(is_active)
-          `)
-          .in('showcase_id', showcaseIds);
+          .select('course_id')
+          .in('showcase_id', activeShowcaseIds);
 
         if (coursesError) {
           console.error('Erro ao buscar cursos das vitrines:', coursesError);
@@ -102,14 +119,8 @@ export default function Home() {
           return;
         }
 
-        // Filtrar apenas cursos de vitrines ativas e extrair IDs únicos
-        const courseIds = [...new Set(
-          showcaseCourses
-            .filter((sc: { course_id: string; showcases: { is_active: boolean }[] }) => 
-              sc.showcases && sc.showcases.length > 0 && sc.showcases[0]?.is_active === true
-            )
-            .map((sc: { course_id: string }) => sc.course_id)
-        )];
+        // Extrair IDs únicos dos cursos
+        const courseIds = [...new Set(showcaseCourses.map((sc: { course_id: string }) => sc.course_id))];
 
         setShowcaseCoursesIds(courseIds);
       } catch (error) {

@@ -101,40 +101,43 @@ export function FileUpload({
       setIsUploading(true);
       setUploadProgress(0);
 
-      // Gerar nome único para o arquivo
-      const timestamp = Date.now();
-      const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `${lessonId}/${timestamp}_${cleanName}`;
+      console.log('📤 Iniciando upload:', file.name);
 
-      console.log('📤 Iniciando upload:', fileName);
-
-      // Upload do arquivo
-      const { data, error } = await supabase.storage
-        .from('support-materials')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) {
-        console.error('❌ Erro no upload:', error);
-        throw error;
+      // Upload via API para evitar problemas de RLS
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente.');
       }
 
-      console.log('✅ Upload realizado com sucesso:', data);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('lessonId', lessonId);
 
-      // Obter URL pública
-      const { data: urlData } = supabase.storage
-        .from('support-materials')
-        .getPublicUrl(fileName);
+      const response = await fetch('/api/support-material-upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro no upload');
+      }
+
+      const { url, fileName, fileSize, fileType } = await response.json();
+
+      console.log('✅ Upload realizado com sucesso');
 
       // Criar objeto do material de apoio
+      const timestamp = Date.now();
       const newMaterial: SupportMaterial = {
         id: `${lessonId}_${timestamp}`,
-        name: file.name,
-        url: urlData.publicUrl,
-        size: file.size,
-        type: file.type,
+        name: fileName,
+        url: url,
+        size: fileSize,
+        type: fileType,
         uploadedAt: new Date().toISOString()
       };
 
