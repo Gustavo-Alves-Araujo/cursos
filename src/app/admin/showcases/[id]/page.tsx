@@ -74,10 +74,8 @@ export default function EditShowcasePage({ params }: { params: Promise<{ id: str
       });
 
       if (updateError) {
-        alert('Erro ao atualizar vitrine: ' + (updateError.message || 'Erro desconhecido'));
-        console.error('Erro ao atualizar vitrine:', updateError);
-        setIsSaving(false);
-        return;
+
+
       }
 
       // 2. Buscar cursos atuais diretamente do banco

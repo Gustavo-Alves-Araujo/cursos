@@ -93,32 +93,20 @@ export function ModuleForm({ onSubmit, initialData, isLoading = false }: ModuleF
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="order">Ordem do Módulo</Label>
-          <Input 
-            id="order" 
-            type="number" 
-            min="1"
-            value={state.order} 
-            onChange={(e) => setState({ ...state, order: parseInt(e.target.value) || 1 })} 
-            placeholder="1"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="unlockAfterDays">Liberar após (dias)</Label>
-          <Input 
-            id="unlockAfterDays" 
-            type="number" 
-            min="0"
-            value={state.unlockAfterDays} 
-            onChange={(e) => setState({ ...state, unlockAfterDays: parseInt(e.target.value) || 0 })} 
-            placeholder="0"
-          />
-          <p className="text-sm text-gray-500">
-            Quantos dias após a matrícula no curso este módulo será liberado
-          </p>
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="unlockAfterDays">Liberar após (dias)</Label>
+        <Input 
+          id="unlockAfterDays" 
+          type="number" 
+          min="0"
+          value={state.unlockAfterDays} 
+          onChange={(e) => setState({ ...state, unlockAfterDays: parseInt(e.target.value) || 0 })} 
+          placeholder="0"
+          className="max-w-xs"
+        />
+        <p className="text-sm text-gray-500">
+          Quantos dias após a matrícula no curso este módulo será liberado. A ordem é automática.
+        </p>
       </div>
 
       <div className="flex items-center space-x-2">

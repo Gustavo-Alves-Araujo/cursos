@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCourses } from "@/hooks/useCourses";
 import { Course, Module, Lesson } from "@/types/course";
-import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Play, FileText, BookOpen, CreditCard } from "lucide-react";
+import { ArrowLeft, Edit, Eye, EyeOff, Plus, Trash2, Play, FileText, BookOpen, CreditCard, ArrowUp, ArrowDown } from "lucide-react";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminCourseForm } from "@/components/admin/AdminCourseForm";
 import { ModuleForm } from "@/components/admin/ModuleForm";
@@ -116,6 +116,48 @@ export default function CourseDetailPage() {
         console.error('Erro ao excluir aula:', error);
         alert('Erro ao excluir aula: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
       }
+    }
+  };
+
+  const handleMoveModuleUp = async (moduleId: string) => {
+    if (!course) return;
+    
+    const sortedModules = [...course.modules].sort((a, b) => a.order - b.order);
+    const currentIndex = sortedModules.findIndex(m => m.id === moduleId);
+    
+    if (currentIndex <= 0) return; // Já está no topo
+    
+    try {
+      // Trocar ordens
+      const currentModule = sortedModules[currentIndex];
+      const previousModule = sortedModules[currentIndex - 1];
+      
+      await updateModule(currentModule.id, { order: previousModule.order });
+      await updateModule(previousModule.id, { order: currentModule.order });
+    } catch (error) {
+      console.error('Erro ao reordenar módulos:', error);
+      alert('Erro ao reordenar módulos');
+    }
+  };
+
+  const handleMoveModuleDown = async (moduleId: string) => {
+    if (!course) return;
+    
+    const sortedModules = [...course.modules].sort((a, b) => a.order - b.order);
+    const currentIndex = sortedModules.findIndex(m => m.id === moduleId);
+    
+    if (currentIndex >= sortedModules.length - 1) return; // Já está no fim
+    
+    try {
+      // Trocar ordens
+      const currentModule = sortedModules[currentIndex];
+      const nextModule = sortedModules[currentIndex + 1];
+      
+      await updateModule(currentModule.id, { order: nextModule.order });
+      await updateModule(nextModule.id, { order: currentModule.order });
+    } catch (error) {
+      console.error('Erro ao reordenar módulos:', error);
+      alert('Erro ao reordenar módulos');
     }
   };
 
