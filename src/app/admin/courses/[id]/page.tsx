@@ -67,7 +67,11 @@ export default function CourseDetailPage() {
     if (!course) return;
     
     try {
-      await createModule(course.id, moduleData);
+      // Calcular ordem automaticamente baseado no número de módulos existentes
+      const nextOrder = course.modules.length + 1;
+      const dataWithOrder = { ...moduleData, order: nextOrder };
+      
+      await createModule(course.id, dataWithOrder);
       setIsModuleDialogOpen(false);
     } catch (error) {
       console.error('Erro ao criar módulo:', error);
@@ -407,6 +411,30 @@ export default function CourseDetailPage() {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      {/* Botões de reordenação */}
+                      <div className="flex gap-1 border-r pr-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleMoveModuleUp(module.id)}
+                          disabled={module.order === 1}
+                          title="Mover para cima"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleMoveModuleDown(module.id)}
+                          disabled={module.order === course.modules.length}
+                          title="Mover para baixo"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
                       <Button 
                         variant="outline" 
                         size="sm"

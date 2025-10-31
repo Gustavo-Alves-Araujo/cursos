@@ -17,6 +17,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "formacoesholisticas.online",
       },
+      {
+        protocol: "https",
+        hostname: "membros.editorainfinitto.com",
+      },
     ],
   },
 };

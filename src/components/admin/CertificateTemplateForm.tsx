@@ -88,24 +88,36 @@ export function CertificateTemplateForm({
   };
 
   const uploadBackgroundImage = async (file: File): Promise<string> => {
-    const fileName = `certificate-templates/${courseId}_${Date.now()}.${file.name.split('.').pop()}`;
-    
-    const { error } = await supabase.storage
-      .from('certificate-templates')
-      .upload(fileName, file, {
-        contentType: file.type,
-        upsert: false
+    try {
+      // Upload via API para evitar problemas de RLS
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Sessão expirada. Faça login novamente.');
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('courseId', courseId);
+
+      const response = await fetch('/api/certificate-template-upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: formData
       });
 
-    if (error) {
-      throw new Error(`Erro no upload: ${error.message}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro no upload');
+      }
+
+      const { url } = await response.json();
+      return url;
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      throw new Error(`Erro no upload: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
-
-    const { data: urlData } = supabase.storage
-      .from('certificate-templates')
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

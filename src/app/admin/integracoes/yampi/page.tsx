@@ -55,6 +55,7 @@ export default function YampiIntegrationsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -195,6 +196,7 @@ export default function YampiIntegrationsPage() {
     setEditingId(null);
     setError('');
     setSuccess('');
+    setCourseSearchTerm('');
   };
 
   // Filtrar integrações com base no termo de busca
@@ -207,6 +209,12 @@ export default function YampiIntegrationsPage() {
     const courseMatch = integration.courses?.title.toLowerCase().includes(searchLower);
     
     return nameMatch || productIdMatch || courseMatch;
+  });
+
+  // Filtrar cursos com base no termo de busca no modal
+  const filteredCourses = courses.filter((course) => {
+    if (!courseSearchTerm) return true;
+    return course.title.toLowerCase().includes(courseSearchTerm.toLowerCase());
   });
 
   if (isLoading) {
@@ -308,21 +316,44 @@ export default function YampiIntegrationsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="course_id">Curso Vinculado</Label>
-                  <Select
-                    value={formData.course_id}
-                    onValueChange={(value) => setFormData({ ...formData, course_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um curso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Buscar curso..."
+                        value={courseSearchTerm}
+                        onChange={(e) => setCourseSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select
+                      value={formData.course_id}
+                      onValueChange={(value) => setFormData({ ...formData, course_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um curso" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {filteredCourses.length === 0 ? (
+                          <div className="px-2 py-6 text-center text-sm text-gray-500">
+                            Nenhum curso encontrado
+                          </div>
+                        ) : (
+                          filteredCourses.map((course) => (
+                            <SelectItem key={course.id} value={course.id}>
+                              {course.title}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {courseSearchTerm && (
+                      <p className="text-xs text-gray-500">
+                        {filteredCourses.length} {filteredCourses.length === 1 ? 'curso encontrado' : 'cursos encontrados'}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">

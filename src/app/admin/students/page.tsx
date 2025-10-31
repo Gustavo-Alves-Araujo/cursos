@@ -27,6 +27,7 @@ export default function AdminStudentsPage() {
   const router = useRouter();
   const { courses, isLoading: coursesLoading } = useCourses();
   const [searchTerm, setSearchTerm] = useState("");
+  const [courseSearchTerm, setCourseSearchTerm] = useState("");
   const [students, setStudents] = useState<StudentWithEnrollments[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false); // Começar como false para evitar loading desnecessário
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
@@ -382,93 +383,193 @@ export default function AdminStudentsPage() {
           </Card>
         </div>
 
-        {/* Dialog de Configuração */}
-        <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-          <DialogContent className="max-w-4xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
+        {/* Dialog de Configuração - Melhorado */}
+        <Dialog open={isConfigDialogOpen} onOpenChange={(open) => {
+          setIsConfigDialogOpen(open);
+          if (!open) {
+            setCourseSearchTerm('');
+            fetchStudents();
+          }
+        }}>
+          <DialogContent className="min-w-full max-h-[90vh] bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden">
             <DialogHeader>
-              <DialogTitle className="text-blue-200 text-xl">
-                Configurar Cursos - {selectedStudentData?.name}
+              <DialogTitle className="text-blue-200 text-2xl">
+                Gerenciar Cursos - {selectedStudentData?.name}
               </DialogTitle>
               <DialogDescription className="text-blue-300">
-                Gerencie quais cursos este aluno possui e quais aparecem como disponíveis
+                Atribua ou remova cursos para este aluno
               </DialogDescription>
             </DialogHeader>
             
             {selectedStudentData && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                {/* Cursos Possuídos */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-blue-200 flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                    Cursos Matriculados ({selectedStudentData.enrollments.length})
-                  </h3>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {selectedStudentData.enrollments.map((courseId) => {
-                      const course = courses.find(c => c.id === courseId);
-                      if (!course) return null;
-                      return (
-                        <div key={courseId} className="flex items-center justify-between p-3 bg-green-500/10 rounded-lg border border-green-500/30">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle className="w-4 h-4 text-green-400" />
-                            <div>
-                              <p className="text-white font-medium">{course.title}</p>
-                              <p className="text-blue-300 text-sm">{course.shortDescription}</p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200"
-                            onClick={() => handleRemoveCourse(courseId)}
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      );
-                    })}
+              <div className="space-y-6 overflow-y-auto max-h-[calc(90vh-200px)] pr-2">
+                {/* Campo de Busca */}
+                <div className="sticky top-0 bg-gradient-to-b from-gray-900 to-gray-900/95 backdrop-blur-sm pb-4 z-10">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-300" />
+                    <Input
+                      placeholder="Buscar cursos..."
+                      value={courseSearchTerm}
+                      onChange={(e) => setCourseSearchTerm(e.target.value)}
+                      className="pl-10 bg-white/10 border-white/30 text-white placeholder:text-blue-300 focus:border-blue-400 focus:ring-blue-400/50"
+                    />
                   </div>
                 </div>
 
-                {/* Cursos Disponíveis */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-blue-200 flex items-center gap-2">
-                    <XCircle className="w-5 h-5 text-orange-400" />
-                    Cursos Disponíveis ({courses.filter(c => !selectedStudentData.enrollments.includes(c.id)).length})
-                  </h3>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {courses
-                      .filter(course => !selectedStudentData.enrollments.includes(course.id))
-                      .map((course) => (
-                        <div key={course.id} className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg border border-orange-500/30">
-                          <div className="flex items-center gap-3">
-                            <XCircle className="w-4 h-4 text-orange-400" />
-                            <div>
-                              <p className="text-white font-medium">{course.title}</p>
-                              <p className="text-blue-300 text-sm">{course.shortDescription}</p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleAssignCourse(course.id)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Cursos Matriculados */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-green-400 flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5" />
+                        Cursos Matriculados
+                      </h3>
+                      <span className="text-sm text-green-300 bg-green-500/20 px-3 py-1 rounded-full">
+                        {selectedStudentData.enrollments.filter(courseId => {
+                          const course = courses.find(c => c.id === courseId);
+                          return course && course.title.toLowerCase().includes(courseSearchTerm.toLowerCase());
+                        }).length}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                      {selectedStudentData.enrollments.length === 0 ? (
+                        <div className="text-center py-8 bg-white/5 rounded-lg border border-white/10">
+                          <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-400">Nenhum curso matriculado</p>
                         </div>
-                      ))}
+                      ) : (
+                        selectedStudentData.enrollments
+                          .map(courseId => courses.find(c => c.id === courseId))
+                          .filter(course => course && course.title.toLowerCase().includes(courseSearchTerm.toLowerCase()))
+                          .map((course) => {
+                            if (!course) return null;
+                            return (
+                              <div key={course.id} className="group p-4 bg-green-500/10 hover:bg-green-500/20 rounded-lg border border-green-500/30 hover:border-green-500/50 transition-all">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                                      <h4 className="text-white font-semibold truncate">{course.title}</h4>
+                                    </div>
+                                    <p className="text-blue-200 text-sm line-clamp-2 mb-2">{course.shortDescription}</p>
+                                    <div className="flex items-center gap-3 text-xs text-blue-300">
+                                      <span className="flex items-center gap-1">
+                                        <BookOpen className="w-3 h-3" />
+                                        {course.modules?.length || 0} módulos
+                                      </span>
+                                      {course.isPublished && (
+                                        <span className="px-2 py-0.5 bg-green-500/20 text-green-300 rounded">
+                                          Publicado
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-red-500/20 hover:bg-red-500/30 border-red-500/50 text-red-200 hover:text-red-100 flex-shrink-0"
+                                    onClick={() => handleRemoveCourse(course.id)}
+                                  >
+                                    <Minus className="w-4 h-4 mr-1" />
+                                    Remover
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Cursos Disponíveis */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-blue-400 flex items-center gap-2">
+                        <Plus className="w-5 h-5" />
+                        Cursos Disponíveis
+                      </h3>
+                      <span className="text-sm text-blue-300 bg-blue-500/20 px-3 py-1 rounded-full">
+                        {courses.filter(c => {
+                          const notEnrolled = !selectedStudentData.enrollments.includes(c.id);
+                          const matchesSearch = c.title.toLowerCase().includes(courseSearchTerm.toLowerCase());
+                          return notEnrolled && matchesSearch;
+                        }).length}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                      {courses
+                        .filter(course => {
+                          const notEnrolled = !selectedStudentData.enrollments.includes(course.id);
+                          const matchesSearch = course.title.toLowerCase().includes(courseSearchTerm.toLowerCase());
+                          return notEnrolled && matchesSearch;
+                        })
+                        .length === 0 ? (
+                          <div className="text-center py-8 bg-white/5 rounded-lg border border-white/10">
+                            <Search className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                            <p className="text-gray-400">
+                              {courseSearchTerm ? 'Nenhum curso encontrado' : 'Todos os cursos já foram atribuídos'}
+                            </p>
+                          </div>
+                        ) : (
+                          courses
+                            .filter(course => {
+                              const notEnrolled = !selectedStudentData.enrollments.includes(course.id);
+                              const matchesSearch = course.title.toLowerCase().includes(courseSearchTerm.toLowerCase());
+                              return notEnrolled && matchesSearch;
+                            })
+                            .map((course) => (
+                              <div key={course.id} className="group p-4 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg border border-blue-500/30 hover:border-blue-500/50 transition-all">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <BookOpen className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                      <h4 className="text-white font-semibold truncate">{course.title}</h4>
+                                    </div>
+                                    <p className="text-blue-200 text-sm line-clamp-2 mb-2">{course.shortDescription}</p>
+                                    <div className="flex items-center gap-3 text-xs text-blue-300">
+                                      <span className="flex items-center gap-1">
+                                        <BookOpen className="w-3 h-3" />
+                                        {course.modules?.length || 0} módulos
+                                      </span>
+                                      {course.isPublished ? (
+                                        <span className="px-2 py-0.5 bg-green-500/20 text-green-300 rounded">
+                                          Publicado
+                                        </span>
+                                      ) : (
+                                        <span className="px-2 py-0.5 bg-gray-500/20 text-gray-300 rounded">
+                                          Rascunho
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0"
+                                    onClick={() => handleAssignCourse(course.id)}
+                                  >
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    Adicionar
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                        )}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
-
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/20 mt-4">
               <Button 
                 variant="outline" 
                 className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
                 onClick={() => {
                   setIsConfigDialogOpen(false);
-                  fetchStudents(); // Recarregar dados
+                  setCourseSearchTerm('');
+                  fetchStudents();
                 }}
               >
                 Fechar
@@ -482,7 +583,8 @@ export default function AdminStudentsPage() {
           isOpen={isCreateStudentDialogOpen}
           onClose={() => setIsCreateStudentDialogOpen(false)}
           onSuccess={() => {
-            fetchStudents(); // Recarregar lista de alunos
+            setIsCreateStudentDialogOpen(false);
+            window.location.reload(); // Recarregar a página
           }}
         />
 
