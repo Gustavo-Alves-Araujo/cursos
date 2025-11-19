@@ -116,7 +116,8 @@ export async function POST(request: NextRequest) {
       filePath
     });
   } catch (error) {
-    console.error('Erro no upload de documento:', error);
+    console.error('❌ document-upload: Erro capturado:', error);
+    console.error('❌ document-upload: Stack trace:', error instanceof Error ? error.stack : 'N/A');
     return NextResponse.json(
       { error: 'Erro interno do servidor', details: error instanceof Error ? error.message : 'Erro desconhecido' },
       { status: 500 }

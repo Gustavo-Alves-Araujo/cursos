@@ -166,12 +166,32 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                         body: formData
                       });
 
+                      // Tentar obter o texto da resposta primeiro
+                      const responseText = await response.text();
+                      console.log('Resposta da API:', responseText);
+
                       if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || 'Erro no upload');
+                        let errorMessage = 'Erro no upload';
+                        try {
+                          const errorData = JSON.parse(responseText);
+                          errorMessage = errorData.error || errorMessage;
+                        } catch (e) {
+                          // Se não for JSON, usar o texto da resposta
+                          errorMessage = responseText || `Erro HTTP ${response.status}`;
+                        }
+                        throw new Error(errorMessage);
                       }
 
-                      const { url } = await response.json();
+                      let data;
+                      try {
+                        data = JSON.parse(responseText);
+                      } catch (e) {
+                        console.error('Erro ao fazer parse do JSON:', e);
+                        console.error('Resposta recebida:', responseText);
+                        throw new Error('Resposta inválida do servidor. Verifique o console para mais detalhes.');
+                      }
+
+                      const { url } = data;
                       
                       setState({ 
                         ...state, 
