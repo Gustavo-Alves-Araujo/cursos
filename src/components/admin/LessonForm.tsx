@@ -176,37 +176,50 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                       const filePath = `documents/${fileName}`;
 
-                      // ESTRATÉGIA: SEMPRE usar API (BYPASSA RLS com service_role)
-                      console.log('📁 Upload via API (bypass RLS)...');
+                      // ESTRATÉGIA: Gerar URL assinada e fazer upload direto (BYPASSA RLS!)
+                      console.log('🔑 Gerando URL assinada (bypass RLS)...');
                       
-                      const formData = new FormData();
-                      formData.append('file', file);
-
-                      const response = await fetch('/api/document-upload', {
+                      // Passo 1: Gerar URL assinada via API (usa service_role)
+                      const urlResponse = await fetch('/api/generate-upload-url', {
                         method: 'POST',
                         headers: {
-                          'Authorization': `Bearer ${session.access_token}`
+                          'Authorization': `Bearer ${session.access_token}`,
+                          'Content-Type': 'application/json'
                         },
-                        body: formData
+                        body: JSON.stringify({
+                          fileName: file.name,
+                          contentType: file.type
+                        })
                       });
 
-                      const responseText = await response.text();
-                      console.log('📥 Resposta da API:', responseText.substring(0, 200));
-                      
-                      if (!response.ok) {
-                        let errorMessage = 'Erro no upload';
-                        try {
-                          const errorData = JSON.parse(responseText);
-                          errorMessage = errorData.error || errorData.details || errorMessage;
-                        } catch (e) {
-                          errorMessage = responseText || `Erro HTTP ${response.status}`;
-                        }
-                        throw new Error(errorMessage);
+                      if (!urlResponse.ok) {
+                        const errorData = await urlResponse.json();
+                        throw new Error(errorData.error || 'Erro ao gerar URL de upload');
                       }
 
-                      const data = JSON.parse(responseText);
-                      const publicUrl = data.url;
-                      console.log('✅ Upload via API concluído (RLS bypassado)');
+                      const { uploadUrl, publicUrl, token } = await urlResponse.json();
+                      console.log('✅ URL assinada gerada');
+
+                      // Passo 2: Upload direto para Supabase usando URL assinada
+                      // Isso BYPASSA RLS porque a URL é assinada com service_role!
+                      console.log('📤 Fazendo upload direto para Supabase (até 50MB)...');
+                      
+                      const uploadResponse = await fetch(uploadUrl, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': file.type,
+                          'x-upsert': 'false'
+                        },
+                        body: file
+                      });
+
+                      if (!uploadResponse.ok) {
+                        const errorText = await uploadResponse.text();
+                        console.error('❌ Erro no upload:', errorText);
+                        throw new Error(`Erro no upload: ${uploadResponse.status} - ${errorText}`);
+                      }
+
+                      console.log('✅ Upload direto concluído! (RLS bypassado com signed URL)');
 
                       console.log('🔗 URL pública:', publicUrl);
                       
