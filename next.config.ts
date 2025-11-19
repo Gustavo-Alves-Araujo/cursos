@@ -19,6 +19,10 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "editorainfinitto.com",
+      },
+      {
+        protocol: "https",
         hostname: "membros.editorainfinitto.com",
       },
     ],

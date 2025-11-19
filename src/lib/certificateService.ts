@@ -439,37 +439,55 @@ export class CertificateService {
           console.log('📊 Tamanho do blob:', blob.size, 'bytes');
           console.log('📊 Tipo do blob:', blob.type);
           
-          // Fazer upload sem await (Promise direta)
-          supabase.storage
-            .from('certificates')
-            .upload(fileName, blob, {
-              contentType: 'image/png',
-              upsert: false,
-              cacheControl: '3600'
-            })
-            .then(({ error: uploadError }) => {
-              if (uploadError) {
-                console.error('❌ Erro no upload:', uploadError);
-                console.error('❌ Detalhes do erro:', {
-                  message: uploadError.message
-                });
-                reject(new Error(`Erro no upload: ${uploadError.message}`));
+          // Converter blob para base64
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const base64data = reader.result as string;
+              
+              // Obter token de autenticação
+              const { data: { session } } = await supabase.auth.getSession();
+              
+              if (!session) {
+                reject(new Error('Usuário não autenticado'));
                 return;
               }
 
-              console.log('✅ Upload realizado com sucesso');
+              // Fazer upload através da API que usa service role
+              const response = await fetch('/api/certificate-upload', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({
+                  fileName,
+                  imageData: base64data
+                })
+              });
 
-              // Obtém a URL pública
-              const { data: urlData } = supabase.storage
-                .from('certificates')
-                .getPublicUrl(fileName);
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error('❌ Erro no upload:', errorData);
+                reject(new Error(`Erro no upload: ${errorData.error || response.statusText}`));
+                return;
+              }
 
-              resolve(urlData.publicUrl);
-            })
-            .catch((error) => {
-              console.error('❌ Erro na Promise do upload:', error);
+              const { url } = await response.json();
+              console.log('✅ Upload realizado com sucesso:', url);
+              resolve(url);
+            } catch (error) {
+              console.error('❌ Erro no processo de upload:', error);
               reject(error);
-            });
+            }
+          };
+          
+          reader.onerror = () => {
+            console.error('❌ Erro ao ler blob');
+            reject(new Error('Erro ao processar imagem'));
+          };
+          
+          reader.readAsDataURL(blob);
         }, 'image/png');
       };
 
