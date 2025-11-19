@@ -142,63 +142,72 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                   const file = e.target.files?.[0];
                   if (file) {
                     try {
-                      // Validar tamanho do arquivo (10MB)
-                      if (file.size > 10 * 1024 * 1024) {
-                        alert('Arquivo muito grande. Máximo permitido: 10MB');
+                      // Validar tamanho do arquivo (50MB)
+                      if (file.size > 50 * 1024 * 1024) {
+                        alert('Arquivo muito grande. Máximo permitido: 50MB');
                         return;
                       }
                       
-                      // Upload via API para evitar problemas de RLS
+                      // Validar tipo de arquivo
+                      const allowedTypes = [
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'text/plain'
+                      ];
+                      
+                      if (!allowedTypes.includes(file.type)) {
+                        alert('Tipo de arquivo inválido. Use PDF, DOC, DOCX ou TXT.');
+                        return;
+                      }
+
+                      console.log('📤 Iniciando upload direto para Supabase...');
+                      console.log('📄 Arquivo:', file.name, file.type, file.size);
+
+                      // Verificar autenticação
                       const { data: { session } } = await supabase.auth.getSession();
                       if (!session) {
                         alert('Sessão expirada. Faça login novamente.');
                         return;
                       }
 
-                      const formData = new FormData();
-                      formData.append('file', file);
+                      // Gerar nome único para o arquivo
+                      const fileExt = file.name.split('.').pop();
+                      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                      const filePath = `documents/${fileName}`;
 
-                      const response = await fetch('/api/document-upload', {
-                        method: 'POST',
-                        headers: {
-                          'Authorization': `Bearer ${session.access_token}`
-                        },
-                        body: formData
-                      });
+                      console.log('📁 Upload para:', filePath);
 
-                      // Tentar obter o texto da resposta primeiro
-                      const responseText = await response.text();
-                      console.log('Resposta da API:', responseText);
+                      // Upload direto do cliente para Supabase Storage
+                      // Isso evita o limite de 4.5MB das serverless functions
+                      const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('course-documents')
+                        .upload(filePath, file, {
+                          contentType: file.type,
+                          upsert: false,
+                          cacheControl: '3600'
+                        });
 
-                      if (!response.ok) {
-                        let errorMessage = 'Erro no upload';
-                        try {
-                          const errorData = JSON.parse(responseText);
-                          errorMessage = errorData.error || errorMessage;
-                        } catch (e) {
-                          // Se não for JSON, usar o texto da resposta
-                          errorMessage = responseText || `Erro HTTP ${response.status}`;
-                        }
-                        throw new Error(errorMessage);
+                      if (uploadError) {
+                        console.error('❌ Erro no upload:', uploadError);
+                        throw new Error(uploadError.message || 'Erro ao fazer upload do arquivo');
                       }
 
-                      let data;
-                      try {
-                        data = JSON.parse(responseText);
-                      } catch (e) {
-                        console.error('Erro ao fazer parse do JSON:', e);
-                        console.error('Resposta recebida:', responseText);
-                        throw new Error('Resposta inválida do servidor. Verifique o console para mais detalhes.');
-                      }
+                      console.log('✅ Upload concluído:', uploadData);
 
-                      const { url } = data;
+                      // Obter URL pública
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('course-documents')
+                        .getPublicUrl(filePath);
+
+                      console.log('🔗 URL pública:', publicUrl);
                       
                       setState({ 
                         ...state, 
-                        content: { ...state.content, documentUrl: url }
+                        content: { ...state.content, documentUrl: publicUrl }
                       });
                     } catch (error) {
-                      console.error('Erro no upload:', error);
+                      console.error('❌ Erro no upload:', error);
                       alert('Erro ao fazer upload do arquivo: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
                     }
                   }
@@ -215,7 +224,7 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                     <span className="font-medium text-blue-400 hover:text-blue-300">Clique para selecionar</span> ou arraste o arquivo aqui
                   </p>
                   <p className="text-xs text-blue-300">
-                    PDF, DOC, DOCX, TXT (máx. 10MB)
+                    PDF, DOC, DOCX, TXT (máx. 50MB)
                   </p>
                 </div>
               </label>
