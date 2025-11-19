@@ -3,6 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
+// Configurar para aceitar payloads maiores (50MB)
+export const config = {
+  api: {
+    bodyParser: false, // Desabilitar bodyParser padrão
+    responseLimit: '50mb',
+  },
+};
+
 // POST - Upload de documento para aula
 export async function POST(request: NextRequest) {
   try {

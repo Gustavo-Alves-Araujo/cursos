@@ -176,77 +176,37 @@ export function LessonForm({ onSubmit, initialData, isLoading = false, moduleId,
                       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
                       const filePath = `documents/${fileName}`;
 
-                      let publicUrl: string;
+                      // ESTRATÉGIA: SEMPRE usar API (BYPASSA RLS com service_role)
+                      console.log('📁 Upload via API (bypass RLS)...');
+                      
+                      const formData = new FormData();
+                      formData.append('file', file);
 
-                      // ESTRATÉGIA: Tentar upload direto primeiro, se falhar por RLS, usar API
-                      try {
-                        console.log('📁 Tentando upload direto para:', filePath);
+                      const response = await fetch('/api/document-upload', {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: formData
+                      });
 
-                        // Tentar upload direto do cliente para Supabase Storage
-                        const { data: uploadData, error: uploadError } = await supabase.storage
-                          .from('course-documents')
-                          .upload(filePath, file, {
-                            contentType: file.type,
-                            upsert: false,
-                            cacheControl: '3600'
-                          });
-
-                        if (uploadError) {
-                          // Se for erro de RLS, tentar via API
-                          if (uploadError.message.includes('row-level security') || 
-                              uploadError.message.includes('policy')) {
-                            console.warn('⚠️ Erro de RLS, tentando via API...');
-                            throw new Error('RLS_ERROR');
-                          }
-                          throw uploadError;
+                      const responseText = await response.text();
+                      console.log('📥 Resposta da API:', responseText.substring(0, 200));
+                      
+                      if (!response.ok) {
+                        let errorMessage = 'Erro no upload';
+                        try {
+                          const errorData = JSON.parse(responseText);
+                          errorMessage = errorData.error || errorData.details || errorMessage;
+                        } catch (e) {
+                          errorMessage = responseText || `Erro HTTP ${response.status}`;
                         }
-
-                        console.log('✅ Upload direto concluído:', uploadData);
-
-                        // Obter URL pública
-                        const { data: { publicUrl: url } } = supabase.storage
-                          .from('course-documents')
-                          .getPublicUrl(filePath);
-
-                        publicUrl = url;
-
-                      } catch (directUploadError: any) {
-                        // Se falhou por RLS ou qualquer outro motivo, tentar via API
-                        console.log('🔄 Upload direto falhou, tentando via API...');
-                        
-                        // Verificar se o arquivo é pequeno o suficiente para a API (< 4MB)
-                        if (file.size > 4 * 1024 * 1024) {
-                          throw new Error('Erro de permissão no Supabase. Configure as políticas RLS (veja CORRIGIR-ERRO-RLS.md). Arquivos > 4MB precisam de RLS configurado.');
-                        }
-
-                        const formData = new FormData();
-                        formData.append('file', file);
-
-                        const response = await fetch('/api/document-upload', {
-                          method: 'POST',
-                          headers: {
-                            'Authorization': `Bearer ${session.access_token}`
-                          },
-                          body: formData
-                        });
-
-                        const responseText = await response.text();
-                        
-                        if (!response.ok) {
-                          let errorMessage = 'Erro no upload via API';
-                          try {
-                            const errorData = JSON.parse(responseText);
-                            errorMessage = errorData.error || errorMessage;
-                          } catch (e) {
-                            errorMessage = responseText || `Erro HTTP ${response.status}`;
-                          }
-                          throw new Error(errorMessage);
-                        }
-
-                        const data = JSON.parse(responseText);
-                        publicUrl = data.url;
-                        console.log('✅ Upload via API concluído');
+                        throw new Error(errorMessage);
                       }
+
+                      const data = JSON.parse(responseText);
+                      const publicUrl = data.url;
+                      console.log('✅ Upload via API concluído (RLS bypassado)');
 
                       console.log('🔗 URL pública:', publicUrl);
                       

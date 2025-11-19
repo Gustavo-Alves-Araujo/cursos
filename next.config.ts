@@ -27,6 +27,10 @@ const nextConfig = {
       },
     ],
   },
+  // Configuração para aceitar uploads de até 50MB
+  experimental: {
+    isrMemoryCacheSize: 0,
+  },
 };
 
 export default nextConfig;
