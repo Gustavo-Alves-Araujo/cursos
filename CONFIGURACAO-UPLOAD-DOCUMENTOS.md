@@ -30,6 +30,9 @@ FUNCTION_PAYLOAD_TOO_LARGE
 
 ## 🚀 Configuração Necessária no Supabase
 
+> ⚠️ **ERRO RLS em produção?** Se você está vendo "new row violates row-level security policy", 
+> siga o guia rápido: [`CORRIGIR-ERRO-RLS.md`](./CORRIGIR-ERRO-RLS.md)
+
 ### Passo 1: Criar o Bucket
 
 1. Acesse o Supabase Dashboard
