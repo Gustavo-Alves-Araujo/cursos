@@ -264,7 +264,8 @@ export async function POST(request: NextRequest) {
             .from('course_enrollments')
             .upsert({
               user_id: currentUserId,
-              course_id: courseId
+              course_id: courseId,
+              enrolled_at: new Date().toISOString() // Data de matrícula
             }, {
               onConflict: 'user_id,course_id'
             });

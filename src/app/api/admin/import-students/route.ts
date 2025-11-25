@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
               .insert({
                 user_id: newUser.user.id,
                 course_id: courseId,
-                created_at: new Date().toISOString()
+                enrolled_at: new Date().toISOString() // Data de matrícula
               });
             
             if (enrollError) {

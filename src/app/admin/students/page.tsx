@@ -145,7 +145,8 @@ export default function AdminStudentsPage() {
         .from('course_enrollments')
         .insert({
           user_id: selectedStudent,
-          course_id: courseId
+          course_id: courseId,
+          enrolled_at: new Date().toISOString() // Data de matrícula
         });
 
       if (error) throw error;

@@ -36,6 +36,7 @@ export type Module = {
   order: number;
   unlockAfterDays: number; // dias após atribuição do curso para liberar este módulo
   isPublished: boolean;
+  isUnlocked?: boolean; // se o módulo está desbloqueado para o aluno (baseado em unlockAfterDays)
   lessons: Lesson[];
   created_at: string;
   updated_at: string;

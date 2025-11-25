@@ -237,26 +237,36 @@ export function useCourses() {
     }
   }, [fetchCourses]);
 
-  const createModule = useCallback(async (courseId: string, moduleData: Omit<Module, 'id' | 'courseId' | 'created_at' | 'updated_at' | 'lessons'>) => {
+  const createModule = useCallback(async (courseId: string, moduleData: Omit<Module, 'id' | 'courseId' | 'created_at' | 'updated_at' | 'lessons' | 'isUnlocked'>) => {
     try {
+      console.log('createModule - courseId:', courseId);
+      console.log('createModule - moduleData:', moduleData);
+      
+      const insertData = {
+        course_id: courseId,
+        title: moduleData.title,
+        description: moduleData.description || null,
+        order_index: moduleData.order,
+        unlock_after_days: moduleData.unlockAfterDays || 0,
+        is_published: moduleData.isPublished
+      };
+      
+      console.log('createModule - insertData:', insertData);
+      
       const { data, error } = await supabase
         .from('modules')
-        .insert({
-          course_id: courseId,
-          title: moduleData.title,
-          description: moduleData.description,
-          order_index: moduleData.order,
-          unlock_after_days: moduleData.unlockAfterDays,
-          is_published: moduleData.isPublished
-        })
+        .insert(insertData)
         .select()
         .single();
+
+      console.log('createModule - resultado:', { data, error });
 
       if (error) throw error;
 
       await fetchCourses(); // Recarregar lista
       return data;
     } catch (err) {
+      console.error('createModule - erro completo:', err);
       throw new Error(err instanceof Error ? err.message : 'Erro ao criar módulo');
     }
   }, [fetchCourses]);
@@ -447,10 +457,10 @@ export function useMyCourses() {
       setIsLoading(true);
       console.log('fetchMyCourses - buscando cursos para usuário:', user.id);
 
-      // Buscar matrículas do usuário
+      // Buscar matrículas do usuário COM DATA DE MATRÍCULA
       const { data: enrollments, error: enrollmentError } = await supabase
         .from('course_enrollments')
-        .select('course_id')
+        .select('course_id, enrolled_at')
         .eq('user_id', user.id);
 
       console.log('fetchMyCourses - matrículas encontradas:', enrollments);
@@ -466,7 +476,15 @@ export function useMyCourses() {
       }
 
       const courseIds = enrollments.map(e => e.course_id);
+      
+      // Criar mapa de data de matrícula por curso
+      const enrollmentDates = new Map<string, string>();
+      enrollments.forEach(e => {
+        enrollmentDates.set(e.course_id, e.enrolled_at);
+      });
+      
       console.log('fetchMyCourses - IDs dos cursos:', courseIds);
+      console.log('fetchMyCourses - datas de matrícula:', enrollmentDates);
 
       // Buscar cursos matriculados
       const { data: courses, error: coursesError } = await supabase
@@ -501,6 +519,11 @@ export function useMyCourses() {
         const courseLessons = progressData?.filter(p => p.course_id === course.id) || [];
         const completedLessons = courseLessons.map(p => p.lesson_id);
 
+        // Obter data de matrícula do curso
+        const enrolledAt = enrollmentDates.get(course.id);
+        const enrollmentDate = enrolledAt ? new Date(enrolledAt) : null;
+        const now = new Date();
+
         return {
           id: course.id,
           title: course.title,
@@ -513,15 +536,29 @@ export function useMyCourses() {
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
           expirationDays: course.expiration_days || 0,
-          modules: course.modules?.map((module: Record<string, unknown>) => ({
-            id: module.id,
-            courseId: module.course_id,
-            title: module.title,
-            description: module.description,
-            order: module.order_index,
-            unlockAfterDays: module.unlock_after_days,
-            isPublished: module.is_published,
-            lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
+          modules: course.modules?.map((module: Record<string, unknown>) => {
+            // Verificar se o módulo está liberado baseado em unlockAfterDays
+            const unlockAfterDays = Number(module.unlock_after_days) || 0;
+            let isUnlocked = true;
+            
+            if (enrollmentDate && unlockAfterDays > 0) {
+              const unlockDate = new Date(enrollmentDate);
+              unlockDate.setDate(unlockDate.getDate() + unlockAfterDays);
+              isUnlocked = now >= unlockDate;
+              
+              console.log(`Módulo "${module.title}": matricula=${enrolledAt}, liberaEm=${unlockDate.toISOString()}, desbloqueado=${isUnlocked}`);
+            }
+            
+            return {
+              id: module.id,
+              courseId: module.course_id,
+              title: module.title,
+              description: module.description,
+              order: module.order_index,
+              unlockAfterDays: unlockAfterDays,
+              isPublished: module.is_published,
+              isUnlocked: isUnlocked, // NOVO CAMPO
+              lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
               // Garantir que content seja um objeto
               let content = lesson.content;
               if (typeof content === 'string') {
@@ -546,9 +583,10 @@ export function useMyCourses() {
                 updated_at: lesson.updated_at
               };
             }) : [],
-            created_at: module.created_at,
-            updated_at: module.updated_at
-          })) || [],
+              created_at: module.created_at,
+              updated_at: module.updated_at
+            };
+          }) || [],
           created_at: course.created_at,
           updated_at: course.updated_at
         };
@@ -562,7 +600,7 @@ export function useMyCourses() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, hasLoaded, myCourses.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Só carregar se não foi carregado ainda ou se o usuário mudou
@@ -625,6 +663,11 @@ export function useMyCourses() {
       const courseLessons = progressData?.filter(p => p.course_id === courseId) || [];
       const completedLessons = courseLessons.map(p => p.lesson_id);
 
+      // Obter data de matrícula
+      const enrolledAt = enrollment.enrolled_at;
+      const enrollmentDate = enrolledAt ? new Date(enrolledAt) : null;
+      const now = new Date();
+
       const transformedCourse: Course = {
         id: course.id,
         title: course.title,
@@ -637,15 +680,29 @@ export function useMyCourses() {
         totalLessons: course.total_lessons,
         estimatedDuration: course.estimated_duration,
         expirationDays: course.expiration_days,
-        modules: course.modules?.map((module: Record<string, unknown>) => ({
-          id: module.id,
-          courseId: module.course_id,
-          title: module.title,
-          description: module.description,
-          order: module.order_index,
-          unlockAfterDays: module.unlock_after_days,
-          isPublished: module.is_published,
-          lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
+        modules: course.modules?.map((module: Record<string, unknown>) => {
+          // Verificar se o módulo está liberado baseado em unlockAfterDays
+          const unlockAfterDays = Number(module.unlock_after_days) || 0;
+          let isUnlocked = true;
+          
+          if (enrollmentDate && unlockAfterDays > 0) {
+            const unlockDate = new Date(enrollmentDate);
+            unlockDate.setDate(unlockDate.getDate() + unlockAfterDays);
+            isUnlocked = now >= unlockDate;
+            
+            console.log(`[checkCourseAccess] Módulo "${module.title}": matricula=${enrolledAt}, liberaEm=${unlockDate.toISOString()}, desbloqueado=${isUnlocked}`);
+          }
+          
+          return {
+            id: module.id,
+            courseId: module.course_id,
+            title: module.title,
+            description: module.description,
+            order: module.order_index,
+            unlockAfterDays: unlockAfterDays,
+            isPublished: module.is_published,
+            isUnlocked: isUnlocked,
+            lessons: Array.isArray(module.lessons) ? module.lessons.map((lesson: Record<string, unknown>) => {
             // Garantir que content seja um objeto
             let content = lesson.content;
             if (typeof content === 'string') {
@@ -670,9 +727,10 @@ export function useMyCourses() {
               updated_at: lesson.updated_at
             };
           }) : [],
-          created_at: module.created_at,
-          updated_at: module.updated_at
-        })) || [],
+            created_at: module.created_at,
+            updated_at: module.updated_at
+          };
+        }) || [],
         created_at: course.created_at,
         updated_at: course.updated_at
       };

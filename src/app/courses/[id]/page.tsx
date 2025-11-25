@@ -87,10 +87,13 @@ export default function CoursePage() {
         if (foundCourse) {
           console.log('CoursePage - curso encontrado em myCourses:', foundCourse);
           setCourse(foundCourse);
-          // Extrair todas as aulas de todos os módulos
+          // Extrair todas as aulas APENAS de módulos desbloqueados
           const allLessons: Lesson[] = [];
           foundCourse.modules.forEach(module => {
-            allLessons.push(...module.lessons);
+            // Só adicionar aulas de módulos desbloqueados
+            if (module.isUnlocked !== false) {
+              allLessons.push(...module.lessons);
+            }
           });
           const sortedLessons = allLessons.sort((a, b) => a.order - b.order);
           setLessons(sortedLessons);
@@ -120,10 +123,13 @@ export default function CoursePage() {
       if (courseData) {
         console.log('CoursePage - curso encontrado via checkCourseAccess:', courseData);
         setCourse(courseData);
-        // Extrair todas as aulas de todos os módulos
+        // Extrair todas as aulas APENAS de módulos desbloqueados
         const allLessons: Lesson[] = [];
         courseData.modules.forEach(module => {
-          allLessons.push(...module.lessons);
+          // Só adicionar aulas de módulos desbloqueados
+          if (module.isUnlocked !== false) {
+            allLessons.push(...module.lessons);
+          }
         });
         const sortedLessons = allLessons.sort((a, b) => a.order - b.order);
         setLessons(sortedLessons);
@@ -150,7 +156,7 @@ export default function CoursePage() {
     };
     
     loadCourse();
-  }, [user, isLoading, router, id, myCourses, hasLoadedCourse, lessons, selectedLesson]); // Incluído todas as dependências necessárias
+  }, [user, isLoading, router, id, myCourses, checkCourseAccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading || coursesLoading) {
     return (
@@ -183,9 +189,21 @@ export default function CoursePage() {
     );
   }
 
+  // Contar TODAS as aulas (incluindo de módulos bloqueados) para progresso real
+  const allLessonsCount = course.modules.reduce((total, module) => total + module.lessons.length, 0);
+  
+  // Contar aulas concluídas apenas de módulos desbloqueados
   const completedLessons = lessons.filter(l => l.completed).length;
-  const totalLessons = lessons.length;
-  const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+  
+  // Total de aulas acessíveis (apenas de módulos desbloqueados)
+  const totalAccessibleLessons = lessons.length;
+  
+  // Percentual baseado em TODAS as aulas do curso
+  const progressPercentage = allLessonsCount > 0 ? (completedLessons / allLessonsCount) * 100 : 0;
+  
+  // Verificar se tem módulos bloqueados
+  const hasLockedModules = course.modules.some(m => m.isUnlocked === false);
+  const lockedModulesCount = course.modules.filter(m => m.isUnlocked === false).length;
 
   const handleLessonSelect = (lesson: Lesson) => {
     // Se for uma aula de vídeo, fazer reload da página para garantir que o vídeo carregue corretamente
@@ -300,49 +318,65 @@ export default function CoursePage() {
               <div className="space-y-4">
                 {course.modules
                   .sort((a, b) => a.order - b.order)
-                  .map((module, moduleIndex) => (
-                    <div key={module.id} className="space-y-3">
-                      {/* Cabeçalho do Módulo */}
-                      <div className="px-3 py-2 bg-white/10 rounded-lg">
-                        <h3 className="text-sm font-semibold text-blue-200">
-                          {module.title}
-                        </h3>
-                      </div>
-                      
-                      {/* Aulas do Módulo */}
-                      <div className="ml-4 space-y-2">
-                        {module.lessons
-                          .sort((a, b) => a.order - b.order)
-                          .map((lesson, lessonIndex) => (
-                            <div
-                              key={lesson.id}
-                              className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                                selectedLesson.id === lesson.id
-                                  ? 'bg-blue-500/20 border border-blue-500/50'
-                                  : 'bg-white/5 hover:bg-white/10 border border-transparent'
-                              }`}
-                              onClick={() => setSelectedLesson(lesson)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
-                                  <span className="text-white text-sm font-semibold">{lessonIndex + 1}</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-sm font-medium text-white line-clamp-2">{lesson.title}</h4>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    {getLessonIcon(lesson.type)}
-                                    <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
-                                    {lesson.completed && (
-                                      <CheckCircle className="w-4 h-4 text-blue-400" />
-                                    )}
+                  .map((module) => {
+                    const isLocked = module.isUnlocked === false;
+                    
+                    return (
+                      <div key={module.id} className="space-y-3">
+                        {/* Cabeçalho do Módulo */}
+                        <div className={`px-3 py-2 rounded-lg ${
+                          isLocked ? 'bg-gray-500/20' : 'bg-white/10'
+                        }`}>
+                          <h3 className={`text-sm font-semibold flex items-center gap-2 ${
+                            isLocked ? 'text-gray-400' : 'text-blue-200'
+                          }`}>
+                            {isLocked && <span>🔒</span>}
+                            {module.title}
+                          </h3>
+                          {isLocked && module.unlockAfterDays > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Libera em {module.unlockAfterDays} dias após matrícula
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Aulas do Módulo */}
+                        {!isLocked && (
+                          <div className="ml-4 space-y-2">
+                            {module.lessons
+                              .sort((a, b) => a.order - b.order)
+                              .map((lesson, lessonIndex) => (
+                                <div
+                                  key={lesson.id}
+                                  className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                    selectedLesson.id === lesson.id
+                                      ? 'bg-blue-500/20 border border-blue-500/50'
+                                      : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                                  }`}
+                                  onClick={() => setSelectedLesson(lesson)}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
+                                      <span className="text-white text-sm font-semibold">{lessonIndex + 1}</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="text-sm font-medium text-white line-clamp-2">{lesson.title}</h4>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        {getLessonIcon(lesson.type)}
+                                        <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
+                                        {lesson.completed && (
+                                          <CheckCircle className="w-4 h-4 text-blue-400" />
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </div>
-                          ))}
+                              ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -447,52 +481,68 @@ export default function CoursePage() {
                 <div className="space-y-4">
                   {course.modules
                     .sort((a, b) => a.order - b.order)
-                    .map((module, moduleIndex) => (
-                      <div key={module.id} className="space-y-3">
-                        {/* Cabeçalho do Módulo */}
-                        <div className="px-3 py-2 bg-white/10 rounded-lg">
-                          <h3 className="text-sm font-semibold text-blue-200">
-                            {module.title}
-                          </h3>
-                        </div>
-                        
-                        {/* Aulas do Módulo */}
-                        <div className="ml-4 space-y-2">
-                          {module.lessons
-                            .sort((a, b) => a.order - b.order)
-                            .map((lesson, lessonIndex) => (
-                              <div
-                                key={lesson.id}
-                                className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                                  selectedLesson.id === lesson.id
-                                    ? 'bg-blue-500/20 border border-blue-500/50'
-                                    : 'bg-white/5 hover:bg-white/10 border border-transparent'
-                                }`}
-                                onClick={() => {
-                                  setSelectedLesson(lesson);
-                                  setSidebarOpen(false);
-                                }}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
-                                    <span className="text-white text-sm font-semibold">{lessonIndex + 1}</span>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-medium text-white line-clamp-2">{lesson.title}</h4>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      {getLessonIcon(lesson.type)}
-                                      <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
-                                      {lesson.completed && (
-                                        <CheckCircle className="w-4 h-4 text-blue-400" />
-                                      )}
+                    .map((module) => {
+                      const isLocked = module.isUnlocked === false;
+                      
+                      return (
+                        <div key={module.id} className="space-y-3">
+                          {/* Cabeçalho do Módulo */}
+                          <div className={`px-3 py-2 rounded-lg ${
+                            isLocked ? 'bg-gray-500/20' : 'bg-white/10'
+                          }`}>
+                            <h3 className={`text-sm font-semibold flex items-center gap-2 ${
+                              isLocked ? 'text-gray-400' : 'text-blue-200'
+                            }`}>
+                              {isLocked && <span>🔒</span>}
+                              {module.title}
+                            </h3>
+                            {isLocked && module.unlockAfterDays > 0 && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Libera em {module.unlockAfterDays} dias após matrícula
+                              </p>
+                            )}
+                          </div>
+                          
+                          {/* Aulas do Módulo */}
+                          {!isLocked && (
+                            <div className="ml-4 space-y-2">
+                              {module.lessons
+                                .sort((a, b) => a.order - b.order)
+                                .map((lesson, lessonIndex) => (
+                                  <div
+                                    key={lesson.id}
+                                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                                      selectedLesson.id === lesson.id
+                                        ? 'bg-blue-500/20 border border-blue-500/50'
+                                        : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedLesson(lesson);
+                                      setSidebarOpen(false);
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
+                                        <span className="text-white text-sm font-semibold">{lessonIndex + 1}</span>
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <h4 className="text-sm font-medium text-white line-clamp-2">{lesson.title}</h4>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          {getLessonIcon(lesson.type)}
+                                          <span className="text-xs text-blue-300">{getLessonTypeText(lesson.type)}</span>
+                                          {lesson.completed && (
+                                            <CheckCircle className="w-4 h-4 text-blue-400" />
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </div>
-                            ))}
+                                ))}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                 </div>
               </div>
             </div>
@@ -528,16 +578,21 @@ export default function CoursePage() {
 
         {/* Progresso do Curso */}
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-blue-200">Progresso do Curso</h2>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="bg-white/10 border-white/20 text-blue-200">
-                {completedLessons}/{totalLessons} aulas concluídas
+                {completedLessons}/{allLessonsCount} aulas concluídas
               </Badge>
-              {progressPercentage === 100 && (
+              {progressPercentage === 100 && !hasLockedModules && (
                 <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white">
                   <Trophy className="w-3 h-3 mr-1" />
                   Concluído!
+                </Badge>
+              )}
+              {hasLockedModules && (
+                <Badge className="bg-orange-500/20 text-orange-200 border-orange-500/50">
+                  🔒 {lockedModulesCount} módulo(s) bloqueado(s)
                 </Badge>
               )}
             </div>
@@ -563,18 +618,22 @@ export default function CoursePage() {
             </div>
             
             {/* Estatísticas Detalhadas */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-4 gap-3 sm:gap-4 pt-4 border-t border-white/10">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">{completedLessons}</div>
                 <div className="text-xs text-blue-200">Concluídas</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">{totalLessons - completedLessons}</div>
+                <div className="text-2xl font-bold text-white">{allLessonsCount - completedLessons}</div>
                 <div className="text-xs text-blue-200">Restantes</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">{course.modules.length}</div>
-                <div className="text-xs text-blue-200">Módulos</div>
+                <div className="text-2xl font-bold text-white">{course.modules.length - lockedModulesCount}</div>
+                <div className="text-xs text-blue-200">Liberados</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-300">{lockedModulesCount}</div>
+                <div className="text-xs text-orange-200">Bloqueados</div>
               </div>
             </div>
           </div>
@@ -583,7 +642,7 @@ export default function CoursePage() {
         {/* Ações do Curso */}
         {lessons.length > 0 && (
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
-            {progressPercentage === 100 ? (
+            {progressPercentage === 100 && !hasLockedModules ? (
               <div className="text-center space-y-4">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
@@ -619,6 +678,40 @@ export default function CoursePage() {
                   </Button>
                 </div>
               </div>
+            ) : hasLockedModules && totalAccessibleLessons > 0 && completedLessons === totalAccessibleLessons ? (
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center">
+                    <span className="text-4xl">🔒</span>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Continue Estudando!</h2>
+                    <p className="text-blue-200">Você completou os módulos liberados</p>
+                  </div>
+                </div>
+                
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+                  <p className="text-orange-200 mb-2">
+                    Existem {lockedModulesCount} módulo(s) que serão liberados em breve.
+                  </p>
+                  <p className="text-orange-300 text-sm">
+                    Os módulos são liberados automaticamente conforme o período de acesso configurado.
+                  </p>
+                </div>
+
+                <Button 
+                  variant="outline"
+                  className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200 px-6 py-3"
+                  onClick={() => {
+                    if (lessons.length > 0) {
+                      setSelectedLesson(lessons[0]);
+                    }
+                  }}
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Revisar Módulos Liberados
+                </Button>
+              </div>
             ) : (
               <div className="text-center space-y-4">
                 <h2 className="text-xl font-semibold text-blue-200 mb-4">
@@ -646,8 +739,10 @@ export default function CoursePage() {
                       variant="outline"
                       className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200 px-6 py-3"
                       onClick={() => {
-                        // Mostrar estatísticas detalhadas
-                        alert(`Você já concluiu ${completedLessons} de ${totalLessons} aulas (${Math.round(progressPercentage)}%)`);
+                        const message = hasLockedModules 
+                          ? `Você concluiu ${completedLessons} de ${allLessonsCount} aulas (${Math.round(progressPercentage)}%)\n\nMódulos bloqueados: ${lockedModulesCount}\nOs módulos bloqueados serão liberados automaticamente.`
+                          : `Você já concluiu ${completedLessons} de ${allLessonsCount} aulas (${Math.round(progressPercentage)}%)`;
+                        alert(message);
                       }}
                     >
                       <CheckCircle className="w-5 h-5 mr-2" />
@@ -666,20 +761,45 @@ export default function CoursePage() {
             <h2 className="text-2xl font-semibold text-blue-200">Aulas do Curso</h2>
             <div className="flex items-center gap-2 text-sm text-blue-300">
               <CheckCircle className="w-4 h-4 text-blue-400" />
-              <span>{completedLessons} de {totalLessons} concluídas</span>
+              <span>{completedLessons} de {allLessonsCount} concluídas</span>
+              {hasLockedModules && (
+                <Badge className="bg-orange-500/20 text-orange-200 border-orange-500/50 text-xs ml-2">
+                  🔒 {lockedModulesCount}
+                </Badge>
+              )}
             </div>
           </div>
           
           <div className="space-y-4">
             {course.modules
               .sort((a, b) => a.order - b.order)
-              .map((module, moduleIndex) => (
+              .map((module) => {
+                // Verificar se módulo está bloqueado
+                const isLocked = module.isUnlocked === false;
+                
+                return (
                 <div key={module.id} className="space-y-3">
                   {/* Cabeçalho do Módulo */}
-                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                  <div className={`backdrop-blur-sm rounded-xl p-4 border ${
+                    isLocked 
+                      ? 'bg-gray-500/10 border-gray-500/30 opacity-60' 
+                      : 'bg-white/5 border-white/10'
+                  }`}>
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white">{module.title}</h3>
+                        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                          {module.title}
+                          {isLocked && (
+                            <Badge className="bg-orange-500/20 text-orange-200 border-orange-500/50 text-xs">
+                              🔒 Bloqueado
+                            </Badge>
+                          )}
+                        </h3>
+                        {isLocked && module.unlockAfterDays > 0 && (
+                          <p className="text-sm text-gray-400 mt-1">
+                            Será liberado {module.unlockAfterDays} dias após sua matrícula no curso
+                          </p>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-blue-300">
@@ -698,99 +818,108 @@ export default function CoursePage() {
                   </div>
                   
                   {/* Aulas do Módulo */}
-                  <div className="ml-4 space-y-2">
-                    {module.lessons
-                      .sort((a, b) => a.order - b.order)
-                      .map((lesson, lessonIndex) => (
-                        <Card 
-                          key={lesson.id} 
-                          className={`bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 ${
-                            lesson.completed ? 'border-blue-500/30 bg-blue-500/5' : ''
-                          }`}
-                        >
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                                  lesson.completed 
-                                    ? 'bg-gradient-to-br from-blue-500 to-cyan-500' 
-                                    : 'bg-white/10'
-                                }`}>
-                                  {lesson.completed ? (
-                                    <CheckCircle className="w-5 h-5 text-white" />
-                                  ) : (
-                                    <span className="text-white font-semibold">{lessonIndex + 1}</span>
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                                    {getLessonIcon(lesson.type)}
-                                    {lesson.title}
-                                    {lesson.completed && (
-                                      <Badge className="bg-blue-500/20 text-blue-200 border-blue-500/50 text-xs">
-                                        Concluída
-                                      </Badge>
-                                    )}
-                                  </CardTitle>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <Badge 
-                                  variant="outline" 
-                                  className={`${
+                  {!isLocked ? (
+                    <div className="ml-4 space-y-2">
+                      {module.lessons
+                        .sort((a, b) => a.order - b.order)
+                        .map((lesson, lessonIndex) => (
+                          <Card 
+                            key={lesson.id} 
+                            className={`bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all duration-300 ${
+                              lesson.completed ? 'border-blue-500/30 bg-blue-500/5' : ''
+                            }`}
+                          >
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                                     lesson.completed 
-                                      ? 'bg-blue-500/20 border-blue-500/50 text-blue-200' 
-                                      : 'bg-white/10 border-white/20 text-blue-200'
-                                  }`}
-                                >
-                                  {getLessonTypeText(lesson.type)}
-                                </Badge>
+                                      ? 'bg-gradient-to-br from-blue-500 to-cyan-500' 
+                                      : 'bg-white/10'
+                                  }`}>
+                                    {lesson.completed ? (
+                                      <CheckCircle className="w-5 h-5 text-white" />
+                                    ) : (
+                                      <span className="text-white font-semibold">{lessonIndex + 1}</span>
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <CardTitle className="text-lg text-white flex items-center gap-2">
+                                      {getLessonIcon(lesson.type)}
+                                      {lesson.title}
+                                      {lesson.completed && (
+                                        <Badge className="bg-blue-500/20 text-blue-200 border-blue-500/50 text-xs">
+                                          Concluída
+                                        </Badge>
+                                      )}
+                                    </CardTitle>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`${
+                                      lesson.completed 
+                                        ? 'bg-blue-500/20 border-blue-500/50 text-blue-200' 
+                                        : 'bg-white/10 border-white/20 text-blue-200'
+                                    }`}
+                                  >
+                                    {getLessonTypeText(lesson.type)}
+                                  </Badge>
+                                </div>
                               </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex gap-2">
-                              <Button 
-                                className={`flex-1 ${
-                                  lesson.completed 
-                                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' 
-                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
-                                }`}
-                                onClick={() => handleLessonSelect(lesson)}
-                              >
-                                <Play className="w-4 h-4 mr-2" />
-                                {lesson.completed ? 'Revisar Aula' : 'Iniciar Aula'}
-                              </Button>
-                              
-                              {lesson.type === 'document' && (
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex gap-2">
+                                <Button 
+                                  className={`flex-1 ${
+                                    lesson.completed 
+                                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' 
+                                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                                  }`}
+                                  onClick={() => handleLessonSelect(lesson)}
+                                >
+                                  <Play className="w-4 h-4 mr-2" />
+                                  {lesson.completed ? 'Revisar Aula' : 'Iniciar Aula'}
+                                </Button>
+                                
+                                {lesson.type === 'document' && (
+                                  <Button 
+                                    variant="outline" 
+                                    className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
+                                    onClick={() => {
+                                      // Simular download do documento
+                                      alert(`Baixando documento: ${lesson.title}`);
+                                    }}
+                                  >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Baixar
+                                  </Button>
+                                )}
+                                
                                 <Button 
                                   variant="outline" 
                                   className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-                                  onClick={() => {
-                                    // Simular download do documento
-                                    alert(`Baixando documento: ${lesson.title}`);
-                                  }}
+                                  onClick={() => handleLessonSelect(lesson)}
                                 >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Baixar
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Visualizar
                                 </Button>
-                              )}
-                              
-                              <Button 
-                                variant="outline" 
-                                className="bg-white/10 hover:bg-white/20 border-white/20 text-blue-200"
-                                onClick={() => handleLessonSelect(lesson)}
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                Visualizar
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="ml-4 p-6 bg-gray-500/10 border border-gray-500/30 rounded-lg text-center">
+                      <p className="text-gray-400 text-sm">
+                        As aulas deste módulo estarão disponíveis em breve
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ))}
+              );
+            })}
           </div>
         </section>
       </main>
