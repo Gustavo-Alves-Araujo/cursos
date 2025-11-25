@@ -99,11 +99,18 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleEditLesson = async (lessonData: Partial<Lesson>) => {
-    if (!editingLesson) return;
+  const handleEditLesson = async (lessonData: { title: string; type: 'video' | 'document' | 'text'; content: Record<string, unknown>; order: number; isPublished: boolean }) => {
+    console.log('handleEditLesson chamado com:', lessonData);
+    
+    if (!editingLesson) {
+      console.error('editingLesson não definido');
+      return;
+    }
     
     try {
+      console.log('Chamando updateLesson...');
       await updateLesson(editingLesson.id, lessonData);
+      console.log('Aula atualizada com sucesso');
       setIsEditLessonDialogOpen(false);
       setEditingLesson(null);
     } catch (error) {
@@ -330,14 +337,8 @@ export default function CourseDetailPage() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-500">Preço</label>
-              <p className="text-lg font-semibold">
-                {course.price > 0 ? `R$ ${course.price.toFixed(2)}` : 'Gratuito'}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-500">Duração Estimada</label>
-              <p className="text-lg font-semibold">{course.estimatedDuration}</p>
+              <label className="text-sm font-medium text-gray-500">Número de Módulos</label>
+              <p className="text-lg font-semibold">{course.modules.length}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-500">Total de Aulas</label>
@@ -397,7 +398,7 @@ export default function CourseDetailPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-semibold">
-                        Módulo {module.order}: {module.title}
+                        {module.title}
                       </h3>
                       <div className="flex items-center gap-4 mt-2">
                         <Badge variant={module.isPublished ? "default" : "secondary"}>
@@ -586,8 +587,15 @@ export default function CourseDetailPage() {
       </Dialog>
 
       {/* Dialog para editar aula */}
-      <Dialog open={isEditLessonDialogOpen} onOpenChange={setIsEditLessonDialogOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
+      <Dialog open={isEditLessonDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsEditLessonDialogOpen(false);
+          setEditingLesson(null);
+        } else {
+          setIsEditLessonDialogOpen(open);
+        }
+      }}>
+        <DialogContent className="min-w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Aula</DialogTitle>
             <DialogDescription>
@@ -597,6 +605,7 @@ export default function CourseDetailPage() {
           <div className="overflow-y-auto max-h-[calc(90vh-120px)] pr-2">
             {editingLesson && (
               <LessonForm
+                key={`edit-lesson-form-${editingLesson.id}`}
                 onSubmit={handleEditLesson}
                 moduleId={editingLesson.moduleId}
                 initialData={editingLesson}
