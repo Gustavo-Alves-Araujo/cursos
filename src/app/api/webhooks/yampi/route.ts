@@ -239,24 +239,44 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Criar matrícula no curso (se necessário)
-      if (integration.course_id) {
-        console.log('Criando matrícula para o curso:', integration.course_id);
+      // Determinar quais cursos matricular
+      let coursesToEnroll: string[] = [];
+      
+      // Prioridade 1: course_ids (array - nova estrutura)
+      if (integration.course_ids && integration.course_ids.length > 0) {
+        coursesToEnroll = integration.course_ids;
+        console.log('Usando course_ids (array) - múltiplos cursos:', coursesToEnroll.length);
+      } 
+      // Prioridade 2: course_id (único - estrutura antiga para compatibilidade)
+      else if (integration.course_id) {
+        coursesToEnroll = [integration.course_id];
+        console.log('Usando course_id (único) - curso único:', integration.course_id);
+      }
+      
+      // Criar matrículas em todos os cursos
+      if (coursesToEnroll.length > 0) {
+        console.log('Criando matrículas para', coursesToEnroll.length, 'curso(s)');
         
-        const { error: enrollmentError } = await supabaseAdmin
-          .from('course_enrollments')
-          .upsert({
-            user_id: currentUserId,
-            course_id: integration.course_id
-          });
+        for (const courseId of coursesToEnroll) {
+          console.log('Matriculando no curso:', courseId);
+          
+          const { error: enrollmentError } = await supabaseAdmin
+            .from('course_enrollments')
+            .upsert({
+              user_id: currentUserId,
+              course_id: courseId
+            }, {
+              onConflict: 'user_id,course_id'
+            });
 
-        if (enrollmentError) {
-          console.error('Erro ao criar matrícula:', enrollmentError);
-        } else {
-          console.log('Matrícula criada/atualizada com sucesso');
+          if (enrollmentError) {
+            console.error('Erro ao criar matrícula no curso', courseId, ':', enrollmentError);
+          } else {
+            console.log('Matrícula criada/atualizada com sucesso no curso:', courseId);
+          }
         }
       } else {
-        console.log('Nenhum course_id configurado na integração');
+        console.log('Nenhum curso configurado na integração');
       }
     }
 

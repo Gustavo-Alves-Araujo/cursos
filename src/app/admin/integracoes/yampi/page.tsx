@@ -30,7 +30,8 @@ interface YampiIntegration {
   name: string;
   product_id: string;
   secret_key: string;
-  course_id: string;
+  course_id?: string; // Mantido para compatibilidade
+  course_ids?: string[]; // Nova coluna para múltiplos cursos
   created_at: string;
   courses?: {
     id: string;
@@ -62,7 +63,7 @@ export default function YampiIntegrationsPage() {
     name: '',
     product_id: '',
     secret_key: '',
-    course_id: ''
+    course_ids: [] as string[]
   });
 
   useEffect(() => {
@@ -86,18 +87,10 @@ export default function YampiIntegrationsPage() {
 
   const loadData = async () => {
     try {
-      // Usar a instância global do Supabase
-      
       // Carregar integrações
       const { data: integrationsData, error: integrationsError } = await supabase
         .from('yampi_integrations')
-        .select(`
-          *,
-          courses (
-            id,
-            title
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (integrationsError) throw integrationsError;
@@ -125,14 +118,25 @@ export default function YampiIntegrationsPage() {
     setError('');
     setSuccess('');
 
+    // Validar se pelo menos um curso foi selecionado
+    if (formData.course_ids.length === 0) {
+      setError('Selecione pelo menos um curso para a integração');
+      return;
+    }
+
     try {
-      // Usar a instância global do Supabase
+      const integrationData = {
+        name: formData.name,
+        product_id: formData.product_id,
+        secret_key: formData.secret_key,
+        course_ids: formData.course_ids // Salva o array diretamente
+      };
 
       if (isEditing && editingId) {
         // Editar integração existente
         const { error } = await supabase
           .from('yampi_integrations')
-          .update(formData)
+          .update(integrationData)
           .eq('id', editingId);
 
         if (error) throw error;
@@ -141,14 +145,14 @@ export default function YampiIntegrationsPage() {
         // Criar nova integração
         const { error } = await supabase
           .from('yampi_integrations')
-          .insert([formData]);
+          .insert([integrationData]);
 
         if (error) throw error;
         setSuccess('Integração criada com sucesso!');
       }
 
       // Limpar formulário e recarregar dados
-      setFormData({ name: '', product_id: '', secret_key: '', course_id: '' });
+      setFormData({ name: '', product_id: '', secret_key: '', course_ids: [] });
       setIsDialogOpen(false);
       setIsEditing(false);
       setEditingId(null);
@@ -160,11 +164,23 @@ export default function YampiIntegrationsPage() {
   };
 
   const handleEdit = (integration: YampiIntegration) => {
+    // Extrair IDs dos cursos - suporta ambas as estruturas
+    let courseIds: string[] = [];
+    
+    // Prioridade 1: course_ids (array - nova estrutura)
+    if (integration.course_ids && integration.course_ids.length > 0) {
+      courseIds = integration.course_ids;
+    } 
+    // Prioridade 2: course_id (único - estrutura antiga)
+    else if (integration.course_id) {
+      courseIds = [integration.course_id];
+    }
+    
     setFormData({
       name: integration.name,
       product_id: integration.product_id,
       secret_key: integration.secret_key,
-      course_id: integration.course_id
+      course_ids: courseIds
     });
     setIsEditing(true);
     setEditingId(integration.id);
@@ -191,7 +207,7 @@ export default function YampiIntegrationsPage() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', product_id: '', secret_key: '', course_id: '' });
+    setFormData({ name: '', product_id: '', secret_key: '', course_ids: [] });
     setIsEditing(false);
     setEditingId(null);
     setError('');
@@ -206,9 +222,8 @@ export default function YampiIntegrationsPage() {
     const searchLower = searchTerm.toLowerCase();
     const nameMatch = integration.name.toLowerCase().includes(searchLower);
     const productIdMatch = integration.product_id.toLowerCase().includes(searchLower);
-    const courseMatch = integration.courses?.title.toLowerCase().includes(searchLower);
     
-    return nameMatch || productIdMatch || courseMatch;
+    return nameMatch || productIdMatch;
   });
 
   // Filtrar cursos com base no termo de busca no modal
@@ -315,7 +330,7 @@ export default function YampiIntegrationsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="course_id">Curso Vinculado</Label>
+                  <Label>Cursos Vinculados ({formData.course_ids.length} selecionado{formData.course_ids.length !== 1 ? 's' : ''})</Label>
                   <div className="space-y-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -327,27 +342,42 @@ export default function YampiIntegrationsPage() {
                         className="pl-10"
                       />
                     </div>
-                    <Select
-                      value={formData.course_id}
-                      onValueChange={(value) => setFormData({ ...formData, course_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um curso" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {filteredCourses.length === 0 ? (
-                          <div className="px-2 py-6 text-center text-sm text-gray-500">
-                            Nenhum curso encontrado
-                          </div>
-                        ) : (
-                          filteredCourses.map((course) => (
-                            <SelectItem key={course.id} value={course.id}>
-                              {course.title}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <div className="border rounded-md max-h-[300px] overflow-y-auto bg-white/5 p-2">
+                      {filteredCourses.length === 0 ? (
+                        <div className="px-2 py-6 text-center text-sm text-gray-500">
+                          Nenhum curso encontrado
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {filteredCourses.map((course) => (
+                            <label 
+                              key={course.id} 
+                              className="flex items-center gap-2 p-2 hover:bg-white/10 rounded cursor-pointer transition-colors"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={formData.course_ids.includes(course.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({ 
+                                      ...formData, 
+                                      course_ids: [...formData.course_ids, course.id] 
+                                    });
+                                  } else {
+                                    setFormData({ 
+                                      ...formData, 
+                                      course_ids: formData.course_ids.filter(id => id !== course.id) 
+                                    });
+                                  }
+                                }}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm flex-1">{course.title}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     {courseSearchTerm && (
                       <p className="text-xs text-gray-500">
                         {filteredCourses.length} {filteredCourses.length === 1 ? 'curso encontrado' : 'cursos encontrados'}
@@ -485,10 +515,37 @@ export default function YampiIntegrationsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="bg-blue-600/20 text-blue-200">
-                        Curso: {integration.courses?.title || 'Não vinculado'}
-                      </Badge>
+                    <div>
+                      {(() => {
+                        // Determinar quais cursos mostrar (suporta ambas estruturas)
+                        const courseIdsToShow = integration.course_ids || (integration.course_id ? [integration.course_id] : []);
+                        const linkedCourses = courses.filter(c => courseIdsToShow.includes(c.id));
+                        
+                        return (
+                          <>
+                            <p className="text-sm text-blue-300 mb-2">
+                              <strong>Cursos vinculados:</strong> {linkedCourses.length}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {linkedCourses.length > 0 ? (
+                                linkedCourses.map((course) => (
+                                  <Badge 
+                                    key={course.id} 
+                                    variant="secondary" 
+                                    className="bg-blue-600/20 text-blue-200"
+                                  >
+                                    {course.title}
+                                  </Badge>
+                                ))
+                              ) : (
+                                <Badge variant="secondary" className="bg-gray-600/20 text-gray-300">
+                                  Nenhum curso vinculado
+                                </Badge>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="text-sm text-blue-300">
                       <p><strong>Chave Secreta:</strong> {integration.secret_key.substring(0, 8)}...</p>
