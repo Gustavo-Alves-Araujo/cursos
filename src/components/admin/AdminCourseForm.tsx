@@ -13,6 +13,7 @@ type FormState = {
   price: number;
   estimatedDuration: string;
   expirationDays: number;
+  externalLink: string;
   isPublished: boolean;
 };
 
@@ -29,6 +30,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
     price: initialData?.price ?? 0,
     estimatedDuration: initialData?.estimatedDuration ?? "0h 0min",
     expirationDays: initialData?.expirationDays ?? 0,
+    externalLink: initialData?.externalLink ?? "",
     isPublished: initialData?.isPublished ?? false
   });
   const [error, setError] = useState<string>("");
@@ -61,6 +63,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
           price: 0,
           estimatedDuration: "0h 0min",
           expirationDays: 0,
+          externalLink: "",
           isPublished: false
         });
       }
@@ -130,6 +133,23 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
         </p>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="externalLink">Link Externo do Curso (Opcional)</Label>
+        <Input 
+          id="externalLink" 
+          type="url"
+          value={state.externalLink} 
+          onChange={(e) => {
+            console.log('Link externo alterado para:', e.target.value);
+            setState({ ...state, externalLink: e.target.value });
+          }} 
+          placeholder="https://exemplo.com/comprar-curso"
+        />
+        <p className="text-sm text-gray-500">
+          Link para direcionar usuários que ainda não possuem o curso. Será usado na seção &quot;Cursos que você ainda não tem&quot;.
+        </p>
+      </div>
+
       <div className="flex items-center space-x-2">
         <Switch
           id="isPublished"
@@ -159,6 +179,7 @@ export function AdminCourseForm({ onSubmit, initialData, isLoading = false }: Ad
               price: 0,
               estimatedDuration: "0h 0min",
               expirationDays: 0,
+              externalLink: "",
               isPublished: false
             });
           }}

@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { ArrowRight, BookOpen, Plus } from "lucide-react";
 import { useMyCourses, useCourses } from "@/hooks/useCourses";
 import { supabase } from "@/lib/supabase";
+import type { Course } from "@/types/course";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
@@ -22,6 +22,7 @@ export default function Home() {
   const { courses: allCourses, isLoading: allCoursesLoading } = useCourses();
   const [storeUrl, setStoreUrl] = useState<string | null>(null);
   const [showcaseCoursesIds, setShowcaseCoursesIds] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
   
   useEffect(() => {
     if (!isLoading) {
@@ -35,6 +36,17 @@ export default function Home() {
       }
     }
   }, [user, isLoading, router]);
+
+  // Detectar se é mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Carregar URL da loja configurada
   useEffect(() => {
@@ -150,7 +162,6 @@ export default function Home() {
     return null;
   }
 
-  const myCoursesPreview = myCourses.slice(0, 6); // Mostrar até 6
   const myCourseIds = myCourses.map(c => c.id);
   
   // Filtrar cursos disponíveis:
@@ -171,8 +182,6 @@ export default function Home() {
     // Apenas cursos que fazem parte de vitrines relacionadas aos cursos do aluno
     return showcaseCoursesIds.includes(c.id);
   });
-  
-  const availableCoursesPreview = availableCourses.slice(0, 6);
 
   const handleStoreClick = () => {
     if (storeUrl) {
@@ -181,6 +190,18 @@ export default function Home() {
       router.push('/loja');
     }
   };
+
+  // Função para dividir cursos em grupos de 5 (desktop)
+  const chunkCourses = (courses: Course[], chunkSize: number) => {
+    const chunks = [];
+    for (let i = 0; i < courses.length; i += chunkSize) {
+      chunks.push(courses.slice(i, i + chunkSize));
+    }
+    return chunks;
+  };
+
+  const myCoursesChunks = chunkCourses(myCourses, 5);
+  const availableCoursesChunks = chunkCourses(availableCourses, 5);
 
   return (
     <PasswordResetGuard>
@@ -197,29 +218,42 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Seção Meus Cursos (até 6) */}
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h2 className="text-xl sm:text-2xl font-semibold text-blue-200 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
-              Meus Cursos
-            </h2>
-            {myCourses.length > 6 && (
-                <Button asChild variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white w-full sm:w-auto transition-all duration-200 text-sm sm:text-base">
-                <Link href="/my-courses" className="flex items-center justify-center gap-2">
-                  <span className="hidden sm:inline">Ver todos os cursos</span>
-                  <span className="sm:hidden">Ver todos</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
+        {/* Seção Meus Cursos */}
+        {myCourses.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-semibold text-blue-200 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
+                Meus Cursos
+              </h2>
+            </div>
+            
+            {/* Mobile: Carousel com setas */}
+            {isMobile && (
+              <Carousel ariaLabel="Meus cursos">
+                {myCourses.map((c) => (
+                  <CourseCard key={c.id} course={c} isOwned={true} />
+                ))}
+              </Carousel>
             )}
-          </div>
-          <Carousel ariaLabel="Meus cursos">
-            {myCoursesPreview.map((c) => (
-              <CourseCard key={c.id} course={c} isOwned={true} />
+            
+            {/* Desktop: Grid com grupos de 5 */}
+            {!isMobile && myCoursesChunks.map((chunk, chunkIndex) => (
+              <div key={chunkIndex} className="space-y-4">
+                {chunkIndex > 0 && (
+                  <h3 className="text-lg font-semibold text-blue-300 mt-6">
+                    Mais cursos
+                  </h3>
+                )}
+                <div className="grid grid-cols-5 gap-4">
+                  {chunk.map((c) => (
+                    <CourseCard key={c.id} course={c} isOwned={true} />
+                  ))}
+                </div>
+              </div>
             ))}
-          </Carousel>
-        </section>
+          </section>
+        )}
 
         {/* Seção Cursos Disponíveis */}
         {availableCourses.length > 0 ? (
@@ -239,13 +273,33 @@ export default function Home() {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
-            <Carousel ariaLabel="Cursos disponíveis">
-              {availableCoursesPreview.map((c) => (
-                <CourseCard key={c.id} course={c} isOwned={false} />
-              ))}
-            </Carousel>
+            
+            {/* Mobile: Carousel com setas */}
+            {isMobile && (
+              <Carousel ariaLabel="Cursos disponíveis">
+                {availableCourses.map((c) => (
+                  <CourseCard key={c.id} course={c} isOwned={false} />
+                ))}
+              </Carousel>
+            )}
+            
+            {/* Desktop: Grid com grupos de 5 */}
+            {!isMobile && availableCoursesChunks.map((chunk, chunkIndex) => (
+              <div key={chunkIndex} className="space-y-4">
+                {chunkIndex > 0 && (
+                  <h3 className="text-lg font-semibold text-blue-300 mt-6">
+                    Mais cursos
+                  </h3>
+                )}
+                <div className="grid grid-cols-5 gap-4">
+                  {chunk.map((c) => (
+                    <CourseCard key={c.id} course={c} isOwned={false} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </section>
-        ) : (
+        ) : myCourses.length > 0 ? (
           <section className="space-y-4">
             <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 text-center">
               <BookOpen className="w-12 h-12 text-green-400 mx-auto mb-4" />
@@ -254,7 +308,7 @@ export default function Home() {
               <p className="text-green-400 text-sm mt-2">Continue estudando e aproveitando seu aprendizado.</p>
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* Mensagem quando não há cursos */}
         {myCourses.length === 0 && availableCourses.length === 0 && (

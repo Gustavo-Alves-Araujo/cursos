@@ -22,7 +22,7 @@ export default function NewCoursePage() {
     }
   }, []);
 
-  const handleSubmit = async (data: { title: string; thumbnail: string; price: number; estimatedDuration: string; expirationDays: number; isPublished: boolean }) => {
+  const handleSubmit = async (data: { title: string; thumbnail: string; price: number; estimatedDuration: string; expirationDays: number; externalLink: string; isPublished: boolean }) => {
     console.log('NewCoursePage - handleSubmit chamado com dados:', data);
     setIsLoading(true);
     try {

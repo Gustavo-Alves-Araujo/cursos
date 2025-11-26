@@ -16,6 +16,7 @@ type Props = {
 
 export function CourseCard({ course, enrollmentDate, isOwned = true }: Props) {
   const isClickable = isOwned && course.isPublished;
+  const hasExternalLink = !isOwned && course.externalLink && course.externalLink.trim() !== '';
 
   // Função para validar se a URL é válida
   const isValidUrl = (url: string): boolean => {
@@ -29,7 +30,7 @@ export function CourseCard({ course, enrollmentDate, isOwned = true }: Props) {
 
   const cardContent = (
     <Card className={`overflow-hidden rounded-xl backdrop-blur-sm border transition-all duration-300 w-full max-w-48 h-96 ${
-      isClickable 
+      isClickable || hasExternalLink
         ? 'bg-white/5 border-white/10 hover:bg-white/10 group-hover:border-white/20 group-hover:shadow-2xl group-hover:shadow-blue-500/10 cursor-pointer' 
         : 'bg-white/5 border-white/5 grayscale opacity-75 cursor-not-allowed'
     }`}>
@@ -77,7 +78,7 @@ export function CourseCard({ course, enrollmentDate, isOwned = true }: Props) {
 
   return (
     <motion.div 
-      whileHover={isClickable ? { y: -4, scale: 1.01 } : {}} 
+      whileHover={isClickable || hasExternalLink ? { y: -4, scale: 1.01 } : {}} 
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className="group"
     >
@@ -85,6 +86,10 @@ export function CourseCard({ course, enrollmentDate, isOwned = true }: Props) {
         <Link href={`/courses/${course.id}`} className="block">
           {cardContent}
         </Link>
+      ) : hasExternalLink ? (
+        <a href={course.externalLink} target="_blank" rel="noopener noreferrer" className="block">
+          {cardContent}
+        </a>
       ) : (
         cardContent
       )}

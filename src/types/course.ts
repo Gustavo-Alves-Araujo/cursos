@@ -55,6 +55,7 @@ export type Course = {
   totalLessons: number;
   estimatedDuration: string; // ex: "2h 30min"
   expirationDays?: number; // dias para expiração do acesso
+  externalLink?: string; // link externo para direcionar usuários que não possuem o curso
   created_at: string;
   updated_at: string;
 };

@@ -71,6 +71,7 @@ export interface Database {
           is_published: boolean
           total_lessons: number
           estimated_duration: string
+          external_link: string | null
           created_at: string
           updated_at: string
         }
@@ -85,6 +86,7 @@ export interface Database {
           is_published?: boolean
           total_lessons?: number
           estimated_duration?: string
+          external_link?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -99,6 +101,7 @@ export interface Database {
           is_published?: boolean
           total_lessons?: number
           estimated_duration?: string
+          external_link?: string | null
           created_at?: string
           updated_at?: string
         }

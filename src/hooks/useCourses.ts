@@ -58,6 +58,7 @@ export function useCourses() {
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
           expirationDays: course.expiration_days || 0,
+          externalLink: course.external_link,
         modules: course.modules?.map((module: Record<string, unknown>) => ({
           id: module.id,
           courseId: module.course_id,
@@ -142,6 +143,11 @@ export function useCourses() {
         insertData.expiration_days = courseData.expirationDays;
       }
 
+      // Add external_link if it's provided
+      if (courseData.externalLink && courseData.externalLink.trim()) {
+        insertData.external_link = courseData.externalLink;
+      }
+
       console.log('createCourse - dados para inserção:', insertData);
       console.log('createCourse - thumbnail específico:', {
         original: courseData.thumbnail,
@@ -196,6 +202,7 @@ export function useCourses() {
       if (updates.isPublished !== undefined) updateData.is_published = updates.isPublished;
       if (updates.estimatedDuration !== undefined) updateData.estimated_duration = updates.estimatedDuration;
       if (updates.expirationDays !== undefined) updateData.expiration_days = updates.expirationDays;
+      if (updates.externalLink !== undefined) updateData.external_link = updates.externalLink;
       
       // Verificar se há dados para atualizar
       if (Object.keys(updateData).length === 0) {
@@ -536,6 +543,7 @@ export function useMyCourses() {
           totalLessons: course.total_lessons,
           estimatedDuration: course.estimated_duration,
           expirationDays: course.expiration_days || 0,
+          externalLink: course.external_link,
           modules: course.modules?.map((module: Record<string, unknown>) => {
             // Verificar se o módulo está liberado baseado em unlockAfterDays
             const unlockAfterDays = Number(module.unlock_after_days) || 0;

@@ -32,6 +32,7 @@ export default function AdminStudentsPage() {
   const [studentsLoading, setStudentsLoading] = useState(false); // Começar como false para evitar loading desnecessário
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isCreateStudentDialogOpen, setIsCreateStudentDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
@@ -238,6 +239,11 @@ export default function AdminStudentsPage() {
     setIsConfigDialogOpen(true);
   };
 
+  const openViewDialog = (studentId: string) => {
+    setSelectedStudent(studentId);
+    setIsViewDialogOpen(true);
+  };
+
   return (
     <div className="relative">
       <AdminSidebar />
@@ -362,7 +368,12 @@ export default function AdminStudentsPage() {
                               <Settings className="w-4 h-4 mr-1" />
                               Configurar
                             </Button>
-                            <Button size="sm" variant="outline" className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
+                              onClick={() => openViewDialog(student.id)}
+                            >
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button 
@@ -383,6 +394,122 @@ export default function AdminStudentsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Dialog de Visualização de Informações do Aluno */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="max-w-2xl bg-white/10 backdrop-blur-sm border-white/20 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-blue-200 text-2xl flex items-center gap-2">
+                <Eye className="w-6 h-6" />
+                Informações do Aluno
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedStudentData && (
+              <div className="space-y-6">
+                {/* Informações Básicas */}
+                <div className="bg-white/5 rounded-lg p-6 border border-white/10">
+                  <h3 className="text-lg font-semibold text-blue-300 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Dados Pessoais
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-blue-300 text-sm">Nome</label>
+                      <p className="text-white font-medium">{selectedStudentData.name}</p>
+                    </div>
+                    <div>
+                      <label className="text-blue-300 text-sm">Email</label>
+                      <p className="text-white font-medium">{selectedStudentData.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-blue-300 text-sm">CPF</label>
+                      <p className="text-white font-medium">{selectedStudentData.cpf || 'Não informado'}</p>
+                    </div>
+                    <div>
+                      <label className="text-blue-300 text-sm">Função</label>
+                      <Badge className="bg-blue-600/20 text-blue-200">
+                        {selectedStudentData.role === 'student' ? 'Aluno' : selectedStudentData.role}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cursos Matriculados */}
+                <div className="bg-white/5 rounded-lg p-6 border border-white/10">
+                  <h3 className="text-lg font-semibold text-blue-300 mb-4 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    Cursos Matriculados ({selectedStudentData.enrollments.length})
+                  </h3>
+                  
+                  {selectedStudentData.enrollments.length === 0 ? (
+                    <div className="text-center py-6 bg-white/5 rounded-lg border border-white/10">
+                      <BookOpen className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-400 text-sm">Nenhum curso matriculado</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                      {selectedStudentData.enrollments
+                        .map(courseId => courses.find(c => c.id === courseId))
+                        .filter(course => course)
+                        .map((course) => {
+                          if (!course) return null;
+                          return (
+                            <div key={course.id} className="flex items-start gap-3 p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-white font-medium">{course.title}</h4>
+                                <p className="text-blue-200 text-sm">{course.shortDescription}</p>
+                                <div className="flex items-center gap-2 mt-2 text-xs">
+                                  <span className="text-blue-300">
+                                    {course.modules?.length || 0} módulos
+                                  </span>
+                                  {course.isPublished && (
+                                    <Badge className="bg-green-500/20 text-green-300 text-xs">
+                                      Publicado
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Estatísticas */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/30 text-center">
+                    <BookOpen className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-white">{selectedStudentData.enrollments.length}</p>
+                    <p className="text-blue-300 text-sm">Cursos Ativos</p>
+                  </div>
+                  <div className="bg-orange-500/10 rounded-lg p-4 border border-orange-500/30 text-center">
+                    <Plus className="w-6 h-6 text-orange-400 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-white">{courses.length - selectedStudentData.enrollments.length}</p>
+                    <p className="text-orange-300 text-sm">Disponíveis</p>
+                  </div>
+                  <div className="bg-green-500/10 rounded-lg p-4 border border-green-500/30 text-center">
+                    <Award className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                    <p className="text-2xl font-bold text-white">{courses.length}</p>
+                    <p className="text-green-300 text-sm">Total de Cursos</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/20">
+              <Button 
+                variant="outline" 
+                className="bg-white/15 hover:bg-white/25 border-white/30 text-blue-200 hover:text-white"
+                onClick={() => setIsViewDialogOpen(false)}
+              >
+                Fechar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialog de Configuração - Melhorado */}
         <Dialog open={isConfigDialogOpen} onOpenChange={(open) => {
